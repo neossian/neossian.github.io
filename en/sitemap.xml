@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://www.wrish.com/</loc>
+    <lastmod>2017-04-01T23:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</loc>
+    <lastmod>2017-04-01T23:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/</loc>
+    <lastmod>2016-12-29T17:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</loc>
+    <lastmod>2016-12-22T20:53:49-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/list-all-nested-memberships/</loc>
+    <lastmod>2016-12-19T19:54:49-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/clone-ou-structure-to-new-domain/</loc>
+    <lastmod>2016-12-16T23:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/</loc>
+    <lastmod>2016-12-08T20:53:49-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/remotely-retrieve-ssl-certificates/</loc>
+    <lastmod>2016-12-05T23:30:10+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/</loc>
+    <lastmod>2016-12-02T23:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/track-skype-lync-schema-change/</loc>
+    <lastmod>2016-11-25T11:42:35-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/unable-to-verify-azure-domain/</loc>
+    <lastmod>2016-11-23T11:42:35-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/do-it-with-a-command-line/</loc>
+    <lastmod>2016-11-18T11:42:35-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/regex-cheat-sheet/</loc>
+    <lastmod>2016-11-18T11:42:35-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/about/</loc>
+    <lastmod>2016-11-14T11:42:35-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/downloading-files-with-powershell/</loc>
+    <lastmod>2014-03-31T02:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/cleaning-conflict-and-deleted-files-on-dfsr-replicated-sysvol/</loc>
+    <lastmod>2013-08-03T16:53:49+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/</loc>
+    <lastmod>2013-03-31T02:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/highlight-output/</loc>
+    <lastmod>2012-12-20T11:42:35-05:00</lastmod>
+  </url>
+  
+</urlset>

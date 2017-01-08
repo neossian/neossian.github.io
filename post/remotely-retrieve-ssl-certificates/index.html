@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.17" />
+
+  <title>Remotely Retrieve active SSL certificate (HTTPS or LDAPS) &middot; WRISH</title>
+
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-old-ie-min.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
+  <!--<![endif]-->
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="/css/side-menu-old-ie.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="/css/side-menu.css">
+  <!--<![endif]-->
+
+  <link rel="stylesheet" href="/css/blackburn.css">
+
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="http://www.wrish.com/css/atom-one-light.css">
+  <script src="http://www.wrish.com/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  
+
+  <link rel="shortcut icon" href="http://www.wrish.com/img/favicon.ico" type="image/x-icon" />
+
+  
+  
+
+</head>
+
+
+<body>
+<div id="layout">
+
+  
+<a href="#menu" id="menuLink" class="menu-link">
+  
+  <span></span>
+</a>
+<div id="menu">
+
+  
+  <a class="pure-menu-heading brand" href="/"><img src='/img/w.svg' height='65px' width='auto'>RISH</a>
+
+
+  <div class="pure-menu">
+    <ul class="pure-menu-list">
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/about/"><i class='fa fa-user fa-fw'></i>About</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+    </ul>
+  </div>
+  
+
+  <div class="pure-menu social">
+  <ul class="pure-menu-list">
+
+    
+
+    
+
+    
+
+	
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://social.technet.microsoft.com/profile/Shane%20Wright" target="_blank"><i class="fa fa-windows fa-fw"></i>Technet</a>
+    </li>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://linkedin.com/in/neossian" target="_blank"><i class="fa fa-linkedin-square fa-fw"></i>LinkedIn</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://stackoverflow.com/users/1111059/neossian" target="_blank"><i class="fa fa-stack-overflow fa-fw"></i>Stack Overflow</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+  </ul>
+</div>
+
+  
+  <div>
+  <div class="small-print">
+    <small>&copy; 2016. All rights reserved.</small>
+  </div>
+  <div class="small-print">
+    <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Theme&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
+  </div>
+</div>
+
+
+  </div>
+
+
+  <div id="main">
+
+
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Remotely Retrieve active SSL certificate (HTTPS or LDAPS)</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>5  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/certificates">Certificates</a>
+    
+  </div>
+  
+  
+
+</div>
+
+	  <p>When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.</p>
+
+<p><a href="https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1">Download Retrieve-ServerCertFromSocket.ps1</a></p>
+
+<p>With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn&rsquo;t
+work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn&rsquo;t match your connectivity
+method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.</p>
+
+<p>In the past I have often used openssl with the s_client and showcerts options
+<code>openssl s_client -showcerts -host www.wrish.com -port 443</code>
+then you have to copy and paste the output into a file to view the file or review the settings. This requires another piece of software, and remembering the parameters. If only there was a quick and dirty powershell way?!</p>
+
+<p>To build this script I started looking around for what was already available. I found this one <a href="https://iamoffthebus.wordpress.com/2014/02/04/powershell-to-get-remote-websites-ssl-certificate-expiration/">Powershell to get remote website&rsquo;s SSL certificate expiration</a> but knew it wouldn&rsquo;t work
+for me because it relies on <code>Net.HttpWebRequest</code> which means no LDAPs or other protocols. I had to look lower on the network stack and found <code>System.Net.Sockets.tcpclient</code> and <code>System.Net.Security.SslStream</code> which allow you to directly establish an SSL stream, perfect!</p>
+
+<p>To build out the script I make use of <code>try {} catch {} finally {}</code> by putting the cleanup commands in the finally block (good practice for all network scripting) you can avoid memory leaks and leaving open unwanted sockets.</p>
+
+<p><a href="https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1">Download Retrieve-ServerCertFromSocket.ps1</a></p>
+
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/">Decoding legacy Exchange DN from NDR</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="next">
+      <a href="http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/">Azure AD Connect - Cannot Retrieve Single Sign On Status</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/"><i class="fa fa-chevron-right"></i></a>
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
+</div>
+</div>
+<script src="http://www.wrish.com/js/ui.js"></script>
+
+
+
+</body>
+</html>
+

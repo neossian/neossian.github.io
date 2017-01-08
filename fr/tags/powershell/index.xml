@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/fr/tags/powershell/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. Droits réservés.</copyright>
+    <atom:link href="http://www.wrish.com/fr/tags/powershell/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Clone OU Structure to New Domain</title>
+      <link>http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/</link>
+      <pubDate>Fri, 16 Dec 2016 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/</guid>
+      <description>&lt;p&gt;Une façon rapid et powershellement de cloner une structure d&amp;rsquo;UO d&amp;rsquo;un domaine à un domaine de destination consiste à utiliser l&amp;rsquo;outil &lt;code&gt;ldifde&lt;/code&gt; et modifier la sortie.
+
+De créer le fichier de sortie &lt;code&gt;Oustructure.ldif&lt;/code&gt; on utilise &lt;code&gt;ldifde&lt;/code&gt; pour exporter toutes les UOs.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Domain = get-addomain
+ldifde -f OUStructure.ldif -d $($domain.Distinguishedname) -c `&amp;quot;$($domain.Distinguishedname)`&amp;quot; `&amp;quot;DC=X`&amp;quot; --% -r &amp;quot;(objectclass=organizationalUnit)&amp;quot; -l &amp;quot;ou,description,objectclass,displayName,displayNamePrintable,msCOM-UserPartitionSetLink,x121Address,uPNSuffixes,co,telexNumber,teletexTerminalIdentifier,telephoneNumber,street,st,seeAlso,searchGuide,registeredAddress,preferredDeliveryMethod,postalCode,postalAddress,postOfficeBox,physicalDeliveryOfficeName,managedBy,thumbnailLogo,l,internationalISDNNumber,facsimileTelephoneNumber,destinationIndicator,desktopProfile,defaultGroup,countryCode,c,businessCategory&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;C&amp;rsquo;est possible de remplacer les informations spécifique à l&amp;rsquo;orginasation (si vous voulez que votre environnement de test avoir l&amp;rsquo;apparence d&amp;rsquo;un autre organisation)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;get-content OUStructure.ldif | %{$_ -replace &#39;Contoso&#39;,&#39;TailSpin Toys&#39;} | Out-file Oustructure-reOrg.ldif
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Maintenant on copie le fichier LDIF sur le serveur de destination et exécuter les commandes pour importer les structures d&amp;rsquo;UO.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Domain = get-addomain
+ldifde -i -v -k -f OUStructure.ldif  -c `&amp;quot;DC=X`&amp;quot; `&amp;quot;$($domain.Distinguishedname)`&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    
+    <item>
+      <title>Suivez les mis à jour de l&#39;Schema avec Powershell</title>
+      <link>http://www.wrish.com/fr/post/track-skype-lync-schema-change/</link>
+      <pubDate>Fri, 25 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/track-skype-lync-schema-change/</guid>
+      <description>&lt;p&gt;Lorsque je changer le schéma dans une grande forêt, c&amp;rsquo;est gentil de suivre le progrès
+de le changement pendant la réplication autour de forêt. J&amp;rsquo;ai voulais de crèer un script qui
+rapidement donner la version actuelle de schéma pour plus de 100 contrôleurs de domaine.&lt;/p&gt;
+
+&lt;p&gt;Si vous voulez sauter les détails &lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Tèlecharger Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;En commençant avec quelques scripts que j&amp;rsquo;avais déjà construit, &lt;code&gt;foreach-parallel&lt;/code&gt; qui peut exécuter en parallèle.
+&lt;code&gt;get-forestDomainControlles&lt;/code&gt; pour crée un liste de tous les contrôleurs de domaine et &lt;code&gt;get-LdapData&lt;/code&gt; pour faire les
+questions de LDAP rapidement sans le module Active Directory.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Import-module ActiveDirectory          
+function get-ForestDomainControllers () {...}
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$pageSize=1000,$Properties=&amp;quot;*&amp;quot;,$sizeLimit=0,[switch]$verbose,$o365FilterAddress){...}
+function ForEach-Parallel () {...}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Tout d&amp;rsquo;abord, on a besoin de mettre tous les CDs dans un tableau, cela peut prendre beaucoup de temps pour les grands domaines.
+On va obtenir la liste seulement si $DCs est vide - comme ça, on peut exécuter le script plusieurs fois et seulement faire cette étape une fois.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($DCs -eq $null) {$DCs = get-ForestDomainControllers}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ensuite, on va trouver la partition de schéma - encore, on va le faire seulement une fois. Le valeur de &lt;code&gt;PartitionsContainer&lt;/code&gt; sur l&amp;rsquo;objet de forêt
+est comme &lt;code&gt;DC=Partitions,CN=Configuration,DC=Domain,DC=com&lt;/code&gt;. On va utiliser le &lt;code&gt;-replace&lt;/code&gt; opérateur pour remplacer &lt;code&gt;CN=Partitions&lt;/code&gt; avec &lt;code&gt;CN=Schema&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($SchemaPartion -eq $null) {$SchemaPartion = (get-adforest).partitionscontainer -replace &#39;CN=Partitions&#39;,&#39;CN=Schema&#39;}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Pour obtenir le version de schéma de Lync et Skype for Business, on prendre le &lt;code&gt;rangeUpper&lt;/code&gt; attribut de l&amp;rsquo;objet &lt;code&gt;ms-RTC-SIP-SchemaVersion&lt;/code&gt;. Pour faire ça,
+on utiliser &lt;code&gt;get-ldapdata&lt;/code&gt; avec le paramètre &lt;code&gt;searchroot&lt;/code&gt; qui représente l&amp;rsquo;objet &lt;code&gt;ms-RTC-SIP-SchemaVersion&lt;/code&gt;. Ici, &lt;code&gt;$_&lt;/code&gt; représente le serveur actuellement utilisé.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartion&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;ForEach-Parallel&lt;/code&gt; utilisé threads de travail pour le parallèlisme, donc on a besoin de emporter des functions dans les threads et tous les valeurs que on veut.
+&lt;code&gt;$SchemaPartition&lt;/code&gt; est passer par le paramètre &lt;code&gt;-Arguments&lt;/code&gt;, ensuite le premier ligne de la code est &lt;code&gt;$SchemaPartition=$args[0]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;En fonction de la valeur, nous allons retournerons des textes qui va describir la version, pour ça, on utilisé l&amp;rsquo;instruction &lt;code&gt;switch&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;switch ($value) {
+	&#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
+	&#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
+	&#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
+	&#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
+	&#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
+	default: {$value = &amp;quot;Unknown schema value or no value [$value]&amp;quot;}
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alors, nous exportons le valeur dans une objet pour traitement dans le pipeline.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Finalement la fonction qui faire tous les travailles est comme ça. Le cmdlet &lt;code&gt;foreach-parallel&lt;/code&gt; gagner l&amp;rsquo;autre fonction &lt;code&gt;get-ldapdata&lt;/code&gt; par le paramètre &lt;code&gt;-ImportFunctions&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function track-LyncSchema {
+    $DCs.hostname |  %p{
+        $SchemaPartition= $args[0]
+        $Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartition&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
+        switch ($value) {
+            &#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
+            &#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
+            &#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
+            &#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
+            &#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
+            default {$value = &amp;quot;Unknown [$value]&amp;quot;}
+        }
+
+        new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
+    } -ImportFunctions get-ldapData -arguments $schemaPartition
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On peut exécuter le script par la commande de ligne pour obtenir une liste de tous les serveurs et leurs versions des schéma.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-LyncSchema.ps1
+server                        LyncSchemaVersion
+------                        -----------------
+TestDC100.wrish.com           Skype for Business 2015 [1...
+TestDC101.wrish.com           Skype for Business 2015 [1...
+TestDC213.wrish.com           Skype for Business 2015 [1...
+TestDC12.wrish.com            Skype for Business 2015 [1...
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Car on a construit les scripts pour exporter les objets, on peut facilement voir combien restent a réplicater.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-lyncschema.ps1 | group LyncSchemaVersion
+Count Name                       Group
+----- ----                       -----
+  202 Skype for Business 2010... {@{server=Test..
+   20 Lync Server 2010 [1100]    {@{server=Test..
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Tèlecharger Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Impossible de vérifier un domaine d&#39;Azure</title>
+      <link>http://www.wrish.com/fr/post/unable-to-verify-azure-domain/</link>
+      <pubDate>Wed, 23 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/unable-to-verify-azure-domain/</guid>
+      <description>&lt;p&gt;Après vous avez ajouter un domaine à Azure AD (ou Office 365) par Powershell pendant que vous êtes connecté à votre ADFS comme ceci:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;New-MsolDomain -Name domaintest.wrish.com -Authentication Federated
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Lorsque vous ajoutez ton enregistrement de vérification et essayer de vérifier le domaine par l&amp;rsquo;interface graphique, ce possible d&amp;rsquo;avoir un erreur comme ceci:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/unable-to-verify-azure-domain.png&#34; alt=&#34;Impossible de vérifier le nom de domaine. Assurez-vous d&#39;avoir ajouté l&#39;enregistrement ci-dessus au bureau d&#39;enregistrement &#39;contoso.com&#39; et réessayez dans un moment.&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;C&amp;rsquo;est pas possible de vérifier le domaine par l&amp;rsquo;interface graphique après avoir créé le domaine à l&amp;rsquo;aide de powershell. Au lieu, c&amp;rsquo;est necessaire de confirmer le domaine à l&amp;rsquo;aide de powershell et donner tout les information de federation:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;IssuerURI&lt;/li&gt;
+&lt;li&gt;ActiveLogOnUri&lt;/li&gt;
+&lt;li&gt;LogOffUri&lt;/li&gt;
+&lt;li&gt;PassiveLogOnUri&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Les valeurs ne sont pas importantes, donc passer quelque chose, ensuit utilisez &lt;code&gt;Update-MsolFederatedDomain&lt;/code&gt; de mis à jour de les valeurs automatiquement de ton ADFS.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Confirm-MsolDomain -domainname domaintest.wrish.com -IssuerUri http://whatever/ -ActiveLogOnUri https://whatever/ -LogOffUri https://whatever/ -PassiveLogOnUri https://whatever/
+Update-MsolFederatedDomain -DomainName domaintest.wrish.com -SupportMultipleDomain $true
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Powershell Regex antisèche</title>
+      <link>http://www.wrish.com/fr/post/regex-cheat-sheet/</link>
+      <pubDate>Fri, 18 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/regex-cheat-sheet/</guid>
+      <description>&lt;p&gt;Une collection de le regex qui je recherche souvent.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Trouve le groupe avec un nom
+&#39;LesColourDesVache Brun&#39; -match &#39;(?&amp;lt;Attribut&amp;gt;\w+) (?&amp;lt;Valeur&amp;gt;\w+)&#39; | out-null
+$matches.Attribut
+$matches.Valeur
+#LesColourDesVache
+#Brun
+
+#Remplacer pour reformater un string
+&amp;quot;J&#39;ai un grande problem&amp;quot; -replace &#39;.* (g[^ ]+).*&#39;,&amp;quot;C&#39;est pas trop `$1&amp;quot;
+#C&#39;est pas trop grande
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Télécharger les fichiers avec PowerShell</title>
+      <link>http://www.wrish.com/fr/post/downloading-files-with-powershell/</link>
+      <pubDate>Mon, 31 Mar 2014 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/downloading-files-with-powershell/</guid>
+      <description>&lt;p&gt;Je construisais un laboratoire dans Azure aujourd&amp;rsquo;hui et je devais télécharger les binaires de Exchange pour étendre la schéma de mon environnement de teste AD.&lt;/p&gt;
+
+&lt;p&gt;Lorsque vous ouvrez IE et naviguer vers le site de téléchargement de Microsoft, vous devez ajouter une liste de 10 ou 15 domaines à tes sites confiance - certain d&amp;rsquo;entre eux est CDNs pour code de Javascript et l&amp;rsquo;autre ressources.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/if-you-trust-this-website.png&#34; alt=&#34;Content from the website listed below is being blcoked by the Internet Explorer Enhanced Security Configuration https://assets.onestore.ms&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;https://cdn.optimizely.com
+https://c.s-microsoft.com
+https://query.prod.cms.rt.microsoft.com
+https://mem.gfx.ms
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ensuite&amp;hellip; &lt;em&gt;Your current security settings do not allow this file to be downloaded&lt;/em&gt; soupir!&lt;/p&gt;
+
+&lt;p&gt;Je connais comment je peux réparer cette problème, mais, c&amp;rsquo;est beacoup de clic clac. Normalement je voudrais aller installer un autre navigateur qui n&amp;rsquo;est pas pesse par des années de mauvaises practiques de sécurité.. mais.. aujourd&amp;rsquo;hui j&amp;rsquo;ai décidé de trouver une méthode PowerShell.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt;Start-BitsTransfer -Source https://download.microsoft.com/download/7/4/9/74981C3B-0D3C-4068-8272-22358F78305F/Exchange2013-x64-cu13.exe -Destination d:\Exchange2013-x64-cu13.exe
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;C&amp;rsquo;est possible de trouver le URL sur mon ordinateur et copier le link à le serveur et voilà! Je peux inclure cette étape dans mon script de powershell aussi! Genial!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Comparaison côte à côte dans Powershell</title>
+      <link>http://www.wrish.com/fr/post/oh-damn-side-by-side-comparison-in-powershell/</link>
+      <pubDate>Sun, 31 Mar 2013 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/oh-damn-side-by-side-comparison-in-powershell/</guid>
+      <description>&lt;p&gt;Je travaille dans les services d&amp;rsquo;annuaire, souvent beaucoup à la même moment. Passer un peu de temps comparer le même utilisateur dans
+3 ou 4 services d&amp;rsquo;annuaire et tu as envie d&amp;rsquo;une méthode de monter les objets côte à côte. Le cmdlet &lt;code&gt;Compare-Object&lt;/code&gt; est pratique pour comparer des listes
+des fichiers, mais comparer des objets&amp;hellip; Il ne fait pas cela!&lt;/p&gt;
+
+&lt;p&gt;Vous avez deux ou plus de objets, l&amp;rsquo;un des objets marche, l&amp;rsquo;autre ne marche pas, vous voulez trouver la différence. Ceci, c&amp;rsquo;est pour toi!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Compare-objects-Side-by-4f47f090&#34;&gt;Compare-SideBySide.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Highlight-String et Highlight-Output</title>
+      <link>http://www.wrish.com/fr/post/highlight-output/</link>
+      <pubDate>Thu, 20 Dec 2012 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/post/highlight-output/</guid>
+      <description>&lt;p&gt;Vous êtes un administrateur de système Windows, vous recherchez des journaux, comparer les données, regard les affiches d&amp;rsquo;aide et utiliser PowerShell, mais, une fois
+vous étiez un administrateur de système Linux et vous avez apprécié des outils comme &lt;em&gt;sed&lt;/em&gt; et &lt;em&gt;grep&lt;/em&gt;. Peut-être que vous cherchiez
+une methode de reproduire le glorieux fonction de commande de ligne &lt;code&gt;grep --colour&lt;/code&gt;. Peut-être que vous trouviez &lt;a href=&#34;http://weblogs.asp.net/whaggard/archive/2007/03/23/powershell-script-to-find-strings-and-highlight-them-in-the-output.aspx&#34;&gt;Wes&amp;rsquo;s Puzzling Blog for Highlighting Strings and What Have You&lt;/a&gt;.
+mais il ne suffit pas de la couper. Pas de PipeLine! Si c&amp;rsquo;est toi, ensuite vous êtes moi, et vous avez crée ceci. Prendre plaisir.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Highlight-String-and-45525e27&#34;&gt;Télécharger Highlight-String.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

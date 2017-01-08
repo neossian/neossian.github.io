@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.17" />
+
+  <title>Powershell &middot; WRISH</title>
+
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-old-ie-min.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
+  <!--<![endif]-->
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="/css/side-menu-old-ie.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="/css/side-menu.css">
+  <!--<![endif]-->
+
+  <link rel="stylesheet" href="/css/blackburn.css">
+
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+
+  
+  
+  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/powershell/index.xml" />
+  
+
+  
+  <link rel="stylesheet" href="http://www.wrish.com/css/atom-one-light.css">
+  <script src="http://www.wrish.com/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  
+
+  <link rel="shortcut icon" href="http://www.wrish.com/img/favicon.ico" type="image/x-icon" />
+
+  
+  
+
+</head>
+
+
+<body>
+<div id="layout">
+
+  
+<a href="#menu" id="menuLink" class="menu-link">
+  
+  <span></span>
+</a>
+<div id="menu">
+
+  
+  <a class="pure-menu-heading brand" href="/"><img src='/img/w.svg' height='65px' width='auto'>RISH</a>
+
+
+  <div class="pure-menu">
+    <ul class="pure-menu-list">
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/about/"><i class='fa fa-user fa-fw'></i>About</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+    </ul>
+  </div>
+  
+
+  <div class="pure-menu social">
+  <ul class="pure-menu-list">
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+    </li>
+    
+
+    
+
+    
+
+	
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://social.technet.microsoft.com/profile/Shane%20Wright" target="_blank"><i class="fa fa-windows fa-fw"></i>Technet</a>
+    </li>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://linkedin.com/in/neossian" target="_blank"><i class="fa fa-linkedin-square fa-fw"></i>LinkedIn</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://stackoverflow.com/users/1111059/neossian" target="_blank"><i class="fa fa-stack-overflow fa-fw"></i>Stack Overflow</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+  </ul>
+</div>
+
+  
+<div>
+  <div class="small-print">
+    <ul class="pure-menu-list">
+		
+		<li>
+			Language:<a href="http://www.wrish.com/fr/tags/powershell/">fr</a>
+		</li>
+		
+	</ul>	
+  </div>
+</div>
+
+  <div>
+  <div class="small-print">
+    <small>&copy; 2016. All rights reserved.</small>
+  </div>
+  <div class="small-print">
+    <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Theme&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
+  </div>
+</div>
+
+
+  </div>
+
+
+  <div id="main">
+
+
+<div class="header">
+  <h1>Powershell</h1>
+</div>
+
+<div class="content">
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>1  Apr 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.
+One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.
+Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.
+certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsrv  Now issue your certificate, and switch back.
+  </p>
+
+  
+  <footer>
+    <a href="/post/switch-ms-pki-back-to-sha1/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/convert-between-immutableid-and-ad-object/">Office 365 - Convert between Immutable ID and AD Object </a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>22  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/azuread">AzureAD</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  <p>Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
+</p>
+  </p>
+
+  
+  <footer>
+    <a href="/post/convert-between-immutableid-and-ad-object/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/list-all-nested-memberships/">List all of a users group memberships</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>19  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Download the script here
+Auditing user access is hard, usually you audit from resource out - eg, finding all Domain Admins, or finding all users with full acecss to SecretShare$ share on SecretServer01. But occasionally want to audit from user out.. this is hard.. even impossible (if you have a very big environment). Lets talk about the first step Enumerating Nested Groups.
+Token Groups Each user has a constructed attribute called tokengroups that returns a list of all transitive group memberships.
+  </p>
+
+  
+  <footer>
+    <a href="/post/list-all-nested-memberships/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/clone-ou-structure-to-new-domain/">Clone OU Structure to New Domain</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>16  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  <p>A quick, semi-powershell way to clone an OU structure from a source domain to a destination domain is to use the <code>ldifde</code> tool and then just modify the output.
+
+To generate the Output file <code>Oustructure-cleaned.ldif</code> we use ldifde to export all OUs and then remove the domain name (this is not necessary but helps later).</p>
+  </p>
+
+  
+  <footer>
+    <a href="/post/clone-ou-structure-to-new-domain/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/remotely-retrieve-ssl-certificates/">Remotely Retrieve active SSL certificate (HTTPS or LDAPS)</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>5  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/certificates">Certificates</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.
+Download Retrieve-ServerCertFromSocket.ps1
+With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn&rsquo;t work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn&rsquo;t match your connectivity method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.
+  </p>
+
+  
+  <footer>
+    <a href="/post/remotely-retrieve-ssl-certificates/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/">Decoding legacy Exchange DN from NDR</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>2  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/exchange">Exchange</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Occasionally in Exchange you will accidentally or intentionally recreate a user, or delete some values from their object - this will impact the LegacyExchangeDN value. I have seen this happen where mailuser objects were removed from Office 365, the user objects were cloud only and the LegacyExchangeDN was gone forever.
+Contrary to its name, the LegacyExchangeDN value is critical to maintaining active conversations within your organisation. When a user&rsquo;s legacyExchagneDN is lost, collegues replying to conversations with that user will get an NDR.
+  </p>
+
+  
+  <footer>
+    <a href="/post/decode-legacy-exchange-dn-from-ndr/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/track-skype-lync-schema-change/">Track Lync Schema update with Powershell</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>25  Nov 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/skypeforbusiness">SkypeForBusiness</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  When I perform schema changes in very large forests it is nice to be able to track the status of the change as it replicates throughout the forest. I wanted to create a script that would quickly tell me what the current schema was on over 100 DCs.
+If you don&rsquo;t want to see how it was done you can just Download Track-LyncSchema.ps1
+Starting with some scripts that I have built before foreach-parallel to do parallel processing, get-forestDomainControlles to get a list of all DCs in the forest and get-LdapData to do direct ldap lookups quickly.
+  </p>
+
+  
+  <footer>
+    <a href="/post/track-skype-lync-schema-change/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/unable-to-verify-azure-domain/">Unable to verify an Azure AD domain</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>23  Nov 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/azuread">AzureAD</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  After you&rsquo;ve added a domain to Azure AD (or Office 365) using powershell, while connected to your ADFS like this:
+New-MsolDomain -Name domaintest.wrish.com -Authentication Federated  When you add your verification record and try to verify the domain from the GUI you might get an error like this:
+You can&rsquo;t verify your domain using the GUI when you create the Domain using powershell, instead you have to confirm the domain using powershell while entering all Federation options.
+  </p>
+
+  
+  <footer>
+    <a href="/post/unable-to-verify-azure-domain/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/do-it-with-a-command-line/">Do it with the command line</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>18  Nov 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/servercore">ServerCore</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  You&rsquo;ve built a Windows server without the GUI (Server Core only). You&rsquo;re thinking, I use the command line all the time, this will be easy. It won&rsquo;t. This cheat sheet has a few useful bits and pieces on how to configure it.
+#Force Windows Updates (New-Object -ComObject Microsoft.Update.AutoUpdate).DetectNow() #Dump the network interface config (to edit it) netsh interface dump &gt; netcfg.dat #edit the config notepad netcfg.dat #Restore the interface config netsh exec netcfg.
+  </p>
+
+  
+  <footer>
+    <a href="/post/do-it-with-a-command-line/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/regex-cheat-sheet/">Powershell Regex cheat sheet</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>18  Nov 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  A collection of regex&rsquo;s that I always find myself looking up.
+#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Remplacer pour reformater un string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild  
+  </p>
+
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/downloading-files-with-powershell/">Download file the Powershell way</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>31  Mar 2014</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/azureiaas">AzureIaas</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  I was building a lab in Azure today and needed to download the Exchange binaries to extend my test AD schema.
+When you open up IE and browse to the Microsoft download site you have to add a list of 10 or 15 different sites to trusted - some of them are CDNs for shared Javascript code and resources. https://cdn.optimizely.com https://c.s-microsoft.com https://query.prod.cms.rt.microsoft.com https://mem.gfx.ms  and then&hellip; Your current security settings do not allow this file to be downloaded sigh!
+  </p>
+
+  
+  <footer>
+    <a href="/post/downloading-files-with-powershell/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/cleaning-conflict-and-deleted-files-on-dfsr-replicated-sysvol/">Cleaning Conflict and Deleted files on DFSR replicated SYSVOL</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>3  Aug 2013</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">powershell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Perhaps you&rsquo;ve done an ADRAP and youve got an item about Conflict and Deleted having some latent files. You found the AskDS entry about Manually Clearing the ConflictAndDeleted Folder in DFSR. But they use ugly WMIC commands, you want to use PowerShell, because PowerShell is awesome.
+get-addomaincontroller -filter * | %{ Get-WmiObject -Namespace &quot;root/microsoftdfs&quot; -class dfsrreplicatedfolderinfo -ComputerName $_.hostname } | ?{$_.replicationGroupName -eq &quot;Domain System Volume&quot;} | %{$_.cleanupConflictDirectory()}  
+  </p>
+
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/">Oh Damn Side by Side Comparison in Powershell</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>31  Mar 2013</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  I work in Directories, usually lots of them at the same time. Spend a little time comparing the same user in 3 or 4 different directories and you long for a way to show them side by side. The Compare-Object cmdlet is handy for comparing lists of files but actually compare objects it does not!
+You have two or more objects, one works, one does not, you want to find out what is different between the two - this cmdlet is for you!
+  </p>
+
+  
+  <footer>
+    <a href="/post/oh-damn-side-by-side-comparison-in-powershell/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/highlight-output/">Highlight-String and Highlight-Output</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>20  Dec 2012</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">powershell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  You are a Windows Systems Administrator, you trawl through logs, compare datasets, peruse help files and you use PowerShell, but once, you were a Linux System Administrator and you revelled in tools like sed and grep. Perhaps you were looking for a way to replicate the glorious grep &ndash;color command, perhaps you found Wes&rsquo;s Puzzling Blog for Highlighting Strings and What Have You. But for some reason, it didn&rsquo;t quite cut it.
+  </p>
+
+  
+  <footer>
+    <a href="/post/highlight-output/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+</div>
+
+</div>
+</div>
+<script src="http://www.wrish.com/js/ui.js"></script>
+
+
+
+</body>
+</html>

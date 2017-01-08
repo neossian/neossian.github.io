@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.17" />
+
+  <title>Decoding legacy Exchange DN from NDR &middot; WRISH</title>
+
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-old-ie-min.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
+  <!--<![endif]-->
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="/css/side-menu-old-ie.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="/css/side-menu.css">
+  <!--<![endif]-->
+
+  <link rel="stylesheet" href="/css/blackburn.css">
+
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="http://www.wrish.com/css/atom-one-light.css">
+  <script src="http://www.wrish.com/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  
+
+  <link rel="shortcut icon" href="http://www.wrish.com/img/favicon.ico" type="image/x-icon" />
+
+  
+  
+
+</head>
+
+
+<body>
+<div id="layout">
+
+  
+<a href="#menu" id="menuLink" class="menu-link">
+  
+  <span></span>
+</a>
+<div id="menu">
+
+  
+  <a class="pure-menu-heading brand" href="/"><img src='/img/w.svg' height='65px' width='auto'>RISH</a>
+
+
+  <div class="pure-menu">
+    <ul class="pure-menu-list">
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/about/"><i class='fa fa-user fa-fw'></i>About</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+    </ul>
+  </div>
+  
+
+  <div class="pure-menu social">
+  <ul class="pure-menu-list">
+
+    
+
+    
+
+    
+
+	
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://social.technet.microsoft.com/profile/Shane%20Wright" target="_blank"><i class="fa fa-windows fa-fw"></i>Technet</a>
+    </li>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://linkedin.com/in/neossian" target="_blank"><i class="fa fa-linkedin-square fa-fw"></i>LinkedIn</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://stackoverflow.com/users/1111059/neossian" target="_blank"><i class="fa fa-stack-overflow fa-fw"></i>Stack Overflow</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+  </ul>
+</div>
+
+  
+  <div>
+  <div class="small-print">
+    <small>&copy; 2016. All rights reserved.</small>
+  </div>
+  <div class="small-print">
+    <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Theme&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
+  </div>
+</div>
+
+
+  </div>
+
+
+  <div id="main">
+
+
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Decoding legacy Exchange DN from NDR</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>2  Dec 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/exchange">Exchange</a>
+    
+  </div>
+  
+  
+
+</div>
+
+	  <p>Occasionally in Exchange you will accidentally or intentionally recreate a user, or delete some values from their object - this will impact the LegacyExchangeDN value. I have seen this happen where mailuser objects were removed from Office 365, the user objects were cloud only and the LegacyExchangeDN was gone forever.</p>
+
+<p>Contrary to its name, the LegacyExchangeDN value is critical to maintaining active conversations within your organisation. When a user&rsquo;s legacyExchagneDN is lost, collegues replying to conversations with that user will get an NDR. When they create a new email the email will work.</p>
+
+<p>You can extract the old LegacyExchangeDN from the NDR by finding the string that looks like this <code>IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com</code> and use the function below to convert it back to an X500 attribute which you add to the <code>proxyaddresses</code> attribute of the user.</p>
+
+<p>Here is the function:</p>
+
+<pre><code class="language-Powershell">function decode-NDRX500Address ($DN){
+    #Generate a list of replacements to be done
+    $replacements = @{'^IMCEAEX-'='';'_'='/';'@.+$'=''}
+    (0..127) | %{$replacements.&quot;\+$('{0:x}' -f $_)&quot; = &quot;$([char]$_)&quot;}
+    #Add X500 to the start
+    $replacements.&quot;^&quot; = &quot;X500:&quot;
+    #Perform the replacements
+    $replacements.GetEnumerator() | %{
+        $dn = $dn -replace $_.key,$_.Value
+    }
+    $DN
+}
+</code></pre>
+
+<p>Here is how you can use it:</p>
+
+<pre><code class="language-Powershell">$ValueFromNDR = 'IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com'
+decode-NDRX500Address $ValueFromNDR
+</code></pre>
+
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/track-skype-lync-schema-change/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/track-skype-lync-schema-change/">Track Lync Schema update with Powershell</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="next">
+      <a href="http://www.wrish.com/post/remotely-retrieve-ssl-certificates/">Remotely Retrieve active SSL certificate (HTTPS or LDAPS)</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/post/remotely-retrieve-ssl-certificates/"><i class="fa fa-chevron-right"></i></a>
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
+</div>
+</div>
+<script src="http://www.wrish.com/js/ui.js"></script>
+
+
+
+</body>
+</html>
+

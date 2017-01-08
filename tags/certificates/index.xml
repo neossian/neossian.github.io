@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/certificates/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/certificates/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Remotely Retrieve active SSL certificate (HTTPS or LDAPS)</title>
+      <link>http://www.wrish.com/post/remotely-retrieve-ssl-certificates/</link>
+      <pubDate>Mon, 05 Dec 2016 23:30:10 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/remotely-retrieve-ssl-certificates/</guid>
+      <description>&lt;p&gt;When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1&#34;&gt;Download Retrieve-ServerCertFromSocket.ps1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn&amp;rsquo;t
+work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn&amp;rsquo;t match your connectivity
+method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.&lt;/p&gt;
+
+&lt;p&gt;In the past I have often used openssl with the s_client and showcerts options
+&lt;code&gt;openssl s_client -showcerts -host www.wrish.com -port 443&lt;/code&gt;
+then you have to copy and paste the output into a file to view the file or review the settings. This requires another piece of software, and remembering the parameters. If only there was a quick and dirty powershell way?!&lt;/p&gt;
+
+&lt;p&gt;To build this script I started looking around for what was already available. I found this one &lt;a href=&#34;https://iamoffthebus.wordpress.com/2014/02/04/powershell-to-get-remote-websites-ssl-certificate-expiration/&#34;&gt;Powershell to get remote website&amp;rsquo;s SSL certificate expiration&lt;/a&gt; but knew it wouldn&amp;rsquo;t work
+for me because it relies on &lt;code&gt;Net.HttpWebRequest&lt;/code&gt; which means no LDAPs or other protocols. I had to look lower on the network stack and found &lt;code&gt;System.Net.Sockets.tcpclient&lt;/code&gt; and &lt;code&gt;System.Net.Security.SslStream&lt;/code&gt; which allow you to directly establish an SSL stream, perfect!&lt;/p&gt;
+
+&lt;p&gt;To build out the script I make use of &lt;code&gt;try {} catch {} finally {}&lt;/code&gt; by putting the cleanup commands in the finally block (good practice for all network scripting) you can avoid memory leaks and leaving open unwanted sockets.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1&#34;&gt;Download Retrieve-ServerCertFromSocket.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/office365/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/office365/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Office 365 - Convert between Immutable ID and AD Object </title>
+      <link>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</link>
+      <pubDate>Thu, 22 Dec 2016 20:53:49 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</guid>
+      <description>&lt;p&gt;Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;
+function get-ImmutableIDfromADObject
+{
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ADObject) 
+   process{ 
+        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid}
+        [system.convert]::ToBase64String($ADObject.objectguid.tobytearray())
+    }
+}
+
+function get-ADObjectFromImmutableID{
+      [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$ImmutableID)
+   process { get-adobject  ([guid]([system.convert]::FromBase64String($ImmutableID)))}
+}
+
+&amp;lt;#
+get-aduser shane.wright | get-ImmutableIDfromADObject
+6WuADX7LfUa8DVAQGxuZcA==
+
+get-aduser shane.wright | get-ImmutableIDfromADObject | get-ADObjectFromImmutableID
+
+DistinguishedName                          Name         ObjectClass ObjectGUID                          
+-----------------                          ----         ----------- ----------                          
+CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
+
+
+get-ADObjectFromImmutableID 6WuADX7LfUa8DVAQGxuZcA==
+DistinguishedName                          Name         ObjectClass ObjectGUID                          
+-----------------                          ----         ----------- ----------                          
+CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
+#&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

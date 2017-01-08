@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/azureiaas/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/azureiaas/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Download file the Powershell way</title>
+      <link>http://www.wrish.com/post/downloading-files-with-powershell/</link>
+      <pubDate>Mon, 31 Mar 2014 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/downloading-files-with-powershell/</guid>
+      <description>&lt;p&gt;I was building a lab in Azure today and needed to download the Exchange binaries to extend my test AD schema.&lt;/p&gt;
+
+&lt;p&gt;When you open up IE and browse to the Microsoft download site you have to add a list of 10 or 15 different sites to trusted - some of them are CDNs for shared Javascript code and resources.
+&lt;img src=&#34;http://www.wrish.com/post/images/if-you-trust-this-website.png&#34; alt=&#34;Content from the website listed below is being blocked by the Internet Explorer Enhanced Security Configuration https://assets.onestore.ms&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;https://cdn.optimizely.com
+https://c.s-microsoft.com
+https://query.prod.cms.rt.microsoft.com
+https://mem.gfx.ms
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and then&amp;hellip; &lt;em&gt;Your current security settings do not allow this file to be downloaded&lt;/em&gt; sigh!&lt;/p&gt;
+
+&lt;p&gt;Now, I know how to fix this problem properly, but frankly, that is a lot of clicking. Normally I would go and install another browser that isn&amp;rsquo;t weighed down by years of poor security practice&amp;hellip; but.. today I decided to find the PowerShell way.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt;Start-BitsTransfer -Source https://download.microsoft.com/download/7/4/9/74981C3B-0D3C-4068-8272-22358F78305F/Exchange2013-x64-cu13.exe -Destination d:\Exchange2013-x64-cu13.exe
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I just attempt to download the file on my machine, and then copy the link and tada! Now I can include this step in my powershell build scripts too! Awesome!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

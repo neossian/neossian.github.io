@@ -1,0 +1,27 @@
+﻿+++
+date = "2016-12-05T23:30:10-00:00"
+title = "Remotely Retrieve active SSL certificate (HTTPS or LDAPS)"
+draft = true
+tags = ["ActiveDirectory","Powershell","Certificates"]
++++
+
+When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.
+
+[Download Retrieve-ServerCertFromSocket.ps1](https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1)
+
+With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn't
+work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn't match your connectivity
+method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.
+
+In the past I have often used openssl with the s_client and showcerts options
+```openssl s_client -showcerts -host www.wrish.com -port 443```
+then you have to copy and paste the output into a file to view the file or review the settings. This requires another piece of software, and remembering the parameters. If only there was a quick and dirty powershell way?!
+
+To build this script I started looking around for what was already available. I found this one [Powershell to get remote website's SSL certificate expiration](https://iamoffthebus.wordpress.com/2014/02/04/powershell-to-get-remote-websites-ssl-certificate-expiration/) but knew it wouldn't work
+for me because it relies on ```Net.HttpWebRequest``` which means no LDAPs or other protocols. I had to look lower on the network stack and found ```System.Net.Sockets.tcpclient``` and ```System.Net.Security.SslStream``` which allow you to directly establish an SSL stream, perfect!
+
+To build out the script I make use of ``` try {} catch {} finally {} ``` by putting the cleanup commands in the finally block (good practice for all network scripting) you can avoid memory leaks and leaving open unwanted sockets.
+
+
+
+[Download Retrieve-ServerCertFromSocket.ps1](https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1)

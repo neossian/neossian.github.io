@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/skypeforbusiness/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/skypeforbusiness/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Track Lync Schema update with Powershell</title>
+      <link>http://www.wrish.com/post/track-skype-lync-schema-change/</link>
+      <pubDate>Fri, 25 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/track-skype-lync-schema-change/</guid>
+      <description>&lt;p&gt;When I perform schema changes in very large forests it is nice to be able to track the
+status of the change as it replicates throughout the forest. I wanted to create a script that
+would quickly tell me what the current schema was on over 100 DCs.&lt;/p&gt;
+
+&lt;p&gt;If you don&amp;rsquo;t want to see how it was done you can just &lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Starting with some scripts that I have built before &lt;code&gt;foreach-parallel&lt;/code&gt; to do parallel
+processing, &lt;code&gt;get-forestDomainControlles&lt;/code&gt; to get a list of all DCs in the forest
+and &lt;code&gt;get-LdapData&lt;/code&gt; to do direct ldap lookups quickly. &lt;code&gt;get-LdapData&lt;/code&gt; is necessary
+because it will take too long to import the AD module into each thread of the parallel processor.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Import-module ActiveDirectory          
+function get-ForestDomainControllers () {...}
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$pageSize=1000,$Properties=&amp;quot;*&amp;quot;,$sizeLimit=0,[switch]$verbose,$o365FilterAddress){...}
+function ForEach-Parallel () {...}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;First we need to get all the DCs into an array, this can take a long time for large domains. We will only get the list if $DCs is empty -
+this way we can run this script multiple times but only do this step once.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($DCs -eq $null) {$DCs = get-ForestDomainControllers}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next we locate the schema partition - likewise we only want to do this once. The &lt;code&gt;PartitionsContainer&lt;/code&gt; value on the AD forest object has a value like &lt;code&gt;DC=Partitions,CN=Configuration,DC=Domain,DC=com&lt;/code&gt;.
+We will use &lt;code&gt;-replace&lt;/code&gt; to replace the partitions value with &lt;code&gt;cn=schema&lt;/code&gt; to get the schema partition.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($SchemaPartiton -eq $null) {$SchemaPartition = (get-adforest).partitionscontainer -replace &#39;CN=Partitions&#39;,&#39;CN=Schema&#39;}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To get the Lync Schema version we need the rangeUpper value of the ms-RTC-SIP-SchemaVersion object in the schema partition. To do that, we will use &lt;code&gt;get-ldapdata&lt;/code&gt; with the &lt;code&gt;searchroot&lt;/code&gt; specified as the Lync schema object. In this code &lt;code&gt;$_&lt;/code&gt; represents the server being worked on in the pipeline when we do foreach.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartion&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;ForEach-Parallel&lt;/code&gt; makes use of worker threads for parallelism, so we need to import the functions into the thread and also any values we want to pass. To get the &lt;code&gt;$SchemaPartition&lt;/code&gt; value into the thread, we pass it using the &lt;code&gt;-Arguments&lt;/code&gt; parameter and then the first
+line of the executed code includes &lt;code&gt;$SchemaPartition=$args[0]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Depending on the value, we want to return text that tells us what the version is, for this we use a switch statement&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;switch ($value) {
+	&#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
+	&#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
+	&#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
+	&#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
+	&#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
+	default: {$value = &amp;quot;Unknown schema value or no value [$value]&amp;quot;}
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Then we export the value to an object so that it looks like a nice table and we can manipulate it if we want.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The function that does the work looks like this. The &lt;code&gt;foreach-parallel&lt;/code&gt; command ends with &lt;code&gt;-ImportFunctions&lt;/code&gt; to import the &lt;code&gt;get-ldapdata&lt;/code&gt; into scope of each thread.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function track-LyncSchema {
+    $DCs.hostname |  %p{
+        $SchemaPartition= $args[0]
+        $Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartition&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
+        switch ($value) {
+            &#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
+            &#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
+            &#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
+            &#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
+            &#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
+            default {$value = &amp;quot;Unknown [$value]&amp;quot;}
+        }
+
+        new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
+    } -ImportFunctions get-ldapData -arguments $schemaPartition
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We call the script from the commandline to get a list of all the servers and the schema version.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-LyncSchema.ps1
+server                        LyncSchemaVersion
+------                        -----------------
+TestDC100.wrish.com           Skype for Business 2015 [1...
+TestDC101.wrish.com           Skype for Business 2015 [1...
+TestDC213.wrish.com           Skype for Business 2015 [1...
+TestDC12.wrish.com            Skype for Business 2015 [1...
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Because we built the script to output objets, we can easily see how many are left to replicate.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-lyncschema.ps1 | group LyncSchemaVersion
+Count Name                       Group
+----- ----                       -----
+  202 Skype for Business 2010... {@{server=Test..
+   20 Lync Server 2010 [1100]    {@{server=Test..
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/azuread/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/azuread/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Office 365 - Convert between Immutable ID and AD Object </title>
+      <link>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</link>
+      <pubDate>Thu, 22 Dec 2016 20:53:49 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</guid>
+      <description>&lt;p&gt;Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;
+function get-ImmutableIDfromADObject
+{
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ADObject) 
+   process{ 
+        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid}
+        [system.convert]::ToBase64String($ADObject.objectguid.tobytearray())
+    }
+}
+
+function get-ADObjectFromImmutableID{
+      [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$ImmutableID)
+   process { get-adobject  ([guid]([system.convert]::FromBase64String($ImmutableID)))}
+}
+
+&amp;lt;#
+get-aduser shane.wright | get-ImmutableIDfromADObject
+6WuADX7LfUa8DVAQGxuZcA==
+
+get-aduser shane.wright | get-ImmutableIDfromADObject | get-ADObjectFromImmutableID
+
+DistinguishedName                          Name         ObjectClass ObjectGUID                          
+-----------------                          ----         ----------- ----------                          
+CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
+
+
+get-ADObjectFromImmutableID 6WuADX7LfUa8DVAQGxuZcA==
+DistinguishedName                          Name         ObjectClass ObjectGUID                          
+-----------------                          ----         ----------- ----------                          
+CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
+#&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    
+    <item>
+      <title>Azure AD Connect - Cannot Retrieve Single Sign On Status</title>
+      <link>http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/</link>
+      <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/</guid>
+      <description>&lt;p&gt;If you landed here, then you are very unlucky. You downloaded AADConnect version &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-aadconnect-version-history#113700&#34;&gt;1.1.370.0&lt;/a&gt; with it&amp;rsquo;s known issue.
+You don&amp;rsquo;t have port 9090 open externally, so you don&amp;rsquo;t get an undocumented error &lt;code&gt;Cannot retrieve single sign on status. Learn more&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;But do not fear. Just go and &lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=47594&#34;&gt;download the latest version&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Unable to verify an Azure AD domain</title>
+      <link>http://www.wrish.com/post/unable-to-verify-azure-domain/</link>
+      <pubDate>Wed, 23 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/unable-to-verify-azure-domain/</guid>
+      <description>&lt;p&gt;After you&amp;rsquo;ve added a domain to Azure AD (or Office 365) using powershell, while connected to your ADFS like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;New-MsolDomain -Name domaintest.wrish.com -Authentication Federated
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When you add your verification record and try to verify the domain from the GUI you might get an error like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/unable-to-verify-azure-domain.png&#34; alt=&#34;Unable to verify domain name. Ensure you have added the record above at the registrar &#39;contoso.com&#39;, and try again in a little while&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can&amp;rsquo;t verify your domain using the GUI when you create the Domain using powershell, instead you have to confirm the domain using powershell while entering all Federation options. You will need to pass the following:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;IssuerURI&lt;/li&gt;
+&lt;li&gt;ActiveLogOnUri&lt;/li&gt;
+&lt;li&gt;LogOffUri&lt;/li&gt;
+&lt;li&gt;PassiveLogOnUri&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can pass whatever you like to these values and then just update the domain federation data afterwards&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Confirm-MsolDomain -domainname domaintest.wrish.com -IssuerUri http://whatever/ -ActiveLogOnUri https://whatever/ -LogOffUri https://whatever/ -PassiveLogOnUri https://whatever/
+Update-MsolFederatedDomain -DomainName domaintest.wrish.com -SupportMultipleDomain $true
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

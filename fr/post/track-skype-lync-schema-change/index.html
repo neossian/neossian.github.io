@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.17" />
+
+  <title>Suivez les mis à jour de l&#39;Schema avec Powershell &middot; WRISH</title>
+
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-old-ie-min.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
+  <!--<![endif]-->
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="/css/side-menu-old-ie.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="/css/side-menu.css">
+  <!--<![endif]-->
+
+  <link rel="stylesheet" href="/css/blackburn.css">
+
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="http://www.wrish.com/css/atom-one-light.css">
+  <script src="http://www.wrish.com/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  
+
+  <link rel="shortcut icon" href="http://www.wrish.com/img/favicon.ico" type="image/x-icon" />
+
+  
+  
+
+</head>
+
+
+<body>
+<div id="layout">
+
+  
+<a href="#menu" id="menuLink" class="menu-link">
+  
+  <span></span>
+</a>
+<div id="menu">
+
+  
+  <a class="pure-menu-heading brand" href="/"><img src='/img/w.svg' height='65px' width='auto'>RISH</a>
+
+
+  <div class="pure-menu">
+    <ul class="pure-menu-list">
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/fr/"><i class='fa fa-home fa-fw'></i>Accueil</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/fr/post/"><i class='fa fa-list fa-fw'></i>Tout les articles</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/fr/about/"><i class='fa fa-user fa-fw'></i>Bio</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/fr/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+    </ul>
+  </div>
+  
+
+  <div class="pure-menu social">
+  <ul class="pure-menu-list">
+
+    
+
+    
+
+    
+
+	
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://social.technet.microsoft.com/profile/Shane%20Wright" target="_blank"><i class="fa fa-windows fa-fw"></i>Technet</a>
+    </li>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://linkedin.com/in/neossian" target="_blank"><i class="fa fa-linkedin-square fa-fw"></i>LinkedIn</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://stackoverflow.com/users/1111059/neossian" target="_blank"><i class="fa fa-stack-overflow fa-fw"></i>Stack Overflow</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+  </ul>
+</div>
+
+  
+<div>
+  <div class="small-print">
+    <ul class="pure-menu-list">
+		
+		<li>
+			La langue:<a href="http://www.wrish.com/post/track-skype-lync-schema-change/">en</a>
+		</li>
+		
+	</ul>	
+  </div>
+</div>
+
+  <div>
+  <div class="small-print">
+    <small>&copy; 2016. Droits réservés.</small>
+  </div>
+  <div class="small-print">
+    <small>Faire avec&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Thème&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
+  </div>
+</div>
+
+
+  </div>
+
+
+  <div id="main">
+
+
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Suivez les mis à jour de l&#39;Schema avec Powershell</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>25  nov 2016</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/fr/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/fr/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/fr/tags/skypeforbusiness">SkypeForBusiness</a>
+    
+  </div>
+  
+  
+
+</div>
+
+	  <p>Lorsque je changer le schéma dans une grande forêt, c&rsquo;est gentil de suivre le progrès
+de le changement pendant la réplication autour de forêt. J&rsquo;ai voulais de crèer un script qui
+rapidement donner la version actuelle de schéma pour plus de 100 contrôleurs de domaine.</p>
+
+<p>Si vous voulez sauter les détails <a href="https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca">Tèlecharger Track-LyncSchema.ps1</a></p>
+
+<p>En commençant avec quelques scripts que j&rsquo;avais déjà construit, <code>foreach-parallel</code> qui peut exécuter en parallèle.
+<code>get-forestDomainControlles</code> pour crée un liste de tous les contrôleurs de domaine et <code>get-LdapData</code> pour faire les
+questions de LDAP rapidement sans le module Active Directory.</p>
+
+<pre><code class="language-Powershell">Import-module ActiveDirectory          
+function get-ForestDomainControllers () {...}
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$pageSize=1000,$Properties=&quot;*&quot;,$sizeLimit=0,[switch]$verbose,$o365FilterAddress){...}
+function ForEach-Parallel () {...}
+</code></pre>
+
+<p>Tout d&rsquo;abord, on a besoin de mettre tous les CDs dans un tableau, cela peut prendre beaucoup de temps pour les grands domaines.
+On va obtenir la liste seulement si $DCs est vide - comme ça, on peut exécuter le script plusieurs fois et seulement faire cette étape une fois.</p>
+
+<pre><code class="language-Powershell">if ($DCs -eq $null) {$DCs = get-ForestDomainControllers}
+</code></pre>
+
+<p>Ensuite, on va trouver la partition de schéma - encore, on va le faire seulement une fois. Le valeur de <code>PartitionsContainer</code> sur l&rsquo;objet de forêt
+est comme <code>DC=Partitions,CN=Configuration,DC=Domain,DC=com</code>. On va utiliser le <code>-replace</code> opérateur pour remplacer <code>CN=Partitions</code> avec <code>CN=Schema</code>.</p>
+
+<pre><code class="language-Powershell">if ($SchemaPartion -eq $null) {$SchemaPartion = (get-adforest).partitionscontainer -replace 'CN=Partitions','CN=Schema'}
+</code></pre>
+
+<p>Pour obtenir le version de schéma de Lync et Skype for Business, on prendre le <code>rangeUpper</code> attribut de l&rsquo;objet <code>ms-RTC-SIP-SchemaVersion</code>. Pour faire ça,
+on utiliser <code>get-ldapdata</code> avec le paramètre <code>searchroot</code> qui représente l&rsquo;objet <code>ms-RTC-SIP-SchemaVersion</code>. Ici, <code>$_</code> représente le serveur actuellement utilisé.</p>
+
+<pre><code class="language-Powershell">$Value = get-ldapdata  -searchRoot &quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartion&quot; -properties rangeupper -server $_ | select -expand rangeupper
+</code></pre>
+
+<p><code>ForEach-Parallel</code> utilisé threads de travail pour le parallèlisme, donc on a besoin de emporter des functions dans les threads et tous les valeurs que on veut.
+<code>$SchemaPartition</code> est passer par le paramètre <code>-Arguments</code>, ensuite le premier ligne de la code est <code>$SchemaPartition=$args[0]</code></p>
+
+<p>En fonction de la valeur, nous allons retournerons des textes qui va describir la version, pour ça, on utilisé l&rsquo;instruction <code>switch</code>.</p>
+
+<pre><code class="language-Powershell">switch ($value) {
+	'1006' {$value = &quot;LCS 2005 [$value]&quot;}
+	'1007' {$value = &quot;OCS 2007 R1 [$value]&quot;}
+	'1008' {$value = &quot;OCS 2007 R2 [$value]&quot;}
+	'1100' {$value = &quot;Lync Server 2010 [$value]&quot;}
+	'1150' {$value = &quot;Skype for Business 2015 [$value]&quot;}
+	default: {$value = &quot;Unknown schema value or no value [$value]&quot;}
+}
+</code></pre>
+
+<p>Alors, nous exportons le valeur dans une objet pour traitement dans le pipeline.</p>
+
+<pre><code class="language-Powershell">new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
+</code></pre>
+
+<p>Finalement la fonction qui faire tous les travailles est comme ça. Le cmdlet <code>foreach-parallel</code> gagner l&rsquo;autre fonction <code>get-ldapdata</code> par le paramètre <code>-ImportFunctions</code>.</p>
+
+<pre><code class="language-Powershell">function track-LyncSchema {
+    $DCs.hostname |  %p{
+        $SchemaPartition= $args[0]
+        $Value = get-ldapdata  -searchRoot &quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartition&quot; -properties rangeupper -server $_ | select -expand rangeupper
+        switch ($value) {
+            '1006' {$value = &quot;LCS 2005 [$value]&quot;}
+            '1007' {$value = &quot;OCS 2007 R1 [$value]&quot;}
+            '1008' {$value = &quot;OCS 2007 R2 [$value]&quot;}
+            '1100' {$value = &quot;Lync Server 2010 [$value]&quot;}
+            '1150' {$value = &quot;Skype for Business 2015 [$value]&quot;}
+            default {$value = &quot;Unknown [$value]&quot;}
+        }
+
+        new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
+    } -ImportFunctions get-ldapData -arguments $schemaPartition
+}
+</code></pre>
+
+<p>On peut exécuter le script par la commande de ligne pour obtenir une liste de tous les serveurs et leurs versions des schéma.</p>
+
+<pre><code class="language-Powershell">. .\track-LyncSchema.ps1
+server                        LyncSchemaVersion
+------                        -----------------
+TestDC100.wrish.com           Skype for Business 2015 [1...
+TestDC101.wrish.com           Skype for Business 2015 [1...
+TestDC213.wrish.com           Skype for Business 2015 [1...
+TestDC12.wrish.com            Skype for Business 2015 [1...
+...
+</code></pre>
+
+<p>Car on a construit les scripts pour exporter les objets, on peut facilement voir combien restent a réplicater.</p>
+
+<pre><code class="language-Powershell">. .\track-lyncschema.ps1 | group LyncSchemaVersion
+Count Name                       Group
+----- ----                       -----
+  202 Skype for Business 2010... {@{server=Test..
+   20 Lync Server 2010 [1100]    {@{server=Test..
+</code></pre>
+
+<p><a href="https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca">Tèlecharger Track-LyncSchema.ps1</a></p>
+
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/fr/post/unable-to-verify-azure-domain/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/fr/post/unable-to-verify-azure-domain/">Impossible de vérifier un domaine d&#39;Azure</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="next">
+      <a href="http://www.wrish.com/fr/post/cannot-retrieve-single-sign-on-status-aadconnect/">Azure AD Connect - C&#39;est impossible de récupérer l&#39;état de connexion unique</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/fr/post/cannot-retrieve-single-sign-on-status-aadconnect/"><i class="fa fa-chevron-right"></i></a>
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
+</div>
+</div>
+<script src="http://www.wrish.com/js/ui.js"></script>
+
+
+
+</body>
+</html>
+
