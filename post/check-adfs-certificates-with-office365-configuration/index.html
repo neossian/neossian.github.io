@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Paste an array into a variable &middot; WRISH</title>
+  <title>Check if Office 365 has Your Updated ADFS Certificates &middot; WRISH</title>
 
   
   
@@ -206,7 +206,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>Paste an array into a variable</h1>
+	  <h1>Check if Office 365 has Your Updated ADFS Certificates</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -215,7 +215,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>19  Jan 2017</time>
+    <time>15  Jan 2017</time>
   </div>
 
   
@@ -228,7 +228,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/adfs">ADFS</a>
     
   </div>
   
@@ -236,49 +238,60 @@
 
 </div>
 
-	  <p>You&rsquo;ve got a list of values, you want that in an array.</p>
+	  <p>Download it here <a href="https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e">https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e</a></p>
 
-<p>You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could <code>Create-ArrayFromPastedText</code>.</p>
+<p>This script has probably lived its useful life, but I&rsquo;m sharing it anyway, because.. well why not!</p>
 
-<pre><code class="language-powershell">function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;)
-{
-    $result = @()
-    while ($true) {
-        $value = read-host    
-        if ($value -eq $returnvalue){
-            return $result
-        } else {
-            $result += $value
-        }
-    }
+<p>When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use <code>Get-MsolFederationProperty</code> that&rsquo;s great if you have one domain.. but what if you have 25 or 50.</p>
+
+<p>Create a profile on your ADFS servers</p>
+
+<pre><code class="language-powershell">notepad $profile.alluserscurrenthost
+</code></pre>
+
+<p>Copy and paste this into the profile and click save</p>
+
+<pre><code class="language-powershell">function Check-ADFSFederationForAllDomains {
+    
+    get-msoldomain | ?{$_.authentication -eq &quot;Federated&quot; -and !$_.rootDomain } | %{
+        Write-host Processing $_.Name
+        $SETUP = Get-MsolFederationProperty –DomainName $_.Name
+        if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
+            Write-host $_.Name &quot;Token Signing and Next Token Signing Certificates Match&quot; -ForegroundColor Green      
+         } else {
+            Write-host $_.Name &quot;Token Signing and/or Next Token Signing Certificates DO NOT Match&quot; -ForegroundColor REd    
+         }
+      } 
 }
+write-host 'Check-ADFSFederationForAllDomains'
+
+Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
+    
+    get-msoldomain | ?{$_.authentication -eq &quot;Federated&quot; -and !$_.rootDomain } | %{
+        Write-host Processing $_.Name
+        Update-MsolFederatedDomain –DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
+       
+      } 
+}
+Write-Host 'Update-ADFSFederationForAllDomains' 
 </code></pre>
 
-<p>You can use it like this</p>
+<p>Now when the time comes to check just run <code>Check-ADFSFederationForAllDomains</code> followed by <code>Update-ADFSFedrationForAllDomains</code> if you need to update.</p>
 
-<pre><code class="language-powershell">$MyArray = create-Arrayfrompastedtext
-Item1
-Item2
-Item3
-
-#And then just use your array
-$MyArray |?{$_ -match '[13]'}
-Item1
-Item3
-</code></pre>
+<p>Download it here <a href="https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e">https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e</a></p>
 
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a>
+      <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a>
     </nav>
     
   </div>
@@ -287,8 +300,14 @@ Item3
   </div>
   <div class="pure-u-10-24">
     
+    <nav class="next">
+      <a href="http://www.wrish.com/post/paste-me-an-array/">Paste an array into a variable</a>
+    </nav>
+    
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/post/paste-me-an-array/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>

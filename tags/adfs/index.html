@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Paste an array into a variable &middot; WRISH</title>
+  <title>Adfs &middot; WRISH</title>
 
   
   
@@ -36,6 +36,8 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
+  
+  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/adfs/index.xml" />
   
 
   
@@ -100,6 +102,10 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="http://www.wrish.com/tags/adfs/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+    </li>
     
 
     
@@ -202,20 +208,21 @@
   <div id="main">
 
 
+<div class="header">
+  <h1>Adfs</h1>
+</div>
 
-<div class="post">
-	
-	<div class="header">
-	  <h1>Paste an array into a variable</h1>
-	  <h2></h2>
-	</div>
-	<div class="content">
+<div class="content">
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a></h2>
 
-	  <div class="post-meta">
+    <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>19  Jan 2017</time>
+    <time>15  Jan 2017</time>
   </div>
 
   
@@ -228,7 +235,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/adfs">ADFS</a>
     
   </div>
   
@@ -236,69 +245,25 @@
 
 </div>
 
-	  <p>You&rsquo;ve got a list of values, you want that in an array.</p>
+  </header>
 
-<p>You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could <code>Create-ArrayFromPastedText</code>.</p>
+  <p>
+  Download it here https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e
+This script has probably lived its useful life, but I&rsquo;m sharing it anyway, because.. well why not!
+When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use Get-MsolFederationProperty that&rsquo;s great if you have one domain.. but what if you have 25 or 50.
+Create a profile on your ADFS servers
+  </p>
 
-<pre><code class="language-powershell">function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;)
-{
-    $result = @()
-    while ($true) {
-        $value = read-host    
-        if ($value -eq $returnvalue){
-            return $result
-        } else {
-            $result += $value
-        }
-    }
-}
-</code></pre>
+  
+  <footer>
+    <a href="/post/check-adfs-certificates-with-office365-configuration/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
 
-<p>You can use it like this</p>
-
-<pre><code class="language-powershell">$MyArray = create-Arrayfrompastedtext
-Item1
-Item2
-Item3
-
-#And then just use your array
-$MyArray |?{$_ -match '[13]'}
-Item1
-Item3
-</code></pre>
-
-
-	  
-<div class="prev-next-post pure-g">
-  <div class="pure-u-1-24" style="text-align: left;">
-    
-    <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/"><i class="fa fa-chevron-left"></i></a>
-    
-  </div>
-  <div class="pure-u-10-24">
-    
-    <nav class="prev">
-      <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a>
-    </nav>
-    
-  </div>
-  <div class="pure-u-2-24">
-    &nbsp;
-  </div>
-  <div class="pure-u-10-24">
-    
-  </div>
-  <div class="pure-u-1-24" style="text-align: right;">
-    
-  </div>
+  
 </div>
 
-
-
-	  
-
-	</div>
-</div>
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -307,4 +272,3 @@ Item3
 
 </body>
 </html>
-

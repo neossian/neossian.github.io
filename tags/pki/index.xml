@@ -11,7 +11,7 @@
     <item>
       <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
       <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
-      <pubDate>Sat, 01 Apr 2017 23:47:35 +0000</pubDate>
+      <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
       <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;

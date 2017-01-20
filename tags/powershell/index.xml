@@ -9,39 +9,6 @@
     <atom:link href="http://www.wrish.com/tags/powershell/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
-      <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
-      <pubDate>Sat, 01 Apr 2017 23:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;
-
-&lt;p&gt;One outlier application that won&amp;rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.&lt;/p&gt;
-
-&lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsrv
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsrv
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
-
-&lt;p&gt;There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;certutil -restrict &amp;quot;SubmittedWhen &amp;gt;= now-00:01, Disposition = 20&amp;quot; -view  csv | ConvertFrom-Csv | fl &amp;quot;Request Submission Date&amp;quot;,&amp;quot;Requester Name&amp;quot;,&amp;quot;Issued Common Name&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
       <title>Paste an array into a variable</title>
       <link>http://www.wrish.com/post/paste-me-an-array/</link>
       <pubDate>Thu, 19 Jan 2017 11:42:35 -0500</pubDate>
@@ -77,6 +44,89 @@ $MyArray |?{$_ -match &#39;[13]&#39;}
 Item1
 Item3
 &lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Check if Office 365 has Your Updated ADFS Certificates</title>
+      <link>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</link>
+      <pubDate>Sun, 15 Jan 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</guid>
+      <description>&lt;p&gt;Download it here &lt;a href=&#34;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&#34;&gt;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This script has probably lived its useful life, but I&amp;rsquo;m sharing it anyway, because.. well why not!&lt;/p&gt;
+
+&lt;p&gt;When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use &lt;code&gt;Get-MsolFederationProperty&lt;/code&gt; that&amp;rsquo;s great if you have one domain.. but what if you have 25 or 50.&lt;/p&gt;
+
+&lt;p&gt;Create a profile on your ADFS servers&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;notepad $profile.alluserscurrenthost
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Copy and paste this into the profile and click save&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Check-ADFSFederationForAllDomains {
+    
+    get-msoldomain | ?{$_.authentication -eq &amp;quot;Federated&amp;quot; -and !$_.rootDomain } | %{
+        Write-host Processing $_.Name
+        $SETUP = Get-MsolFederationProperty –DomainName $_.Name
+        if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
+            Write-host $_.Name &amp;quot;Token Signing and Next Token Signing Certificates Match&amp;quot; -ForegroundColor Green      
+         } else {
+            Write-host $_.Name &amp;quot;Token Signing and/or Next Token Signing Certificates DO NOT Match&amp;quot; -ForegroundColor REd    
+         }
+      } 
+}
+write-host &#39;Check-ADFSFederationForAllDomains&#39;
+
+Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
+    
+    get-msoldomain | ?{$_.authentication -eq &amp;quot;Federated&amp;quot; -and !$_.rootDomain } | %{
+        Write-host Processing $_.Name
+        Update-MsolFederatedDomain –DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
+       
+      } 
+}
+Write-Host &#39;Update-ADFSFederationForAllDomains&#39; 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now when the time comes to check just run &lt;code&gt;Check-ADFSFederationForAllDomains&lt;/code&gt; followed by &lt;code&gt;Update-ADFSFedrationForAllDomains&lt;/code&gt; if you need to update.&lt;/p&gt;
+
+&lt;p&gt;Download it here &lt;a href=&#34;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&#34;&gt;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
+      <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
+      <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
+      <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;
+
+&lt;p&gt;One outlier application that won&amp;rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.&lt;/p&gt;
+
+&lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
+restart-service certsrv
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
+restart-service certsrv
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
+
+&lt;p&gt;There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;certutil -restrict &amp;quot;SubmittedWhen &amp;gt;= now-00:01, Disposition = 20&amp;quot; -view  csv | ConvertFrom-Csv | fl &amp;quot;Request Submission Date&amp;quot;,&amp;quot;Requester Name&amp;quot;,&amp;quot;Issued Common Name&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.&lt;/p&gt;
 </description>
     </item>
     
@@ -526,23 +576,6 @@ But they use ugly WMIC commands, you want to use PowerShell, because PowerShell 
 
 &lt;p&gt;You have two or more objects, one works, one does not, you want to find out what is different between the two - this cmdlet is for you!
 &lt;a href=&#34;https://gallery.technet.microsoft.com/Compare-objects-Side-by-4f47f090&#34;&gt;Compare-SideBySide.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Highlight-String and Highlight-Output</title>
-      <link>http://www.wrish.com/post/highlight-output/</link>
-      <pubDate>Thu, 20 Dec 2012 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/highlight-output/</guid>
-      <description>&lt;p&gt;You are a Windows Systems Administrator, you trawl through logs,
-compare datasets, peruse help files and you use PowerShell, but once,
-you were a Linux System Administrator and you revelled in tools like &lt;em&gt;sed&lt;/em&gt; and &lt;em&gt;grep. &lt;/em&gt;Perhaps
-you were looking for a way to replicate the glorious &lt;em&gt;grep &amp;ndash;color&lt;/em&gt; command, perhaps you
-found &lt;a href=&#34;http://weblogs.asp.net/whaggard/archive/2007/03/23/powershell-script-to-find-strings-and-highlight-them-in-the-output.aspx&#34;&gt;Wes&amp;rsquo;s Puzzling Blog for Highlighting Strings and What Have You&lt;/a&gt;.
-But for some reason, it didn&amp;rsquo;t quite cut it. No freaking pipeline! If that is you, then chances are good that you are me, and then you created this. Enjoy.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Highlight-String-and-45525e27&#34;&gt;Download Highlight-String.ps1&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     

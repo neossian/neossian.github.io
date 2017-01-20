@@ -229,54 +229,6 @@
   
     <article>
   <header>
-    <h2><a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>1  Apr 2017</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.
-One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.
-Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.
-certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsrv  Now issue your certificate, and switch back.
-  </p>
-
-  
-  <footer>
-    <a href="/post/switch-ms-pki-back-to-sha1/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
     <h2><a href="http://www.wrish.com/post/paste-me-an-array/">Paste an array into a variable</a></h2>
 
     <div class="post-meta">
@@ -315,6 +267,102 @@ function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;) { $result = @(
   
   <footer>
     <a href="/post/paste-me-an-array/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>15  Jan 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/adfs">ADFS</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Download it here https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e
+This script has probably lived its useful life, but I&rsquo;m sharing it anyway, because.. well why not!
+When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use Get-MsolFederationProperty that&rsquo;s great if you have one domain.. but what if you have 25 or 50.
+Create a profile on your ADFS servers
+  </p>
+
+  
+  <footer>
+    <a href="/post/check-adfs-certificates-with-office365-configuration/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>4  Jan 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.
+One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.
+Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.
+certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsrv  Now issue your certificate, and switch back.
+  </p>
+
+  
+  <footer>
+    <a href="/post/switch-ms-pki-back-to-sha1/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
   </footer>
   
 </article>
@@ -643,55 +691,6 @@ Contrary to its name, the LegacyExchangeDN value is critical to maintaining acti
   
   <footer>
     <a href="/post/decode-legacy-exchange-dn-from-ndr/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/track-skype-lync-schema-change/">Track Lync Schema update with Powershell</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>25  Nov 2016</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/skypeforbusiness">SkypeForBusiness</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  When I perform schema changes in very large forests it is nice to be able to track the status of the change as it replicates throughout the forest. I wanted to create a script that would quickly tell me what the current schema was on over 100 DCs.
-If you don&rsquo;t want to see how it was done you can just Download Track-LyncSchema.ps1
-Starting with some scripts that I have built before foreach-parallel to do parallel processing, get-forestDomainControlles to get a list of all DCs in the forest and get-LdapData to do direct ldap lookups quickly.
-  </p>
-
-  
-  <footer>
-    <a href="/post/track-skype-lync-schema-change/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
   </footer>
   
 </article>
