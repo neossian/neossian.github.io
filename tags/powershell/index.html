@@ -276,6 +276,51 @@ certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsrv  Now issue
   
     <article>
   <header>
+    <h2><a href="http://www.wrish.com/post/paste-me-an-array/">Paste an array into a variable</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>19  Jan 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  You&rsquo;ve got a list of values, you want that in an array.
+You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could Create-ArrayFromPastedText.
+function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;) { $result = @() while ($true) { $value = read-host if ($value -eq $returnvalue){ return $result } else { $result += $value } } }  You can use it like this
+  </p>
+
+  
+  <footer>
+    <a href="/post/paste-me-an-array/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
     <h2><a href="http://www.wrish.com/post/convert-between-immutableid-and-ad-object/">Office 365 - Convert between Immutable ID and AD Object </a></h2>
 
     <div class="post-meta">
@@ -694,7 +739,7 @@ You can&rsquo;t verify your domain using the GUI when you create the Domain usin
 
   <p>
   A collection of regex&rsquo;s that I always find myself looking up.
-#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Remplacer pour reformater un string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild  
+#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?)&gt;','&lt;cow&gt;' -replace '&lt;/([^/]+?)&gt;','&lt;/cow&gt;' #&lt;cow&gt;MyHeading&lt;/cow&gt;  
   </p>
 
   

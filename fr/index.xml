@@ -203,6 +203,11 @@ $matches.Valeur
 #Remplacer pour reformater un string
 &amp;quot;J&#39;ai un grande problem&amp;quot; -replace &#39;.* (g[^ ]+).*&#39;,&amp;quot;C&#39;est pas trop `$1&amp;quot;
 #C&#39;est pas trop grande
+
+#appariement paresseux (pour previnir appariement exessif) utilise un ? apres la + ou *
+&amp;quot;&amp;lt;h1&amp;gt;MyHeading&amp;lt;/h1&amp;gt;&amp;quot; -replace &#39;&amp;lt;([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;cow&amp;gt;&#39; -replace  &#39;&amp;lt;/([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;/cow&amp;gt;&#39;
+#&amp;lt;cow&amp;gt;MyHeading&amp;lt;/cow&amp;gt;
+
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>

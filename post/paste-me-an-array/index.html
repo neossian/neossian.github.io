@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Tags &middot; WRISH</title>
+  <title>Paste an array into a variable &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -191,18 +185,6 @@
 </div>
 
   
-<div>
-  <div class="small-print">
-    <ul class="pure-menu-list">
-		
-		<li>
-			Language:<a href="http://www.wrish.com/fr/tags/">fr</a>
-		</li>
-		
-	</ul>	
-  </div>
-</div>
-
   <div>
   <div class="small-print">
     <small>&copy; 2016. All rights reserved.</small>
@@ -220,81 +202,109 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Tags</h1>
-</div>
-<div class="content">
-  <ul>
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Paste an array into a variable</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>19  Jan 2017</time>
+  </div>
+
+  
+
+  
+
   
   
-    <li>
-      <a href="powershell">powershell</a>
-      <span>&#40;15&#41;</span>
-    </li>
   
-    <li>
-      <a href="activedirectory">activedirectory</a>
-      <span>&#40;6&#41;</span>
-    </li>
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
+    
+  </div>
   
-    <li>
-      <a href="azuread">azuread</a>
-      <span>&#40;3&#41;</span>
-    </li>
   
-    <li>
-      <a href="cheatsheets">cheatsheets</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="aadconnect">aadconnect</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azureiaas">azureiaas</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="certificates">certificates</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="exchange">exchange</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="hosting">hosting</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="office365">office365</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="pki">pki</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="servercore">servercore</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="skypeforbusiness">skypeforbusiness</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-  </ul>
+
 </div>
 
+	  <p>You&rsquo;ve got a list of values, you want that in an array.</p>
+
+<p>You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could <code>Create-ArrayFromPastedText</code>.</p>
+
+<pre><code class="language-powershell">function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;)
+{
+    $result = @()
+    while ($true) {
+        $value = read-host    
+        if ($value -eq $returnvalue){
+            return $result
+        } else {
+            $result += $value
+        }
+    }
+}
+</code></pre>
+
+<p>You can use it like this</p>
+
+<pre><code class="language-powershell">$MyArray = create-Arrayfrompastedtext
+Item1
+Item2
+Item3
+
+#And then just use your array
+$MyArray |?{$_ -match '[13]'}
+Item1
+Item3
+</code></pre>
+
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/">Hosting for free with GitHub Pages using Windows (with custom domain)</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="next">
+      <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/"><i class="fa fa-chevron-right"></i></a>
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -303,3 +313,4 @@
 
 </body>
 </html>
+

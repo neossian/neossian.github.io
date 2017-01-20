@@ -44,9 +44,13 @@ $matches.Value
 #cowColour
 #Brown
 
-#Remplacer pour reformater un string
+#Replace to reformat a string 
 &#39;This is a wild test&#39; -replace &#39;.*(w[^ ]+).*&#39;,&#39;Not so $1&#39;
 #Not so wild
+
+#Lazy matching (to prevent over-matching) use a ? after the + or *
+&amp;quot;&amp;lt;h1&amp;gt;MyHeading&amp;lt;/h1&amp;gt;&amp;quot; -replace &#39;&amp;lt;([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;cow&amp;gt;&#39; -replace  &#39;&amp;lt;/([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;/cow&amp;gt;&#39;
+#&amp;lt;cow&amp;gt;MyHeading&amp;lt;/cow&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>

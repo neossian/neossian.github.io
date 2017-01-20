@@ -262,6 +262,11 @@ $matches.Valeur
 #Remplacer pour reformater un string
 &quot;J'ai un grande problem&quot; -replace '.* (g[^ ]+).*',&quot;C'est pas trop `$1&quot;
 #C'est pas trop grande
+
+#appariement paresseux (pour previnir appariement exessif) utilise un ? apres la + ou *
+&quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?)&gt;','&lt;cow&gt;' -replace  '&lt;/([^/]+?)&gt;','&lt;/cow&gt;'
+#&lt;cow&gt;MyHeading&lt;/cow&gt;
+
 </code></pre>
 
 
