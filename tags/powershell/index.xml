@@ -9,6 +9,48 @@
     <atom:link href="http://www.wrish.com/tags/powershell/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>User Profile Cleanup</title>
+      <link>http://www.wrish.com/post/cleanup-user-profiles/</link>
+      <pubDate>Mon, 23 Jan 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/cleanup-user-profiles/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Big environments get messy, lots of users, lots of admins, lots of logging in here and there.&lt;/p&gt;
+
+&lt;p&gt;Profiles accumulate, C drive starts to get full, oh the humanity! Fear not humble Admin, on our adventures today we discover how to remove old user profiles with naught but the flick of a WMI method.&lt;/p&gt;
+
+&lt;p&gt;The meat and bonse of this function is getting user profiles and deleting them:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$userprofiles = Get-WmiObject -Class Win32_UserProfile
+$userprofiles[$whichOne].delete()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;But before we can pull the trigger and send these profiles to the depths, there will be some evaluation of dates, some checking that they aren&amp;rsquo;t important, and some validating using ShouldProcess.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;[CmdletBinding(
+     SupportsShouldProcess=$true,
+    ConfirmImpact=&amp;quot;High&amp;quot;
+  )]param ($computerName= &#39;.&#39;,$AgeLimit=&#39;60&#39;, $Exclude)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;By declaring &lt;code&gt;supportsShouldProcess=$true&lt;/code&gt; it means that we can make use of the COnfirm/Force/Whatif because deleting user profiles is surely an activity to be feared. What if you delete a service account profile? Your best friend Greg? Such activities are the folley of adventurous Admins.&lt;/p&gt;
+
+&lt;p&gt;By wrapping our dangerous bits in &lt;code&gt;$Pscmdlet.shouldProcess(&amp;quot;The thing I am about to do&amp;quot;)&lt;/code&gt; we can give the Admin a chance to save their skin, and their friendships.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt; if ($pscmdlet.ShouldProcess($activity)) {
+        Write-Verbose &amp;quot;Attempting to $activity&amp;quot;
+        $profile.Delete()       
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Go forth wayward Admin, delete those profiles, watch as you recover untold disk space and make the data gods smile.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Paste an array into a variable</title>
       <link>http://www.wrish.com/post/paste-me-an-array/</link>
       <pubDate>Thu, 19 Jan 2017 11:42:35 -0500</pubDate>
@@ -35,9 +77,14 @@
 &lt;p&gt;You can use it like this&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$MyArray = create-Arrayfrompastedtext
+#Here is a read-host line, just copy and paste your list of computers/users etc
 Item1
 Item2
 Item3
+
+#when you enter an empty line the array closes and returns
+#if you want your array to include empty lines use the -returnvalue paramter to change
+#the value that signifies the end of the array.
 
 #And then just use your array
 $MyArray |?{$_ -match &#39;[13]&#39;}
@@ -563,19 +610,6 @@ But they use ugly WMIC commands, you want to use PowerShell, because PowerShell 
     Get-WmiObject  -Namespace  &amp;quot;root/microsoftdfs&amp;quot;  -class  dfsrreplicatedfolderinfo  -ComputerName  $_.hostname
 }  |  ?{$_.replicationGroupName  -eq  &amp;quot;Domain  System  Volume&amp;quot;}  |  %{$_.cleanupConflictDirectory()}
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Oh Damn Side by Side Comparison in Powershell</title>
-      <link>http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/</link>
-      <pubDate>Sun, 31 Mar 2013 02:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/</guid>
-      <description>&lt;p&gt;I work in Directories, usually lots of them at the same time. Spend a little time comparing the same user in 3 or 4 different directories and you long for a way to show them side by side. The Compare-Object cmdlet is handy for comparing lists of files but actually compare objects it does not!&lt;/p&gt;
-
-&lt;p&gt;You have two or more objects, one works, one does not, you want to find out what is different between the two - this cmdlet is for you!
-&lt;a href=&#34;https://gallery.technet.microsoft.com/Compare-objects-Side-by-4f47f090&#34;&gt;Compare-SideBySide.ps1&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     

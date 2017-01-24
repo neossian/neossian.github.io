@@ -228,6 +228,55 @@
   
     <article>
   <header>
+    <h2><a href="http://www.wrish.com/post/cleanup-user-profiles/">User Profile Cleanup</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>23  Jan 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/windowsserver">WindowsServer</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Download Cleanup-UserProfiles.ps1
+Big environments get messy, lots of users, lots of admins, lots of logging in here and there.
+Profiles accumulate, C drive starts to get full, oh the humanity! Fear not humble Admin, on our adventures today we discover how to remove old user profiles with naught but the flick of a WMI method.
+The meat and bonse of this function is getting user profiles and deleting them:
+$userprofiles = Get-WmiObject -Class Win32_UserProfile $userprofiles[$whichOne].
+  </p>
+
+  
+  <footer>
+    <a href="/post/cleanup-user-profiles/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
     <h2><a href="http://www.wrish.com/post/paste-me-an-array/">Paste an array into a variable</a></h2>
 
     <div class="post-meta">

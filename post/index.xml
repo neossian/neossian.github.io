@@ -6,8 +6,50 @@
     <description>Recent content in Post-rsses on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <lastBuildDate>Thu, 19 Jan 2017 11:42:35 -0500</lastBuildDate>
+    <lastBuildDate>Mon, 23 Jan 2017 11:42:35 -0500</lastBuildDate>
     <atom:link href="http://www.wrish.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>User Profile Cleanup</title>
+      <link>http://www.wrish.com/post/cleanup-user-profiles/</link>
+      <pubDate>Mon, 23 Jan 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/cleanup-user-profiles/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Big environments get messy, lots of users, lots of admins, lots of logging in here and there.&lt;/p&gt;
+
+&lt;p&gt;Profiles accumulate, C drive starts to get full, oh the humanity! Fear not humble Admin, on our adventures today we discover how to remove old user profiles with naught but the flick of a WMI method.&lt;/p&gt;
+
+&lt;p&gt;The meat and bonse of this function is getting user profiles and deleting them:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$userprofiles = Get-WmiObject -Class Win32_UserProfile
+$userprofiles[$whichOne].delete()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;But before we can pull the trigger and send these profiles to the depths, there will be some evaluation of dates, some checking that they aren&amp;rsquo;t important, and some validating using ShouldProcess.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;[CmdletBinding(
+     SupportsShouldProcess=$true,
+    ConfirmImpact=&amp;quot;High&amp;quot;
+  )]param ($computerName= &#39;.&#39;,$AgeLimit=&#39;60&#39;, $Exclude)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;By declaring &lt;code&gt;supportsShouldProcess=$true&lt;/code&gt; it means that we can make use of the COnfirm/Force/Whatif because deleting user profiles is surely an activity to be feared. What if you delete a service account profile? Your best friend Greg? Such activities are the folley of adventurous Admins.&lt;/p&gt;
+
+&lt;p&gt;By wrapping our dangerous bits in &lt;code&gt;$Pscmdlet.shouldProcess(&amp;quot;The thing I am about to do&amp;quot;)&lt;/code&gt; we can give the Admin a chance to save their skin, and their friendships.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt; if ($pscmdlet.ShouldProcess($activity)) {
+        Write-Verbose &amp;quot;Attempting to $activity&amp;quot;
+        $profile.Delete()       
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Go forth wayward Admin, delete those profiles, watch as you recover untold disk space and make the data gods smile.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Paste an array into a variable</title>
@@ -36,9 +78,14 @@
 &lt;p&gt;You can use it like this&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$MyArray = create-Arrayfrompastedtext
+#Here is a read-host line, just copy and paste your list of computers/users etc
 Item1
 Item2
 Item3
+
+#when you enter an empty line the array closes and returns
+#if you want your array to include empty lines use the -returnvalue paramter to change
+#the value that signifies the end of the array.
 
 #And then just use your array
 $MyArray |?{$_ -match &#39;[13]&#39;}
@@ -622,34 +669,6 @@ $matches.Value
 &amp;quot;&amp;lt;h1&amp;gt;MyHeading&amp;lt;/h1&amp;gt;&amp;quot; -replace &#39;&amp;lt;([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;cow&amp;gt;&#39; -replace  &#39;&amp;lt;/([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;/cow&amp;gt;&#39;
 #&amp;lt;cow&amp;gt;MyHeading&amp;lt;/cow&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Download file the Powershell way</title>
-      <link>http://www.wrish.com/post/downloading-files-with-powershell/</link>
-      <pubDate>Mon, 31 Mar 2014 02:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/downloading-files-with-powershell/</guid>
-      <description>&lt;p&gt;I was building a lab in Azure today and needed to download the Exchange binaries to extend my test AD schema.&lt;/p&gt;
-
-&lt;p&gt;When you open up IE and browse to the Microsoft download site you have to add a list of 10 or 15 different sites to trusted - some of them are CDNs for shared Javascript code and resources.
-&lt;img src=&#34;http://www.wrish.com/post/images/if-you-trust-this-website.png&#34; alt=&#34;Content from the website listed below is being blocked by the Internet Explorer Enhanced Security Configuration https://assets.onestore.ms&#34; /&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;https://cdn.optimizely.com
-https://c.s-microsoft.com
-https://query.prod.cms.rt.microsoft.com
-https://mem.gfx.ms
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;and then&amp;hellip; &lt;em&gt;Your current security settings do not allow this file to be downloaded&lt;/em&gt; sigh!&lt;/p&gt;
-
-&lt;p&gt;Now, I know how to fix this problem properly, but frankly, that is a lot of clicking. Normally I would go and install another browser that isn&amp;rsquo;t weighed down by years of poor security practice&amp;hellip; but.. today I decided to find the PowerShell way.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt;Start-BitsTransfer -Source https://download.microsoft.com/download/7/4/9/74981C3B-0D3C-4068-8272-22358F78305F/Exchange2013-x64-cu13.exe -Destination d:\Exchange2013-x64-cu13.exe
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;I just attempt to download the file on my machine, and then copy the link and tada! Now I can include this step in my powershell build scripts too! Awesome!&lt;/p&gt;
 </description>
     </item>
     

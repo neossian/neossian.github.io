@@ -228,7 +228,53 @@
   
     <article>
   <header>
-    <h2><a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/">Clone OU Structure to New Domain</a></h2>
+    <h2><a href="http://www.wrish.com/fr/post/paste-me-an-array/">Coller un array</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>19  janv 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/fr/tags/powershell">Powershell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Vous avez une liste des valuers, et vous voulez un array.
+C&rsquo;est possible de copier dedans un affiche et l&rsquo;emporter. Ou mettre entre @&quot; et &quot;@ et diviser avec split ou, Create-ArrayFromPastedText.
+function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;) { $result = @() while ($true) { $value = read-host if ($value -eq $returnvalue){ return $result } else { $result += $value } } }  Utiliser commme ça.
+$MyArray = create-Arrayfrompastedtext #Ici read-host coller la liste des valeurs Item1 Item2 Item3 #Et utiliser ton array!
+  </p>
+
+  
+  <footer>
+    <a href="/fr/post/paste-me-an-array/">Lire la suite<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/">Cloner Une Structure d&#39;UO</a></h2>
 
     <div class="post-meta">
 

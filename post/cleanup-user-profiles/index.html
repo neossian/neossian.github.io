@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Azure AD Connect - C&#39;est impossible de récupérer l&#39;état de connexion unique &middot; WRISH</title>
+  <title>User Profile Cleanup &middot; WRISH</title>
 
   
   
@@ -71,25 +71,25 @@
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/fr/"><i class='fa fa-home fa-fw'></i>Accueil</a>
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
       
         </li>
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/fr/post/"><i class='fa fa-list fa-fw'></i>Tout les articles</a>
+          <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
       
         </li>
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/fr/about/"><i class='fa fa-user fa-fw'></i>Bio</a>
+          <a class="pure-menu-link" href="http://www.wrish.com/about/"><i class='fa fa-user fa-fw'></i>About</a>
       
         </li>
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/fr/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+          <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
       
         </li>
       
@@ -185,25 +185,13 @@
 </div>
 
   
-<div>
-  <div class="small-print">
-    <ul class="pure-menu-list">
-		
-		<li>
-			La langue:<a href="http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/">en</a>
-		</li>
-		
-	</ul>	
-  </div>
-</div>
-
   <div>
   <div class="small-print">
-    <small>&copy; 2016. Droits réservés.</small>
+    <small>&copy; 2016. All rights reserved.</small>
   </div>
   <div class="small-print">
-    <small>Faire avec&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
-    <small>Thème&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
+    <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Theme&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>
   </div>
 </div>
 
@@ -218,7 +206,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>Azure AD Connect - C&#39;est impossible de récupérer l&#39;état de connexion unique</h1>
+	  <h1>User Profile Cleanup</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -227,7 +215,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>8  déc 2016</time>
+    <time>23  Jan 2017</time>
   </div>
 
   
@@ -240,9 +228,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/fr/tags/azuread">AzureAD</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/fr/tags/aadconnect">AADConnect</a>
+      <a class="post-taxonomy-tag" href="/tags/windowsserver">WindowsServer</a>
     
   </div>
   
@@ -250,23 +238,52 @@
 
 </div>
 
-	  <p>Si vous êtes arrivé ici, vous êtes très malchanceux. Vous avez téléchargé la version AADConnect <a href="https://docs.microsoft.com/en-us/azure/active-directory/active-directory-aadconnect-version-history#113700">1.1.370.0</a> avec son problème connait.
-Vous n&rsquo;avez pas le port 9090 ouvrir à l&rsquo;extérieur, donc vous avez reçu une erreur non documentée <code>Cannot retrieve single sign on status. Learn more</code> - &laquo;impossible de récupérer l&rsquo;état de connexion unique - apprendre plus&raquo;.</p>
+	  <p><a href="https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084">Download Cleanup-UserProfiles.ps1</a></p>
 
-<p>Ne craignez pas, allez <a href="https://www.microsoft.com/en-us/download/details.aspx?id=47594">Téléchargé la dernier version</a>.</p>
+<p>Big environments get messy, lots of users, lots of admins, lots of logging in here and there.</p>
+
+<p>Profiles accumulate, C drive starts to get full, oh the humanity! Fear not humble Admin, on our adventures today we discover how to remove old user profiles with naught but the flick of a WMI method.</p>
+
+<p>The meat and bonse of this function is getting user profiles and deleting them:</p>
+
+<pre><code class="language-powershell">$userprofiles = Get-WmiObject -Class Win32_UserProfile
+$userprofiles[$whichOne].delete()
+</code></pre>
+
+<p>But before we can pull the trigger and send these profiles to the depths, there will be some evaluation of dates, some checking that they aren&rsquo;t important, and some validating using ShouldProcess.</p>
+
+<pre><code class="language-powershell">[CmdletBinding(
+     SupportsShouldProcess=$true,
+    ConfirmImpact=&quot;High&quot;
+  )]param ($computerName= '.',$AgeLimit='60', $Exclude)
+</code></pre>
+
+<p>By declaring <code>supportsShouldProcess=$true</code> it means that we can make use of the COnfirm/Force/Whatif because deleting user profiles is surely an activity to be feared. What if you delete a service account profile? Your best friend Greg? Such activities are the folley of adventurous Admins.</p>
+
+<p>By wrapping our dangerous bits in <code>$Pscmdlet.shouldProcess(&quot;The thing I am about to do&quot;)</code> we can give the Admin a chance to save their skin, and their friendships.</p>
+
+<pre><code class="language-Powershell"> if ($pscmdlet.ShouldProcess($activity)) {
+        Write-Verbose &quot;Attempting to $activity&quot;
+        $profile.Delete()       
+    }
+</code></pre>
+
+<p>Go forth wayward Admin, delete those profiles, watch as you recover untold disk space and make the data gods smile.</p>
+
+<p><a href="https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084">Download Cleanup-UserProfiles.ps1</a></p>
 
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/fr/post/track-skype-lync-schema-change/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/paste-me-an-array/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/fr/post/track-skype-lync-schema-change/">Suivez les mis à jour de l&#39;Schema avec Powershell</a>
+      <a href="http://www.wrish.com/post/paste-me-an-array/">Paste an array into a variable</a>
     </nav>
     
   </div>
@@ -275,14 +292,8 @@ Vous n&rsquo;avez pas le port 9090 ouvrir à l&rsquo;extérieur, donc vous avez 
   </div>
   <div class="pure-u-10-24">
     
-    <nav class="next">
-      <a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/">Cloner Une Structure d&#39;UO</a>
-    </nav>
-    
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
-    
-    <a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>

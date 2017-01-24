@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Activedirectory &middot; WRISH</title>
+  <title>Coller un array &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/activedirectory/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/activedirectory/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -196,7 +190,7 @@
     <ul class="pure-menu-list">
 		
 		<li>
-			La langue:<a href="http://www.wrish.com/tags/activedirectory/">en</a>
+			La langue:<a href="http://www.wrish.com/post/paste-me-an-array/">en</a>
 		</li>
 		
 	</ul>	
@@ -220,21 +214,20 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Activedirectory</h1>
-</div>
 
-<div class="content">
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/">Cloner Une Structure d&#39;UO</a></h2>
+<div class="post">
+	
+	<div class="header">
+	  <h1>Coller un array</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
 
-    <div class="post-meta">
+	  <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>16  déc 2016</time>
+    <time>19  janv 2017</time>
   </div>
 
   
@@ -247,9 +240,7 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/fr/tags/powershell">PowerShell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/fr/tags/activedirectory">ActiveDirectory</a>
+      <a class="post-taxonomy-tag" href="/fr/tags/powershell">Powershell</a>
     
   </div>
   
@@ -257,73 +248,70 @@
 
 </div>
 
-  </header>
+	  <p>Vous avez une liste des valuers, et vous voulez un array.</p>
 
-  <p>
-  <p>Une façon rapid et powershellement de cloner une structure d&rsquo;UO d&rsquo;un domaine à un domaine de destination consiste à utiliser l&rsquo;outil <code>ldifde</code> et modifier la sortie.
+<p>C&rsquo;est possible de copier dedans un affiche et l&rsquo;emporter. Ou mettre entre <code>@&quot;</code> et <code>&quot;@</code> et diviser avec <code>split</code> ou, <code>Create-ArrayFromPastedText</code>.</p>
 
-De créer le fichier de sortie <code>Oustructure.ldif</code> on utilise <code>ldifde</code> pour exporter toutes les UOs.</p>
-  </p>
+<pre><code class="language-powershell">function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;)
+{
+    $result = @()
+    while ($true) {
+        $value = read-host    
+        if ($value -eq $returnvalue){
+            return $result
+        } else {
+            $result += $value
+        }
+    }
+}
+</code></pre>
 
-  
-  <footer>
-    <a href="/fr/post/clone-ou-structure-to-new-domain/">Lire la suite<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
+<p>Utiliser commme ça.</p>
 
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/fr/post/track-skype-lync-schema-change/">Suivez les mis à jour de l&#39;Schema avec Powershell</a></h2>
+<pre><code class="language-powershell">$MyArray = create-Arrayfrompastedtext
+#Ici read-host coller la liste des valeurs
+Item1
+Item2
+Item3
 
-    <div class="post-meta">
+#Et utiliser ton array!
+$MyArray |?{$_ -match '[13]'}
+Item1
+Item3
+</code></pre>
 
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>25  nov 2016</time>
-  </div>
 
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
     
-      <a class="post-taxonomy-tag" href="/fr/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/fr/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/fr/tags/skypeforbusiness">SkypeForBusiness</a>
+    <a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
-  
-  
-
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/">Cloner Une Structure d&#39;UO</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
 </div>
 
-  </header>
 
-  <p>
-  Lorsque je changer le schéma dans une grande forêt, c&rsquo;est gentil de suivre le progrès de le changement pendant la réplication autour de forêt. J&rsquo;ai voulais de crèer un script qui rapidement donner la version actuelle de schéma pour plus de 100 contrôleurs de domaine.
-Si vous voulez sauter les détails Tèlecharger Track-LyncSchema.ps1
-En commençant avec quelques scripts que j&rsquo;avais déjà construit, foreach-parallel qui peut exécuter en parallèle. get-forestDomainControlles pour crée un liste de tous les contrôleurs de domaine et get-LdapData pour faire les questions de LDAP rapidement sans le module Active Directory.
-  </p>
 
-  
-  <footer>
-    <a href="/fr/post/track-skype-lync-schema-change/">Lire la suite<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
+	  
 
-  
+	</div>
 </div>
-
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -332,3 +320,4 @@ En commençant avec quelques scripts que j&rsquo;avais déjà construit, foreach
 
 </body>
 </html>
+

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/windowsserver/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/windowsserver/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>User Profile Cleanup</title>
+      <link>http://www.wrish.com/post/cleanup-user-profiles/</link>
+      <pubDate>Mon, 23 Jan 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/cleanup-user-profiles/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Big environments get messy, lots of users, lots of admins, lots of logging in here and there.&lt;/p&gt;
+
+&lt;p&gt;Profiles accumulate, C drive starts to get full, oh the humanity! Fear not humble Admin, on our adventures today we discover how to remove old user profiles with naught but the flick of a WMI method.&lt;/p&gt;
+
+&lt;p&gt;The meat and bonse of this function is getting user profiles and deleting them:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$userprofiles = Get-WmiObject -Class Win32_UserProfile
+$userprofiles[$whichOne].delete()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;But before we can pull the trigger and send these profiles to the depths, there will be some evaluation of dates, some checking that they aren&amp;rsquo;t important, and some validating using ShouldProcess.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;[CmdletBinding(
+     SupportsShouldProcess=$true,
+    ConfirmImpact=&amp;quot;High&amp;quot;
+  )]param ($computerName= &#39;.&#39;,$AgeLimit=&#39;60&#39;, $Exclude)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;By declaring &lt;code&gt;supportsShouldProcess=$true&lt;/code&gt; it means that we can make use of the COnfirm/Force/Whatif because deleting user profiles is surely an activity to be feared. What if you delete a service account profile? Your best friend Greg? Such activities are the folley of adventurous Admins.&lt;/p&gt;
+
+&lt;p&gt;By wrapping our dangerous bits in &lt;code&gt;$Pscmdlet.shouldProcess(&amp;quot;The thing I am about to do&amp;quot;)&lt;/code&gt; we can give the Admin a chance to save their skin, and their friendships.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt; if ($pscmdlet.ShouldProcess($activity)) {
+        Write-Verbose &amp;quot;Attempting to $activity&amp;quot;
+        $profile.Delete()       
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Go forth wayward Admin, delete those profiles, watch as you recover untold disk space and make the data gods smile.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

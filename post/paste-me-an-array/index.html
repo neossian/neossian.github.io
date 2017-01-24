@@ -185,6 +185,18 @@
 </div>
 
   
+<div>
+  <div class="small-print">
+    <ul class="pure-menu-list">
+		
+		<li>
+			Language:<a href="http://www.wrish.com/fr/post/paste-me-an-array/">fr</a>
+		</li>
+		
+	</ul>	
+  </div>
+</div>
+
   <div>
   <div class="small-print">
     <small>&copy; 2016. All rights reserved.</small>
@@ -257,9 +269,14 @@
 <p>You can use it like this</p>
 
 <pre><code class="language-powershell">$MyArray = create-Arrayfrompastedtext
+#Here is a read-host line, just copy and paste your list of computers/users etc
 Item1
 Item2
 Item3
+
+#when you enter an empty line the array closes and returns
+#if you want your array to include empty lines use the -returnvalue paramter to change
+#the value that signifies the end of the array.
 
 #And then just use your array
 $MyArray |?{$_ -match '[13]'}
@@ -287,8 +304,14 @@ Item3
   </div>
   <div class="pure-u-10-24">
     
+    <nav class="next">
+      <a href="http://www.wrish.com/post/cleanup-user-profiles/">User Profile Cleanup</a>
+    </nav>
+    
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/post/cleanup-user-profiles/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>
