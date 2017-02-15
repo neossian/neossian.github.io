@@ -9,6 +9,36 @@
     <atom:link href="http://www.wrish.com/tags/office365/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Assign EMS licenses to all licensed users</title>
+      <link>http://www.wrish.com/post/assign-ems-licenses/</link>
+      <pubDate>Mon, 13 Feb 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/assign-ems-licenses/</guid>
+      <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Script to add EMS Licenses to all licensed users
+$VerbosePreference = continue
+$SKU = get-msolaccountSKU | ?{$_.accountskuid -match &#39;:EMS$&#39;} | select -expand AccountSKUID
+if ($SKU) {
+    $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
+    $allusersThatNeedEMS | %{
+        $u = $_;
+        try{ 
+            Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
+            Write-verbose &amp;quot;Successfully added $SKU to $($u.userprincipalname)&amp;quot;
+        } catch {
+            Write-Error &amp;quot;Failed to add $SKU to $($u.userprincipalname) because: $_&amp;quot;
+        }
+    }
+} else {
+    Write-host &amp;quot;No EMS license SKU found&amp;quot;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Office 365 - Convert between Immutable ID and AD Object </title>
       <link>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</link>
       <pubDate>Thu, 22 Dec 2016 20:53:49 -0500</pubDate>

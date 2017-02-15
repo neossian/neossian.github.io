@@ -229,6 +229,58 @@
   
     <article>
   <header>
+    <h2><a href="http://www.wrish.com/post/assign-ems-licenses/">Assign EMS licenses to all licensed users</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>13  Feb 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/azure">Azure</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/conditionalaccess">ConditionalAccess</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
+#Script to add EMS Licenses to all licensed users $VerbosePreference = continue $SKU = get-msolaccountSKU | ?
+  </p>
+
+  
+  <footer>
+    <a href="/post/assign-ems-licenses/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
     <h2><a href="http://www.wrish.com/post/cleanup-user-profiles/">User Profile Cleanup</a></h2>
 
     <div class="post-meta">
@@ -644,55 +696,6 @@ To generate the Output file <code>Oustructure-cleaned.ldif</code> we use ldifde 
 But do not fear. Just go and download the latest version.
   </p>
 
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/remotely-retrieve-ssl-certificates/">Remotely Retrieve active SSL certificate (HTTPS or LDAPS)</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>5  Dec 2016</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/certificates">Certificates</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.
-Download Retrieve-ServerCertFromSocket.ps1
-With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn&rsquo;t work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn&rsquo;t match your connectivity method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.
-  </p>
-
-  
-  <footer>
-    <a href="/post/remotely-retrieve-ssl-certificates/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
   
 </article>
 

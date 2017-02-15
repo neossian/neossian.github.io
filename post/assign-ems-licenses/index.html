@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Tags &middot; WRISH</title>
+  <title>Assign EMS licenses to all licensed users &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -191,18 +185,6 @@
 </div>
 
   
-<div>
-  <div class="small-print">
-    <ul class="pure-menu-list">
-		
-		<li>
-			Language:<a href="http://www.wrish.com/fr/tags/">fr</a>
-		</li>
-		
-	</ul>	
-  </div>
-</div>
-
   <div>
   <div class="small-print">
     <small>&copy; 2016. All rights reserved.</small>
@@ -220,106 +202,102 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Tags</h1>
-</div>
-<div class="content">
-  <ul>
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Assign EMS licenses to all licensed users</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>13  Feb 2017</time>
+  </div>
+
+  
+
+  
+
   
   
-    <li>
-      <a href="powershell">powershell</a>
-      <span>&#40;18&#41;</span>
-    </li>
   
-    <li>
-      <a href="activedirectory">activedirectory</a>
-      <span>&#40;6&#41;</span>
-    </li>
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/azure">Azure</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/conditionalaccess">ConditionalAccess</a>
+    
+  </div>
   
-    <li>
-      <a href="azuread">azuread</a>
-      <span>&#40;3&#41;</span>
-    </li>
   
-    <li>
-      <a href="cheatsheets">cheatsheets</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="office365">office365</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="aadconnect">aadconnect</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="adfs">adfs</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azure">azure</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azureiaas">azureiaas</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="certificates">certificates</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="conditionalaccess">conditionalaccess</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="exchange">exchange</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="hosting">hosting</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="intune">intune</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="pki">pki</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="servercore">servercore</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="skypeforbusiness">skypeforbusiness</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="windowsserver">windowsserver</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-  </ul>
+
 </div>
 
+	  <p>Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.</p>
+
+<pre><code class="language-powershell">#Script to add EMS Licenses to all licensed users
+$VerbosePreference = continue
+$SKU = get-msolaccountSKU | ?{$_.accountskuid -match ':EMS$'} | select -expand AccountSKUID
+if ($SKU) {
+    $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
+    $allusersThatNeedEMS | %{
+        $u = $_;
+        try{ 
+            Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
+            Write-verbose &quot;Successfully added $SKU to $($u.userprincipalname)&quot;
+        } catch {
+            Write-Error &quot;Failed to add $SKU to $($u.userprincipalname) because: $_&quot;
+        }
+    }
+} else {
+    Write-host &quot;No EMS license SKU found&quot;
+}
+
+</code></pre>
+
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/cleanup-user-profiles/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/cleanup-user-profiles/">User Profile Cleanup</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -328,3 +306,4 @@
 
 </body>
 </html>
+

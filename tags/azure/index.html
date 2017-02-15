@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Posts &middot; WRISH</title>
+  <title>Azure &middot; WRISH</title>
 
   
   
@@ -37,7 +37,7 @@
 
   
   
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/post/index.xml" />
+  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/azure/index.xml" />
   
 
   
@@ -104,7 +104,7 @@
 
     
     <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/post/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      <a class="pure-menu-link" href="http://www.wrish.com/tags/azure/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
     </li>
     
 
@@ -191,18 +191,6 @@
 </div>
 
   
-<div>
-  <div class="small-print">
-    <ul class="pure-menu-list">
-		
-		<li>
-			Language:<a href="http://www.wrish.com/fr/post/">fr</a>
-		</li>
-		
-	</ul>	
-  </div>
-</div>
-
   <div>
   <div class="small-print">
     <small>&copy; 2016. All rights reserved.</small>
@@ -221,94 +209,62 @@
 
 
 <div class="header">
-  <h1>Posts</h1> 
+  <h1>Azure</h1>
 </div>
+
 <div class="content">
   
-  <h2>2017</h2>
-  <ul>
-  
-    <li><time>13  Feb 2017</time> - <a href="http://www.wrish.com/post/assign-ems-licenses/">Assign EMS licenses to all licensed users</a></li>
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/assign-ems-licenses/">Assign EMS licenses to all licensed users</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>13  Feb 2017</time>
+  </div>
 
   
-    <li><time>23  Jan 2017</time> - <a href="http://www.wrish.com/post/cleanup-user-profiles/">User Profile Cleanup</a></li>
 
   
-    <li><time>19  Jan 2017</time> - <a href="http://www.wrish.com/post/paste-me-an-array/">Paste an array into a variable</a></li>
 
   
-    <li><time>15  Jan 2017</time> - <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a></li>
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/azure">Azure</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/conditionalaccess">ConditionalAccess</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
+#Script to add EMS Licenses to all licensed users $VerbosePreference = continue $SKU = get-msolaccountSKU | ?
+  </p>
 
   
-    <li><time>4  Jan 2017</time> - <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></li>
+  <footer>
+    <a href="/post/assign-ems-licenses/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
 
-  
-  </ul>
-  
-  <h2>2016</h2>
-  <ul>
-  
-    <li><time>29  Dec 2016</time> - <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/">Hosting for free with GitHub Pages using Windows (with custom domain)</a></li>
-
-  
-    <li><time>22  Dec 2016</time> - <a href="http://www.wrish.com/post/convert-between-immutableid-and-ad-object/">Office 365 - Convert between Immutable ID and AD Object </a></li>
-
-  
-    <li><time>19  Dec 2016</time> - <a href="http://www.wrish.com/post/list-all-nested-memberships/">List all of a users group memberships</a></li>
-
-  
-    <li><time>16  Dec 2016</time> - <a href="http://www.wrish.com/post/clone-ou-structure-to-new-domain/">Clone OU Structure to New Domain</a></li>
-
-  
-    <li><time>8  Dec 2016</time> - <a href="http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/">Azure AD Connect - Cannot Retrieve Single Sign On Status</a></li>
-
-  
-    <li><time>5  Dec 2016</time> - <a href="http://www.wrish.com/post/remotely-retrieve-ssl-certificates/">Remotely Retrieve active SSL certificate (HTTPS or LDAPS)</a></li>
-
-  
-    <li><time>2  Dec 2016</time> - <a href="http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/">Decoding legacy Exchange DN from NDR</a></li>
-
-  
-    <li><time>25  Nov 2016</time> - <a href="http://www.wrish.com/post/track-skype-lync-schema-change/">Track Lync Schema update with Powershell</a></li>
-
-  
-    <li><time>23  Nov 2016</time> - <a href="http://www.wrish.com/post/unable-to-verify-azure-domain/">Unable to verify an Azure AD domain</a></li>
-
-  
-    <li><time>18  Nov 2016</time> - <a href="http://www.wrish.com/post/regex-cheat-sheet/">Powershell Regex cheat sheet</a></li>
-
-  
-    <li><time>18  Nov 2016</time> - <a href="http://www.wrish.com/post/do-it-with-a-command-line/">Do it with the command line</a></li>
-
-  
-  </ul>
-  
-  <h2>2014</h2>
-  <ul>
-  
-    <li><time>31  Mar 2014</time> - <a href="http://www.wrish.com/post/downloading-files-with-powershell/">Download file the Powershell way</a></li>
-
-  
-  </ul>
-  
-  <h2>2013</h2>
-  <ul>
-  
-    <li><time>3  Aug 2013</time> - <a href="http://www.wrish.com/post/cleaning-conflict-and-deleted-files-on-dfsr-replicated-sysvol/">Cleaning Conflict and Deleted files on DFSR replicated SYSVOL</a></li>
-
-  
-    <li><time>31  Mar 2013</time> - <a href="http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/">Oh Damn Side by Side Comparison in Powershell</a></li>
-
-  
-  </ul>
-  
-  <h2>2012</h2>
-  <ul>
-  
-    <li><time>20  Dec 2012</time> - <a href="http://www.wrish.com/post/highlight-output/">Highlight-String and Highlight-Output</a></li>
-
-  
-  </ul>
   
 </div>
 
@@ -320,4 +276,3 @@
 
 </body>
 </html>
-

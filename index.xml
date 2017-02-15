@@ -6,8 +6,38 @@
     <description>Recent content on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <lastBuildDate>Mon, 23 Jan 2017 11:42:35 -0500</lastBuildDate>
+    <lastBuildDate>Mon, 13 Feb 2017 11:42:35 -0500</lastBuildDate>
     <atom:link href="http://www.wrish.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Assign EMS licenses to all licensed users</title>
+      <link>http://www.wrish.com/post/assign-ems-licenses/</link>
+      <pubDate>Mon, 13 Feb 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/assign-ems-licenses/</guid>
+      <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Script to add EMS Licenses to all licensed users
+$VerbosePreference = continue
+$SKU = get-msolaccountSKU | ?{$_.accountskuid -match &#39;:EMS$&#39;} | select -expand AccountSKUID
+if ($SKU) {
+    $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
+    $allusersThatNeedEMS | %{
+        $u = $_;
+        try{ 
+            Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
+            Write-verbose &amp;quot;Successfully added $SKU to $($u.userprincipalname)&amp;quot;
+        } catch {
+            Write-Error &amp;quot;Failed to add $SKU to $($u.userprincipalname) because: $_&amp;quot;
+        }
+    }
+} else {
+    Write-host &amp;quot;No EMS license SKU found&amp;quot;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>User Profile Cleanup</title>
@@ -642,32 +672,6 @@ Update-MsolFederatedDomain -DomainName domaintest.wrish.com -SupportMultipleDoma
    notepad netcfg.dat
 #Restore the interface config
    netsh exec netcfg.dat 
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Powershell Regex cheat sheet</title>
-      <link>http://www.wrish.com/post/regex-cheat-sheet/</link>
-      <pubDate>Fri, 18 Nov 2016 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/regex-cheat-sheet/</guid>
-      <description>&lt;p&gt;A collection of regex&amp;rsquo;s that I always find myself looking up.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Match while tagging match groups
-&#39;CowColour Brown&#39; -match &#39;(?&amp;lt;Attribute&amp;gt;\w+) (?&amp;lt;Value&amp;gt;\w+)&#39; | out-null
-$matches.Attribute
-$matches.Value
-#cowColour
-#Brown
-
-#Replace to reformat a string 
-&#39;This is a wild test&#39; -replace &#39;.*(w[^ ]+).*&#39;,&#39;Not so $1&#39;
-#Not so wild
-
-#Lazy matching (to prevent over-matching) use a ? after the + or *
-&amp;quot;&amp;lt;h1&amp;gt;MyHeading&amp;lt;/h1&amp;gt;&amp;quot; -replace &#39;&amp;lt;([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;cow&amp;gt;&#39; -replace  &#39;&amp;lt;/([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;/cow&amp;gt;&#39;
-#&amp;lt;cow&amp;gt;MyHeading&amp;lt;/cow&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
