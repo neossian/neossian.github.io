@@ -1,4 +1,5 @@
-$ProfileVersion = "1.13"
+$ProfileVersion = "1.16"
+$ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
  md $profile.CurrentUserAllHosts | out-null
@@ -16,8 +17,37 @@ Write-output $Profile.CurrentUserAllHosts
         md $profile.CurrentUserAllHosts | out-null
         rd $profile.CurrentUserAllHosts
     }
-    Start-BitsTransfer -Source 'http://www.wrish.com/scripts/profile.ps1' -destination $profile.CurrentUserAllHosts -Asynchronous | out-null
+    try {
+        getfile -url 'http://www.wrish.com/scripts/profile.ps1' -destination $env:TEMP\profiletemp.tmp
+        move-item $env:TEMP\profiletemp.tmp $Profile.CurrentUserAllHosts
+    
+    } catch {Write-Error $_}
 }
+
+function list-ProfileFunctions ($regex='^###########$') {
+    get-content $profile.currentuserAllhosts | select-string "^function|^New-Alias" |%{$_ -replace '^function|^New-Alias','' -replace '\{.*',''}| sort | ho $regex
+}
+New-Alias lf list-ProfileFunctions
+Write-host lf list-ProfileFunctions
+
+function getfile($url, $destination)  
+ {  
+   $wc = New-Object System.Net.WebClient  
+#   Register-ObjectEvent -InputObject $wc -EventName DownloadProgressChanged -SourceIdentifier WebClient.DownloadProgressChanged -Action { Write-Progress -Activity "Downloading: $($EventArgs.ProgressPercentage)% Completed" -Status $url -PercentComplete $EventArgs.ProgressPercentage; }  |out-null  
+ # Register-ObjectEvent -InputObject $wc -EventName DownloadFileCompleted -SourceIdentifier WebClient.DownloadFileComplete -Action { $EventArgs; Unregister-Event -SourceIdentifier WebClient.DownloadProgressChanged; Unregister-Event -SourceIdentifier WebClient.DownloadFileComplete; } |out-null
+   try  
+   {  
+     $wc.DownloadFile($url, $destination)  
+   }  
+   catch  
+   {  
+     Write-Error("Cannot download $url`: $_")  
+   }   
+   finally  
+   {    
+     $wc.Dispose()  
+   }  
+ }  
 
 #Get a new Secure Credential and store it in encrypted format to a file
 Function Stored-Credential($name, [switch]$New, [switch]$check)
@@ -150,7 +180,7 @@ Displays the current directory and highlights all files that have a .doc extensi
 Write-Host "Highlight-Output Alias:HO"
 
 #Create  HO as an alias; Get-childitem | ho "\w+\.doc"
-new-alias ho highlight-output -ea 0
+new-alias ho highlight-output 
 
 $Global:O365Connected = ""
 function connect-MSOL ($name, [switch]$new)
@@ -163,10 +193,10 @@ function connect-MSOL ($name, [switch]$new)
 	$Global:O365Connected = $name
 
 }
-new-alias cm connect-MSOL -ea 0
+new-alias cm connect-MSOL 
 Write-Host "Connect-MSOL Alias:CM"
 
-function prompt {
+ function prompt {
 
 	"$($Global:O365Connected) $(get-location)>"
 
@@ -313,7 +343,7 @@ http://www.wrish.com
 }
 
 
-new-alias csbs Compare-SideBySide -ea 0
+new-alias csbs Compare-SideBySide 
 Write-Host "Compare-SideBytSide Alias:csbs"
 
 Function Port-Ping {
@@ -479,10 +509,10 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
 
 }
 
-new-alias tp Test-Port -ea 0
+new-alias tp Test-Port 
 Write-Host "Test-Port Alias:tp"
 
-new-alias pp Port-Ping -ea 0
+new-alias pp Port-Ping 
 Write-Host "Port-Ping Alias:pp"
 function get-adsite ($sitename='*',$ldapfilter,$Server,$pageSize=1000)
 <#
@@ -612,7 +642,7 @@ List of functions that should be available to the script block
                 }
             }
 
-New-Alias %p ForEach-Parallel -ea 0
+New-Alias %p ForEach-Parallel
 Write-host Foreach-Parallel Alias:%p
             
 function get-ForestDomainControllers ()
@@ -1567,9 +1597,94 @@ function Retrieve-ServerCertFromSocket ($hostname, $port=443, $SNIHeader, [switc
      }    
     return $cert
 }
-new-alias "gssl" "Retrieve-ServerCertFromSocket"
+
+function EnumerateMemberOf($Object, $ResultSoFar=@())
+{ 
+#Helper function to walk $object's memberof attribute and list out all group memberships
+#this function is not intended to be called directly, use get-adnestedMembership or get-adnestedmembershipwithparent    
+    if ($object.memberof){
+        $Results =  @();        
+        foreach ($group in $Object.memberof){
+            #prevent nesting loops trapping by checking to make sure the group hasn't been searched already
+            if ($ResultSoFar -notcontains $Group) {
+                #Bind directly to the group with ADSI - this will automatically follow referrals and work with 
+                #multi domain forests
+                $TempGroup = [ADSI]"LDAP://$Group" ;
+                $ResultSoFar += $Group.ToString();
+                #Enumerate the next level of memberof
+                $Results += EnumerateMemberOf $TempGroup $ResultSoFar ;
+                $Results += $Group;
+            }            
+         }
+        return $Results
+    } 
+}
+
+function get-ADNestedMembership
+<#
+    .Description 
+    Retrieve a list of all user group memberships including nested memberships of the primary group.
+
+    .Parameter User
+    Accept any identity such as a DN "CN=tom,ou=Sales,DC=contoso,dc=com" or samaccountname for the current domain Tom.Smith or an AD Object
+#>
+{  
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]
+           $Identity) 
+    PROCESS     {
+        foreach ($userIdentity in $identity) {
+            $ADuser = get-aduser $Identity -Properties memberof,distinguishedname,primaryGroup
+            write-output @{distinguishedname=$aduser.distinguishedname;'NestedMemberOf'=(@(enumerateMemberof $ADuser)+(enumerateMemberof (get-adgroup $AdUser.primaryGroup -properties memberof)))}
+        }
+    }
+}
+
+function get-ADNestedMembershipWithParent
+{   
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$Identity) 
+    Process{ 
+        foreach ($user in $Identity){
+            $ADuser = get-aduser $user -Properties memberof,distinguishedname,primaryGroup
+            foreach ($parentGroup in @(($ADuser.memberof) + $aduser.PrimaryGroup)){
+                $group = get-adgroup $parentGroup -properties memberof,distinguishedname ;
+                $parentResult = new-object psobject -Property @{User=($ADuser.distinguishedname);parent=($group.distinguishedname);groups=$null}        
+                write-output $parentResult
+                $nestedGroups= (enumerateMemberof $Group) | ?{$_}
+                    foreach ($nestedgroup in $nestedGroups){
+                    write-output (new-object psobject -Property @{User=($ADuser.distinguishedname);parent=($group.distinguishedname);groups=$nestedgroup} )
+                }
+            }
+        }
+    }
+}
+
+function get-LdapTokenGroups {
+ [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ObjectDN) 
+<#
+    .Description 
+    Use tokengroups attribute to retrieve a list of group memberships including nested groups in the current domain
+#>
+    Process {
+        foreach ($DN in $objectDN) {
+            $ADObject = get-adobject -SearchBase $objectDN -SearchScope Base -Properties TokenGroups  -filter *  
+            $ResultObject = new-object psobject -Property @{User=$adobject.distinguishedname;NestedMemberof=@()}
+            foreach ($Sid in $ADObject.tokengroups){
+                $resultObject.NestedMemberof += ([ADSI]"LDAP://<SID=$SID>").distinguishedname       
+            }
+            Write-Output $ResultObject      
+        }
+    }
+}
+
+new-alias gssl Retrieve-ServerCertFromSocket
 write-host gssl Retrieve-ServerCertFromSocket
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
 if(!$MyInvocation.Scriptname) {TryCopyProfile}
+$ErrorActionPreference = 'Continue'
+
+cd $env:USERPROFILE\documents

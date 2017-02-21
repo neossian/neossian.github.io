@@ -244,10 +244,11 @@
 
 </div>
 
-	  <p>Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.</p>
+	  <p>Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
+</p>
 
 <pre><code class="language-powershell">#Script to add EMS Licenses to all licensed users
-$VerbosePreference = continue
+$VerbosePreference = &quot;continue&quot;
 $SKU = get-msolaccountSKU | ?{$_.accountskuid -match ':EMS$'} | select -expand AccountSKUID
 if ($SKU) {
     $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
@@ -265,7 +266,6 @@ if ($SKU) {
 }
 
 </code></pre>
-
 
 	  
 <div class="prev-next-post pure-g">

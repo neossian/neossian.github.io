@@ -14,10 +14,11 @@
       <pubDate>Mon, 13 Feb 2017 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/assign-ems-licenses/</guid>
-      <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.&lt;/p&gt;
+      <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
+&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Script to add EMS Licenses to all licensed users
-$VerbosePreference = continue
+$VerbosePreference = &amp;quot;continue&amp;quot;
 $SKU = get-msolaccountSKU | ?{$_.accountskuid -match &#39;:EMS$&#39;} | select -expand AccountSKUID
 if ($SKU) {
     $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
@@ -34,8 +35,7 @@ if ($SKU) {
     Write-host &amp;quot;No EMS license SKU found&amp;quot;
 }
 
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     
     <item>
@@ -88,7 +88,8 @@ $userprofiles[$whichOne].delete()
       <guid>http://www.wrish.com/post/paste-me-an-array/</guid>
       <description>&lt;p&gt;You&amp;rsquo;ve got a list of values, you want that in an array.&lt;/p&gt;
 
-&lt;p&gt;You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could &lt;code&gt;Create-ArrayFromPastedText&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could &lt;code&gt;Create-ArrayFromPastedText&lt;/code&gt;.
+&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Create-ArrayFromPastedText ($returnvalue = &amp;quot;&amp;quot;)
 {
@@ -120,8 +121,7 @@ Item3
 $MyArray |?{$_ -match &#39;[13]&#39;}
 Item1
 Item3
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     
     <item>

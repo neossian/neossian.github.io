@@ -267,8 +267,8 @@
   </header>
 
   <p>
-  Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
-#Script to add EMS Licenses to all licensed users $VerbosePreference = continue $SKU = get-msolaccountSKU | ?
+  <p>Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
+</p>
   </p>
 
   
@@ -360,9 +360,10 @@ $userprofiles = Get-WmiObject -Class Win32_UserProfile $userprofiles[$whichOne].
   </header>
 
   <p>
-  You&rsquo;ve got a list of values, you want that in an array.
-You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could Create-ArrayFromPastedText.
-function Create-ArrayFromPastedText ($returnvalue = &quot;&quot;) { $result = @() while ($true) { $value = read-host if ($value -eq $returnvalue){ return $result } else { $result += $value } } }  You can use it like this
+  <p>You&rsquo;ve got a list of values, you want that in an array.</p>
+
+<p>You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could <code>Create-ArrayFromPastedText</code>.
+</p>
   </p>
 
   
