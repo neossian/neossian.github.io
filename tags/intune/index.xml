@@ -17,24 +17,26 @@
       <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
 &lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Script to add EMS Licenses to all licensed users
-$VerbosePreference = &amp;quot;continue&amp;quot;
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$VerbosePreference = &amp;quot;Continue&amp;quot;
 $SKU = get-msolaccountSKU | ?{$_.accountskuid -match &#39;:EMS$&#39;} | select -expand AccountSKUID
 if ($SKU) {
-    $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
-    $allusersThatNeedEMS | %{
+    $LicensingFailures = @{}
+   $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
+   $allusersThatNeedEMS | %{
         $u = $_;
         try{ 
             Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
-            Write-verbose &amp;quot;Successfully added $SKU to $($u.userprincipalname)&amp;quot;
+            Write-verbose &amp;quot;Successfully added $SKU to $($u.userprincipalname)&amp;quot; 
         } catch {
             Write-Error &amp;quot;Failed to add $SKU to $($u.userprincipalname) because: $_&amp;quot;
+            $LicensingFailures.&amp;quot;$($u.userprincipalname)&amp;quot; = $_
         }
     }
+    Write-host &amp;quot;The following failures occurred&amp;quot;
+    $LicensingFailures
 } else {
     Write-host &amp;quot;No EMS license SKU found&amp;quot;
 }
-
 &lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     

@@ -247,24 +247,26 @@
 	  <p>Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
 </p>
 
-<pre><code class="language-powershell">#Script to add EMS Licenses to all licensed users
-$VerbosePreference = &quot;continue&quot;
+<pre><code class="language-powershell">$VerbosePreference = &quot;Continue&quot;
 $SKU = get-msolaccountSKU | ?{$_.accountskuid -match ':EMS$'} | select -expand AccountSKUID
 if ($SKU) {
-    $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
-    $allusersThatNeedEMS | %{
+    $LicensingFailures = @{}
+   $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
+   $allusersThatNeedEMS | %{
         $u = $_;
         try{ 
             Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
-            Write-verbose &quot;Successfully added $SKU to $($u.userprincipalname)&quot;
+            Write-verbose &quot;Successfully added $SKU to $($u.userprincipalname)&quot; 
         } catch {
             Write-Error &quot;Failed to add $SKU to $($u.userprincipalname) because: $_&quot;
+            $LicensingFailures.&quot;$($u.userprincipalname)&quot; = $_
         }
     }
+    Write-host &quot;The following failures occurred&quot;
+    $LicensingFailures
 } else {
     Write-host &quot;No EMS license SKU found&quot;
 }
-
 </code></pre>
 
 	  

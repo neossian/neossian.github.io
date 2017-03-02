@@ -1,4 +1,4 @@
-$ProfileVersion = "1.16"
+$ProfileVersion = "1.18"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -11,17 +11,22 @@ Write-output "Loading version $ProfileVersion"
 #>
 
 function TryCopyProfile {
-Write-output $Profile.CurrentUserAllHosts
     #Stab this into my profile
     if (!(test-path $profile.CurrentUserAllHosts)){
         md $profile.CurrentUserAllHosts | out-null
         rd $profile.CurrentUserAllHosts
     }
     try {
-        getfile -url 'http://www.wrish.com/scripts/profile.ps1' -destination $env:TEMP\profiletemp.tmp
-        move-item $env:TEMP\profiletemp.tmp $Profile.CurrentUserAllHosts
-    
-    } catch {Write-Error $_}
+        $wc = New-Object System.Net.WebClient;$wc.DownloadFile('http://www.wrish.com/scripts/profile.ps1',"$env:TEMP\profiletemp.tmp")        
+        if (((get-item $profile.CurrentUserAllHosts -ea 0) -eq $null) -or ((get-item $env:TEMP\profiletemp.tmp).length -gt 0 -and (get-item $env:TEMP\profiletemp.tmp).length -ne (get-item $profile.CurrentUserAllHosts).length)){
+            Write-Host "Updating Profile"
+            move-item $env:TEMP\profiletemp.tmp $Profile.CurrentUserAllHosts -force
+            . $Profile.CurrentUserAllHosts
+        }           
+    } catch {Write-Error "Profile Update failed because $_"}
+    finally{
+         $wc.Dispose()
+    }
 }
 
 function list-ProfileFunctions ($regex='^###########$') {
@@ -30,24 +35,6 @@ function list-ProfileFunctions ($regex='^###########$') {
 New-Alias lf list-ProfileFunctions
 Write-host lf list-ProfileFunctions
 
-function getfile($url, $destination)  
- {  
-   $wc = New-Object System.Net.WebClient  
-#   Register-ObjectEvent -InputObject $wc -EventName DownloadProgressChanged -SourceIdentifier WebClient.DownloadProgressChanged -Action { Write-Progress -Activity "Downloading: $($EventArgs.ProgressPercentage)% Completed" -Status $url -PercentComplete $EventArgs.ProgressPercentage; }  |out-null  
- # Register-ObjectEvent -InputObject $wc -EventName DownloadFileCompleted -SourceIdentifier WebClient.DownloadFileComplete -Action { $EventArgs; Unregister-Event -SourceIdentifier WebClient.DownloadProgressChanged; Unregister-Event -SourceIdentifier WebClient.DownloadFileComplete; } |out-null
-   try  
-   {  
-     $wc.DownloadFile($url, $destination)  
-   }  
-   catch  
-   {  
-     Write-Error("Cannot download $url`: $_")  
-   }   
-   finally  
-   {    
-     $wc.Dispose()  
-   }  
- }  
 
 #Get a new Secure Credential and store it in encrypted format to a file
 Function Stored-Credential($name, [switch]$New, [switch]$check)
@@ -905,17 +892,6 @@ function Check-ForestReplications {
     }
 }
 
-#Get-ADDevice - function to retrieve msds-device objects from Active Directory
-#Author: Shane Wright
-#
-#get-adDevice retrieves devices from AD
-#get-ADDeviceContainer searches the forest for the Device Registration container
-
-#Get-ADDevice - function to retrieve msds-device objects from Active Directory
-#Author: Shane Wright
-#
-#get-adDevice retrieves devices from AD
-#get-ADDeviceContainer searches the forest for the Device Registration container
 
 write-host Check-ForestReplications
 
@@ -1317,7 +1293,7 @@ Version 1.2 updated to add referral chasing
 function Listen-Port ($port=80){
 <#
 .DESCRIPTION
-Function to use .Net to listen on a given port, outputs connections to the screen
+ Function to use .Net to listen on a given port, outputs connections to the screen
 
 .PARAMETER Port
 The TCP port that the listener should attach to
