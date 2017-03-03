@@ -96,7 +96,6 @@ appears on the left side of the page.
     #menu a {
         color: #999;
         border: none;
-        /*padding: 0.6em 0.6em 0.6em 0.6em;*/
     }
 
     /*
@@ -245,4 +244,16 @@ Hides the menu at `48em`, but modify this based on your app's needs.
         left: 150px;
     }
 }
-
+.pure-menu-center {
+	border-top: 1px solid #333;
+	font-size: 0.8em;
+	text-align: center;	
+	line-height: 0px;
+}
+/*
+.pure-menu-center p{
+	font-size: 0.8em;
+	text-align: center;
+	vertical-align: bottom;
+	height: 100%
+}*/
