@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Assign EMS licenses to all licensed users &middot; WRISH</title>
+  <title>Assign EMS licenses to all licensed users with dynamic groups &middot; WRISH</title>
 
   
   
@@ -208,7 +208,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>Assign EMS licenses to all licensed users</h1>
+	  <h1>Assign EMS licenses to all licensed users with dynamic groups</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -217,7 +217,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>13  Feb 2017</time>
+    <time>10  Mar 2017</time>
   </div>
 
   
@@ -230,7 +230,7 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/azuread">AzureAD</a>&nbsp;&#47;
     
       <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>&nbsp;&#47;
     
@@ -246,42 +246,159 @@
 
 </div>
 
-	  <p>Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
-</p>
+	  <p>Azure conditional access provides flexible control over access to Office 365 resources and services based on location/user group membership/device etc. If you set up conditional access rules, any user who doesn&rsquo;t have an Azure AD Premium license will not be affected by them - access is permitted by default!</p>
 
-<pre><code class="language-powershell">$VerbosePreference = &quot;Continue&quot;
-$SKU = get-msolaccountSKU | ?{$_.accountskuid -match ':EMS$'} | select -expand AccountSKUID
-if ($SKU) {
-    $LicensingFailures = @{}
-   $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
-   $allusersThatNeedEMS | %{
-        $u = $_;
-        try{ 
-            Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
-            Write-verbose &quot;Successfully added $SKU to $($u.userprincipalname)&quot; 
-        } catch {
-            Write-Error &quot;Failed to add $SKU to $($u.userprincipalname) because: $_&quot;
-            $LicensingFailures.&quot;$($u.userprincipalname)&quot; = $_
-        }
-    }
-    Write-host &quot;The following failures occurred&quot;
-    $LicensingFailures
-} else {
-    Write-host &quot;No EMS license SKU found&quot;
-}
+<p>How to work around this without manually assigning licenses to every user or using a <a href="/post/assign-ems-licenses/">dodgy script</a>? Azure AD has a capability called <em>Dynamic Groups</em>. With <em>Dynamic Groups</em> you can create a group with membership based on a query.</p>
+
+<p>This query will result in a group that contains all users with Exchange, Sharepoint, Office or S4B enabled.</p>
+
+<pre><code>(user.assignedPlans -any ((assignedPlan.service -match &quot;exchange|SharePoint|Microsoft(CommunicationsOnline|Office)&quot;) -and (assignedPlan.capabilityStatus -eq &quot;Enabled&quot;)))
 </code></pre>
+
+<p>Then you simply <a href="https://docs.microsoft.com/en-us/azure/active-directory/active-directory-licensing-group-assignment-azure-portal">assign EMS licenses</a> to the dynamic group. Now, when a user is activated for Exchange etc, they immediately get an EMS license and Conditional Access applies. The user will inherit the license until they are no longer a member of the group</p>
+
+<p>Read more about creating <em>Dynamic Groups</em> here <a href="https://docs.microsoft.com/en-us/azure/active-directory/active-directory-groups-dynamic-membership-azure-portal">https://docs.microsoft.com/en-us/azure/active-directory/active-directory-groups-dynamic-membership-azure-portal</a></p>
+
+<p>During testing in a small environment I found that the license membership changed within 5 minutes.</p>
+
+<p>Possible values for <em>assignedPlan.service</em></p>
+
+<table>
+<thead>
+<tr>
+<th align="left">Value</th>
+<th align="left">Service Friendly Name</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">ProcessSimple</td>
+<td align="left">Flow for Office365</td>
+</tr>
+
+<tr>
+<td align="left">PowerAppsService</td>
+<td align="left">PowerApps for Office 365</td>
+</tr>
+
+<tr>
+<td align="left">TeamspaceAPI</td>
+<td align="left">Microsoft Teams</td>
+</tr>
+
+<tr>
+<td align="left">ProjectWorkManagement</td>
+<td align="left">Microsoft Planner</td>
+</tr>
+
+<tr>
+<td align="left">Sway</td>
+<td align="left">Sway</td>
+</tr>
+
+<tr>
+<td align="left">YammerEnterprise</td>
+<td align="left">Yammer</td>
+</tr>
+
+<tr>
+<td align="left">MicrosoftOffice</td>
+<td align="left">Office 365 ProPlus</td>
+</tr>
+
+<tr>
+<td align="left">MicrosoftCommunicationsOnline</td>
+<td align="left">Skype for Business Online</td>
+</tr>
+
+<tr>
+<td align="left">SharePoint</td>
+<td align="left">SharePoint Online</td>
+</tr>
+
+<tr>
+<td align="left">exchange</td>
+<td align="left">Exchange Online</td>
+</tr>
+
+<tr>
+<td align="left">Deskless</td>
+<td align="left">Staff Hub</td>
+</tr>
+
+<tr>
+<td align="left">RMSOnline</td>
+<td align="left">Azure Information Protection Plan <br />Azure Rights Management</td>
+</tr>
+
+<tr>
+<td align="left">MultiFactorService</td>
+<td align="left">Azure Multi-Factor Authentication</td>
+</tr>
+
+<tr>
+<td align="left">AADPremiumService</td>
+<td align="left">Azure Active Directory Premium</td>
+</tr>
+
+<tr>
+<td align="left">SCO</td>
+<td align="left">Intune A Direct</td>
+</tr>
+
+<tr>
+<td align="left">Adallom</td>
+<td align="left">Microsoft Cloud App Security</td>
+</tr>
+
+<tr>
+<td align="left">VolumeLicensing</td>
+<td align="left">Microsoft Business Center</td>
+</tr>
+</tbody>
+</table>
+
+<p>Possible values for <em>assignedPlan.capabilityStatus</em></p>
+
+<table>
+<thead>
+<tr>
+<th align="left">Value</th>
+<th align="left">Meaning</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">Deleted</td>
+<td align="left">License has been removed</td>
+</tr>
+
+<tr>
+<td align="left">Enabled</td>
+<td align="left">License is active</td>
+</tr>
+
+<tr>
+<td align="left">Suspended</td>
+<td align="left">License has been removed (applies to EMS licenses)</td>
+</tr>
+</tbody>
+</table>
+
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/cleanup-user-profiles/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/assign-ems-licenses/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/cleanup-user-profiles/">User Profile Cleanup</a>
+      <a href="http://www.wrish.com/post/assign-ems-licenses/">Assign EMS licenses to all licensed users</a>
     </nav>
     
   </div>
@@ -290,14 +407,8 @@ if ($SKU) {
   </div>
   <div class="pure-u-10-24">
     
-    <nav class="next">
-      <a href="http://www.wrish.com/post/assign-ems-licenses-with-dynamic-groups/">Assign EMS licenses to all licensed users with dynamic groups</a>
-    </nav>
-    
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
-    
-    <a href="http://www.wrish.com/post/assign-ems-licenses-with-dynamic-groups/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>
