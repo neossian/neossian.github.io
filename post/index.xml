@@ -6,8 +6,81 @@
     <description>Recent content in Post-rsses on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <lastBuildDate>Fri, 10 Mar 2017 11:42:35 -0500</lastBuildDate>
+    <lastBuildDate>Tue, 18 Apr 2017 23:47:35 +0000</lastBuildDate>
     <atom:link href="http://www.wrish.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>import-svclog to import SVCLOG files</title>
+      <link>http://www.wrish.com/post/use-powershell-to-open-svclog-files/</link>
+      <pubDate>Tue, 18 Apr 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/use-powershell-to-open-svclog-files/</guid>
+      <description>&lt;p&gt;The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.&lt;/p&gt;
+
+&lt;p&gt;Don&amp;rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Import-SVCLog {
+ [cmdletbinding()]
+    Param (
+        [parameter(ValueFromPipeline=$True)]
+        [string[]]$FileName
+    )    
+    Process {
+       ([xml](&amp;quot;&amp;lt;LogRoot&amp;gt;&amp;quot; + (get-content $fileName) + &amp;quot;&amp;lt;/LogRoot&amp;gt;&amp;quot; )).LogRoot.e2etraceevent | %{            
+            $_ | select @{l=&#39;EventID&#39;;e={$_.system.EventID}},@{l=&#39;Type&#39;;e={$_.system.Type}},@{l=&#39;TimeCreated&#39;;e={$_.system.TimeCreated.SystemTime}},@{l=&#39;Source&#39;;e={$_.system.Source.Name}},@{l=&#39;Correlation&#39;;e={$_.system.Correlation.activityID}},@{l=&#39;Computer&#39;;e={$_.system.Computer}},@{l=&#39;Info&#39;;e={$_.ApplicationData}}                       
+       }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Copy the script into your powershell context and then use it like this (for the Exchange connector)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;cd &amp;quot;C:\ProgramData\Microsoft\Windows Intune Exchange Connector\Logs&amp;quot;
+dir | import-svclog | out-gridView
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will get a neat graphical interface to sort and view the event data.&lt;/p&gt;
+
+&lt;p&gt;Note that the path to most of the log files for the PKI connector is &lt;code&gt;C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs&lt;/code&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ADFS Rapid restore tool errors</title>
+      <link>http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/</link>
+      <pubDate>Wed, 15 Mar 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/</guid>
+      <description>&lt;p&gt;Troubleshooting the ADFS Rapid Restore Tool&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; import-module ADFSRapidRecreationTool.dll
+ import-module : The specified module &#39;ADFSRapidRecreationTool.dll&#39; was not loaded because no valid module file was found in any module directory.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Supply the full path to the dll to import it
+&lt;code&gt;Import-module &#39;C:\Program Files (x86)\ADFS Rapid Recreation Tool\ADFSRapidRecreationTool.dll&#39;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Backup-ADFS : Failed to connect to the database associated with ADFS&lt;/code&gt;
+You do not have permissions to the ADFS database, if you are using a SQL database make sure your account has access to the database, if WID, make sure you are running as administrator.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Restore-ADFS : Failed to Decrypt the file&lt;/code&gt;
+You have additional files in the backup directory that were not created (and encrypted by the tool). The files themselves will be copied to a temporary working folder
+&lt;code&gt;C:\Users\&amp;lt;user&amp;gt;\AppData\Local\ADFSRapidRecreationTool\tempFolder&lt;/code&gt; which will prevent you from using Restore-ADFS if even if you try again with a folder without the problematic files. Delete this directory and remove all files except the following from your backup folder.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;config.xml
+db.xml
+installParams.xml
+metadata.xml
+SSLCert-&amp;lt;THUMBPRINT&amp;gt;.pfx
+dkm.ldif
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;Restore-ADFS : Wrong password given to decrypt the backup&lt;/code&gt;
+The password you have provided for ADFS backup decryption is incorrect, check the password and try again.&lt;/p&gt;
+
+&lt;p&gt;Even though the tool doesn&amp;rsquo;t respond to the &lt;code&gt;-Verbose&lt;/code&gt; flag, it does create a verbose log in the appdata folder &lt;code&gt;C:\Users\&amp;lt;username&amp;gt;\AppData\Local\ADFSRapidRecreationTool\ADFSRestore_Logs&lt;/code&gt; review the contents of these log files for help with errors.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Assign EMS licenses to all licensed users with dynamic groups</title>
@@ -339,13 +412,13 @@ Write-Host &#39;Update-ADFSFederationForAllDomains&#39;
 &lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsrv
+restart-service certsvc
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsrv
+restart-service certsvc
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
@@ -665,143 +738,6 @@ for me because it relies on &lt;code&gt;Net.HttpWebRequest&lt;/code&gt; which me
 
 &lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$ValueFromNDR = &#39;IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com&#39;
 decode-NDRX500Address $ValueFromNDR
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Track Lync Schema update with Powershell</title>
-      <link>http://www.wrish.com/post/track-skype-lync-schema-change/</link>
-      <pubDate>Fri, 25 Nov 2016 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/track-skype-lync-schema-change/</guid>
-      <description>&lt;p&gt;When I perform schema changes in very large forests it is nice to be able to track the
-status of the change as it replicates throughout the forest. I wanted to create a script that
-would quickly tell me what the current schema was on over 100 DCs.&lt;/p&gt;
-
-&lt;p&gt;If you don&amp;rsquo;t want to see how it was done you can just &lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Starting with some scripts that I have built before &lt;code&gt;foreach-parallel&lt;/code&gt; to do parallel
-processing, &lt;code&gt;get-forestDomainControlles&lt;/code&gt; to get a list of all DCs in the forest
-and &lt;code&gt;get-LdapData&lt;/code&gt; to do direct ldap lookups quickly. &lt;code&gt;get-LdapData&lt;/code&gt; is necessary
-because it will take too long to import the AD module into each thread of the parallel processor.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Import-module ActiveDirectory          
-function get-ForestDomainControllers () {...}
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$pageSize=1000,$Properties=&amp;quot;*&amp;quot;,$sizeLimit=0,[switch]$verbose,$o365FilterAddress){...}
-function ForEach-Parallel () {...}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;First we need to get all the DCs into an array, this can take a long time for large domains. We will only get the list if $DCs is empty -
-this way we can run this script multiple times but only do this step once.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($DCs -eq $null) {$DCs = get-ForestDomainControllers}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Next we locate the schema partition - likewise we only want to do this once. The &lt;code&gt;PartitionsContainer&lt;/code&gt; value on the AD forest object has a value like &lt;code&gt;DC=Partitions,CN=Configuration,DC=Domain,DC=com&lt;/code&gt;.
-We will use &lt;code&gt;-replace&lt;/code&gt; to replace the partitions value with &lt;code&gt;cn=schema&lt;/code&gt; to get the schema partition.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($SchemaPartiton -eq $null) {$SchemaPartition = (get-adforest).partitionscontainer -replace &#39;CN=Partitions&#39;,&#39;CN=Schema&#39;}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;To get the Lync Schema version we need the rangeUpper value of the ms-RTC-SIP-SchemaVersion object in the schema partition. To do that, we will use &lt;code&gt;get-ldapdata&lt;/code&gt; with the &lt;code&gt;searchroot&lt;/code&gt; specified as the Lync schema object. In this code &lt;code&gt;$_&lt;/code&gt; represents the server being worked on in the pipeline when we do foreach.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartion&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;ForEach-Parallel&lt;/code&gt; makes use of worker threads for parallelism, so we need to import the functions into the thread and also any values we want to pass. To get the &lt;code&gt;$SchemaPartition&lt;/code&gt; value into the thread, we pass it using the &lt;code&gt;-Arguments&lt;/code&gt; parameter and then the first
-line of the executed code includes &lt;code&gt;$SchemaPartition=$args[0]&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;Depending on the value, we want to return text that tells us what the version is, for this we use a switch statement&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;switch ($value) {
-	&#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
-	&#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
-	&#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
-	&#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
-	&#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
-	default: {$value = &amp;quot;Unknown schema value or no value [$value]&amp;quot;}
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Then we export the value to an object so that it looks like a nice table and we can manipulate it if we want.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The function that does the work looks like this. The &lt;code&gt;foreach-parallel&lt;/code&gt; command ends with &lt;code&gt;-ImportFunctions&lt;/code&gt; to import the &lt;code&gt;get-ldapdata&lt;/code&gt; into scope of each thread.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function track-LyncSchema {
-    $DCs.hostname |  %p{
-        $SchemaPartition= $args[0]
-        $Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartition&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
-        switch ($value) {
-            &#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
-            &#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
-            &#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
-            &#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
-            &#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
-            default {$value = &amp;quot;Unknown [$value]&amp;quot;}
-        }
-
-        new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
-    } -ImportFunctions get-ldapData -arguments $schemaPartition
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;We call the script from the commandline to get a list of all the servers and the schema version.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-LyncSchema.ps1
-server                        LyncSchemaVersion
-------                        -----------------
-TestDC100.wrish.com           Skype for Business 2015 [1...
-TestDC101.wrish.com           Skype for Business 2015 [1...
-TestDC213.wrish.com           Skype for Business 2015 [1...
-TestDC12.wrish.com            Skype for Business 2015 [1...
-...
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Because we built the script to output objets, we can easily see how many are left to replicate.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-lyncschema.ps1 | group LyncSchemaVersion
-Count Name                       Group
------ ----                       -----
-  202 Skype for Business 2010... {@{server=Test..
-   20 Lync Server 2010 [1100]    {@{server=Test..
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Unable to verify an Azure AD domain</title>
-      <link>http://www.wrish.com/post/unable-to-verify-azure-domain/</link>
-      <pubDate>Wed, 23 Nov 2016 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/unable-to-verify-azure-domain/</guid>
-      <description>&lt;p&gt;After you&amp;rsquo;ve added a domain to Azure AD (or Office 365) using powershell, while connected to your ADFS like this:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;New-MsolDomain -Name domaintest.wrish.com -Authentication Federated
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;When you add your verification record and try to verify the domain from the GUI you might get an error like this:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/unable-to-verify-azure-domain.png&#34; alt=&#34;Unable to verify domain name. Ensure you have added the record above at the registrar &#39;contoso.com&#39;, and try again in a little while&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can&amp;rsquo;t verify your domain using the GUI when you create the Domain using powershell, instead you have to confirm the domain using powershell while entering all Federation options. You will need to pass the following:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;IssuerURI&lt;/li&gt;
-&lt;li&gt;ActiveLogOnUri&lt;/li&gt;
-&lt;li&gt;LogOffUri&lt;/li&gt;
-&lt;li&gt;PassiveLogOnUri&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can pass whatever you like to these values and then just update the domain federation data afterwards&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Confirm-MsolDomain -domainname domaintest.wrish.com -IssuerUri http://whatever/ -ActiveLogOnUri https://whatever/ -LogOffUri https://whatever/ -PassiveLogOnUri https://whatever/
-Update-MsolFederatedDomain -DomainName domaintest.wrish.com -SupportMultipleDomain $true
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>

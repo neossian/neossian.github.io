@@ -21,13 +21,13 @@
 &lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsrv
+restart-service certsvc
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsrv
+restart-service certsvc
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;

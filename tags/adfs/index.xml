@@ -9,6 +9,43 @@
     <atom:link href="http://www.wrish.com/tags/adfs/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>ADFS Rapid restore tool errors</title>
+      <link>http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/</link>
+      <pubDate>Wed, 15 Mar 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/</guid>
+      <description>&lt;p&gt;Troubleshooting the ADFS Rapid Restore Tool&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; import-module ADFSRapidRecreationTool.dll
+ import-module : The specified module &#39;ADFSRapidRecreationTool.dll&#39; was not loaded because no valid module file was found in any module directory.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Supply the full path to the dll to import it
+&lt;code&gt;Import-module &#39;C:\Program Files (x86)\ADFS Rapid Recreation Tool\ADFSRapidRecreationTool.dll&#39;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Backup-ADFS : Failed to connect to the database associated with ADFS&lt;/code&gt;
+You do not have permissions to the ADFS database, if you are using a SQL database make sure your account has access to the database, if WID, make sure you are running as administrator.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Restore-ADFS : Failed to Decrypt the file&lt;/code&gt;
+You have additional files in the backup directory that were not created (and encrypted by the tool). The files themselves will be copied to a temporary working folder
+&lt;code&gt;C:\Users\&amp;lt;user&amp;gt;\AppData\Local\ADFSRapidRecreationTool\tempFolder&lt;/code&gt; which will prevent you from using Restore-ADFS if even if you try again with a folder without the problematic files. Delete this directory and remove all files except the following from your backup folder.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;config.xml
+db.xml
+installParams.xml
+metadata.xml
+SSLCert-&amp;lt;THUMBPRINT&amp;gt;.pfx
+dkm.ldif
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;Restore-ADFS : Wrong password given to decrypt the backup&lt;/code&gt;
+The password you have provided for ADFS backup decryption is incorrect, check the password and try again.&lt;/p&gt;
+
+&lt;p&gt;Even though the tool doesn&amp;rsquo;t respond to the &lt;code&gt;-Verbose&lt;/code&gt; flag, it does create a verbose log in the appdata folder &lt;code&gt;C:\Users\&amp;lt;username&amp;gt;\AppData\Local\ADFSRapidRecreationTool\ADFSRestore_Logs&lt;/code&gt; review the contents of these log files for help with errors.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Check if Office 365 has Your Updated ADFS Certificates</title>
       <link>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</link>
       <pubDate>Sun, 15 Jan 2017 11:42:35 -0500</pubDate>

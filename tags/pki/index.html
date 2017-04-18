@@ -253,7 +253,7 @@
   You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.
 One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.
 Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.
-certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsrv  Now issue your certificate, and switch back.
+certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsvc  Now issue your certificate, and switch back.
   </p>
 
   

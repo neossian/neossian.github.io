@@ -9,6 +9,42 @@
     <atom:link href="http://www.wrish.com/tags/intune/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>import-svclog to import SVCLOG files</title>
+      <link>http://www.wrish.com/post/use-powershell-to-open-svclog-files/</link>
+      <pubDate>Tue, 18 Apr 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/use-powershell-to-open-svclog-files/</guid>
+      <description>&lt;p&gt;The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.&lt;/p&gt;
+
+&lt;p&gt;Don&amp;rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Import-SVCLog {
+ [cmdletbinding()]
+    Param (
+        [parameter(ValueFromPipeline=$True)]
+        [string[]]$FileName
+    )    
+    Process {
+       ([xml](&amp;quot;&amp;lt;LogRoot&amp;gt;&amp;quot; + (get-content $fileName) + &amp;quot;&amp;lt;/LogRoot&amp;gt;&amp;quot; )).LogRoot.e2etraceevent | %{            
+            $_ | select @{l=&#39;EventID&#39;;e={$_.system.EventID}},@{l=&#39;Type&#39;;e={$_.system.Type}},@{l=&#39;TimeCreated&#39;;e={$_.system.TimeCreated.SystemTime}},@{l=&#39;Source&#39;;e={$_.system.Source.Name}},@{l=&#39;Correlation&#39;;e={$_.system.Correlation.activityID}},@{l=&#39;Computer&#39;;e={$_.system.Computer}},@{l=&#39;Info&#39;;e={$_.ApplicationData}}                       
+       }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Copy the script into your powershell context and then use it like this (for the Exchange connector)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;cd &amp;quot;C:\ProgramData\Microsoft\Windows Intune Exchange Connector\Logs&amp;quot;
+dir | import-svclog | out-gridView
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You will get a neat graphical interface to sort and view the event data.&lt;/p&gt;
+
+&lt;p&gt;Note that the path to most of the log files for the PKI connector is &lt;code&gt;C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs&lt;/code&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Assign EMS licenses to all licensed users with dynamic groups</title>
       <link>http://www.wrish.com/post/assign-ems-licenses-with-dynamic-groups/</link>
       <pubDate>Fri, 10 Mar 2017 11:42:35 -0500</pubDate>
