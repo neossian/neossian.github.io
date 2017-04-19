@@ -242,7 +242,8 @@
 
 	  <p>The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.</p>
 
-<p>Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.</p>
+<p>Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
+</p>
 
 <pre><code class="language-powershell">function Import-SVCLog {
  [cmdletbinding()]
@@ -267,7 +268,6 @@ dir | import-svclog | out-gridView
 <p>You will get a neat graphical interface to sort and view the event data.</p>
 
 <p>Note that the path to most of the log files for the PKI connector is <code>C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs</code>.</p>
-
 
 	  
 <div class="prev-next-post pure-g">

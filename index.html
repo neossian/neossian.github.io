@@ -263,9 +263,10 @@
   </header>
 
   <p>
-  The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.
-Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
-function Import-SVCLog { [cmdletbinding()] Param ( [parameter(ValueFromPipeline=$True)] [string[]]$FileName ) Process { ([xml](&quot;&lt;LogRoot&gt;&quot; + (get-content $fileName) + &quot;&lt;/LogRoot&gt;&quot; )).
+  <p>The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.</p>
+
+<p>Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
+</p>
   </p>
 
   
@@ -602,7 +603,10 @@ Create a profile on your ADFS servers
   </header>
 
   <p>
-  I&rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
+  <p>I&rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
+
+~Option 1 - Go Home~
+Drag the device home and setup fiddler in a few minutes, but if you need to troubleshoot at work, that can be a pain.</p>
   </p>
 
   

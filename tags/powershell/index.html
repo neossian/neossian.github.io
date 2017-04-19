@@ -262,9 +262,10 @@
   </header>
 
   <p>
-  The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.
-Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
-function Import-SVCLog { [cmdletbinding()] Param ( [parameter(ValueFromPipeline=$True)] [string[]]$FileName ) Process { ([xml](&quot;&lt;LogRoot&gt;&quot; + (get-content $fileName) + &quot;&lt;/LogRoot&gt;&quot; )).
+  <p>The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.</p>
+
+<p>Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
+</p>
   </p>
 
   

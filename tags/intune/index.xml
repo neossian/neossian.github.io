@@ -16,7 +16,8 @@
       <guid>http://www.wrish.com/post/use-powershell-to-open-svclog-files/</guid>
       <description>&lt;p&gt;The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.&lt;/p&gt;
 
-&lt;p&gt;Don&amp;rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.&lt;/p&gt;
+&lt;p&gt;Don&amp;rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
+&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Import-SVCLog {
  [cmdletbinding()]
@@ -40,8 +41,7 @@ dir | import-svclog | out-gridView
 
 &lt;p&gt;You will get a neat graphical interface to sort and view the event data.&lt;/p&gt;
 
-&lt;p&gt;Note that the path to most of the log files for the PKI connector is &lt;code&gt;C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs&lt;/code&gt;.&lt;/p&gt;
-</description>
+&lt;p&gt;Note that the path to most of the log files for the PKI connector is &lt;code&gt;C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs&lt;/code&gt;.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -231,9 +231,9 @@ if ($SKU) {
       <pubDate>Thu, 05 Jan 2017 23:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/android-fiddler-hyperv-solution/</guid>
-      <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.&lt;/p&gt;
+      <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
 
-&lt;p&gt;~Option 1 - Go Home~
+~Option 1 - Go Home~
 Drag the device home and setup fiddler in a few minutes, but if you need to troubleshoot at work, that can be a pain.&lt;/p&gt;
 
 &lt;p&gt;~Option 2 - Android SDK/Emulator~
@@ -260,8 +260,7 @@ Intune company portal APk
 &lt;li&gt;Browse to the loopback connection in the Android browser &lt;a href=&#34;http://ipv4.fiddler:8888&#34;&gt;http://ipv4.fiddler:8888&lt;/a&gt; (default)&lt;/li&gt;
 &lt;li&gt;Install the root certificate&lt;/li&gt;
 &lt;li&gt;Start troubleshooting&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+&lt;/ul&gt;</description>
     </item>
     
   </channel>
