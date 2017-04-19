@@ -11,7 +11,7 @@
     <item>
       <title>HTTPs Inspection on Android with Hyper-V and an Emulator</title>
       <link>http://www.wrish.com/post/android-fiddler-hyperv-solution/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Sun, 16 Apr 2017 23:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/android-fiddler-hyperv-solution/</guid>
       <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.

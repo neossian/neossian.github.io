@@ -46,6 +46,44 @@ dir | import-svclog | out-gridView
     </item>
     
     <item>
+      <title>HTTPs Inspection on Android with Hyper-V and an Emulator</title>
+      <link>http://www.wrish.com/post/android-fiddler-hyperv-solution/</link>
+      <pubDate>Sun, 16 Apr 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/android-fiddler-hyperv-solution/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
+
+#Option 1 - Go Home#
+Drag the device home and setup fiddler in a few minutes, but if you need to troubleshoot at work, that can be a pain.&lt;/p&gt;
+
+&lt;p&gt;#Option 2 - Android SDK/Emulator#
+This will work - as long as you aren&amp;rsquo;t running Hyper-V on your work machine already - you are? Oh.. well try option 3.&lt;/p&gt;
+
+&lt;p&gt;#Option 3 - Microsoft Android Emulator + Android SDK#
+Intune company portal APk
+&lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=49140&#34;&gt;https://www.microsoft.com/en-us/download/details.aspx?id=49140&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Download the Microsoft android emulator
+&lt;a href=&#34;https://www.visualstudio.com/vs/msft-android-emulator/&#34;&gt;https://www.visualstudio.com/vs/msft-android-emulator/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Download Android studio
+&lt;a href=&#34;https://developer.android.com/studio/index.html&#34;&gt;https://developer.android.com/studio/index.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Download fiddler
+&lt;a href=&#34;https://www.telerik.com/download/fiddler&#34;&gt;https://www.telerik.com/download/fiddler&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Download each of the tools and install them&lt;/li&gt;
+&lt;li&gt;Setup fiddler to allow remote connections&lt;/li&gt;
+&lt;li&gt;Configure the proxy in the Android device by press + holdon the network&lt;/li&gt;
+&lt;li&gt;Install the Intune Company portal by drag+Drop (if you need it)&lt;/li&gt;
+&lt;li&gt;Browse to the loopback connection in the Android browser &lt;a href=&#34;http://ipv4.fiddler:8888&#34;&gt;http://ipv4.fiddler:8888&lt;/a&gt; (default)&lt;/li&gt;
+&lt;li&gt;Install the root certificate&lt;/li&gt;
+&lt;li&gt;Start troubleshooting&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    
+    <item>
       <title>ADFS Rapid restore tool errors</title>
       <link>http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/</link>
       <pubDate>Wed, 15 Mar 2017 11:42:35 -0500</pubDate>
@@ -703,42 +741,6 @@ for me because it relies on &lt;code&gt;Net.HttpWebRequest&lt;/code&gt; which me
 &lt;p&gt;To build out the script I make use of &lt;code&gt;try {} catch {} finally {}&lt;/code&gt; by putting the cleanup commands in the finally block (good practice for all network scripting) you can avoid memory leaks and leaving open unwanted sockets.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1&#34;&gt;Download Retrieve-ServerCertFromSocket.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Decoding legacy Exchange DN from NDR</title>
-      <link>http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/</link>
-      <pubDate>Fri, 02 Dec 2016 23:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/</guid>
-      <description>&lt;p&gt;Occasionally in Exchange you will accidentally or intentionally recreate a user, or delete some values from their object - this will impact the LegacyExchangeDN value. I have seen this happen where mailuser objects were removed from Office 365, the user objects were cloud only and the LegacyExchangeDN was gone forever.&lt;/p&gt;
-
-&lt;p&gt;Contrary to its name, the LegacyExchangeDN value is critical to maintaining active conversations within your organisation. When a user&amp;rsquo;s legacyExchagneDN is lost, collegues replying to conversations with that user will get an NDR. When they create a new email the email will work.&lt;/p&gt;
-
-&lt;p&gt;You can extract the old LegacyExchangeDN from the NDR by finding the string that looks like this &lt;code&gt;IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com&lt;/code&gt; and use the function below to convert it back to an X500 attribute which you add to the &lt;code&gt;proxyaddresses&lt;/code&gt; attribute of the user.&lt;/p&gt;
-
-&lt;p&gt;Here is the function:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function decode-NDRX500Address ($DN){
-    #Generate a list of replacements to be done
-    $replacements = @{&#39;^IMCEAEX-&#39;=&#39;&#39;;&#39;_&#39;=&#39;/&#39;;&#39;@.+$&#39;=&#39;&#39;}
-    (0..127) | %{$replacements.&amp;quot;\+$(&#39;{0:x}&#39; -f $_)&amp;quot; = &amp;quot;$([char]$_)&amp;quot;}
-    #Add X500 to the start
-    $replacements.&amp;quot;^&amp;quot; = &amp;quot;X500:&amp;quot;
-    #Perform the replacements
-    $replacements.GetEnumerator() | %{
-        $dn = $dn -replace $_.key,$_.Value
-    }
-    $DN
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Here is how you can use it:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$ValueFromNDR = &#39;IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com&#39;
-decode-NDRX500Address $ValueFromNDR
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
