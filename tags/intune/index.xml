@@ -61,8 +61,9 @@ dir | import-svclog | out-gridView
 
 &lt;p&gt;This will work - as long as you aren&amp;rsquo;t running Hyper-V on your work machine already - you are? Oh.. well try option 3.&lt;/p&gt;
 
-&lt;p&gt;##Option 3 - Microsoft Android Emulator + Android SDK ##
-Intune company portal APk
+&lt;h2 id=&#34;option-3-microsoft-android-emulator-android-sdk&#34;&gt;Option 3 - Microsoft Android Emulator + Android SDK&lt;/h2&gt;
+
+&lt;p&gt;Intune company portal APk
 &lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=49140&#34;&gt;https://www.microsoft.com/en-us/download/details.aspx?id=49140&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Download the Microsoft android emulator
