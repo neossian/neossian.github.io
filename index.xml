@@ -400,9 +400,42 @@ Write-Host &#39;Update-ADFSFederationForAllDomains&#39;
     </item>
     
     <item>
+      <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
+      <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
+      <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
+      <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;
+
+&lt;p&gt;One outlier application that won&amp;rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.&lt;/p&gt;
+
+&lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
+restart-service certsvc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
+restart-service certsvc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
+
+&lt;p&gt;There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;certutil -restrict &amp;quot;SubmittedWhen &amp;gt;= now-00:01, Disposition = 20&amp;quot; -view  csv | ConvertFrom-Csv | fl &amp;quot;Request Submission Date&amp;quot;,&amp;quot;Requester Name&amp;quot;,&amp;quot;Issued Common Name&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>HTTPs Inspection on Android with Hyper-V and an Emulator</title>
       <link>http://www.wrish.com/post/android-fiddler-hyperv-solution/</link>
-      <pubDate>Thu, 05 Jan 2017 23:47:35 +0000</pubDate>
+      <pubDate>Mon, 02 Jan 2017 23:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/android-fiddler-hyperv-solution/</guid>
       <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
@@ -435,39 +468,6 @@ Intune company portal APk
 &lt;li&gt;Install the root certificate&lt;/li&gt;
 &lt;li&gt;Start troubleshooting&lt;/li&gt;
 &lt;/ul&gt;</description>
-    </item>
-    
-    <item>
-      <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
-      <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
-      <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;
-
-&lt;p&gt;One outlier application that won&amp;rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.&lt;/p&gt;
-
-&lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsvc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsvc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
-
-&lt;p&gt;There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;certutil -restrict &amp;quot;SubmittedWhen &amp;gt;= now-00:01, Disposition = 20&amp;quot; -view  csv | ConvertFrom-Csv | fl &amp;quot;Request Submission Date&amp;quot;,&amp;quot;Requester Name&amp;quot;,&amp;quot;Issued Common Name&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.&lt;/p&gt;
-</description>
     </item>
     
     <item>
