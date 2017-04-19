@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Generate an SHA-1 signed certificate after cutover to SHA-2 &middot; WRISH</title>
+  <title>HTTPs Inspection on Android with Hyper-V and an Emulator &middot; WRISH</title>
 
   
   
@@ -208,7 +208,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>Generate an SHA-1 signed certificate after cutover to SHA-2</h1>
+	  <h1>HTTPs Inspection on Android with Hyper-V and an Emulator</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -217,7 +217,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>4  Jan 2017</time>
+    <time>5  Jan 2017</time>
   </div>
 
   
@@ -230,9 +230,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/android">Android</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>
     
   </div>
   
@@ -240,43 +240,49 @@
 
 </div>
 
-	  <p>You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.</p>
+	  <p>I&rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.</p>
 
-<p>One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.</p>
+<p>~Option 1 - Go Home~
+Drag the device home and setup fiddler in a few minutes, but if you need to troubleshoot at work, that can be a pain.</p>
 
-<p>Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.</p>
+<p>~Option 2 - Android SDK/Emulator~
+This will work - as long as you aren&rsquo;t running Hyper-V on your work machine already - you are? Oh.. well try option 3.</p>
 
-<pre><code class="language-powershell">certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsvc
-</code></pre>
+<p>~Option 3 - Microsoft Android Emulator + Android SDK~
+Intune company portal APk
+<a href="https://www.microsoft.com/en-us/download/details.aspx?id=49140">https://www.microsoft.com/en-us/download/details.aspx?id=49140</a></p>
 
-<p>Now issue your certificate, and switch back.</p>
+<p>Download the Microsoft android emulator
+<a href="https://www.visualstudio.com/vs/msft-android-emulator/">https://www.visualstudio.com/vs/msft-android-emulator/</a></p>
 
-<pre><code class="language-powershell">certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsvc
-</code></pre>
+<p>Download Android studio
+<a href="https://developer.android.com/studio/index.html">https://developer.android.com/studio/index.html</a></p>
 
-<p>Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&rsquo;t handle that then it is out of luck.</p>
+<p>Download fiddler
+<a href="https://www.telerik.com/download/fiddler">https://www.telerik.com/download/fiddler</a></p>
 
-<p>There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour</p>
-
-<pre><code class="language-Powershell">certutil -restrict &quot;SubmittedWhen &gt;= now-00:01, Disposition = 20&quot; -view  csv | ConvertFrom-Csv | fl &quot;Request Submission Date&quot;,&quot;Requester Name&quot;,&quot;Issued Common Name&quot;
-</code></pre>
-
-<p>If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.</p>
+<ul>
+<li>Download each of the tools and install them</li>
+<li>Setup fiddler to allow remote connections</li>
+<li>Configure the proxy in the Android device by press + holdon the network</li>
+<li>Install the Intune Company portal by drag+Drop (if you need it)</li>
+<li>Browse to the loopback connection in the Android browser <a href="http://ipv4.fiddler:8888">http://ipv4.fiddler:8888</a> (default)</li>
+<li>Install the root certificate</li>
+<li>Start troubleshooting</li>
+</ul>
 
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/">Hosting for free with GitHub Pages using Windows (with custom domain)</a>
+      <a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a>
     </nav>
     
   </div>
@@ -286,13 +292,13 @@ restart-service certsvc
   <div class="pure-u-10-24">
     
     <nav class="next">
-      <a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/">HTTPs Inspection on Android with Hyper-V and an Emulator</a>
+      <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a>
     </nav>
     
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
     
-    <a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/"><i class="fa fa-chevron-right"></i></a>
+    <a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>

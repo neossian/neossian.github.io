@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Generate an SHA-1 signed certificate after cutover to SHA-2 &middot; WRISH</title>
+  <title>Android &middot; WRISH</title>
 
   
   
@@ -36,6 +36,8 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
+  
+  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/android/index.xml" />
   
 
   
@@ -100,6 +102,10 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="http://www.wrish.com/tags/android/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+    </li>
     
 
     
@@ -204,20 +210,21 @@
   <div id="main">
 
 
+<div class="header">
+  <h1>Android</h1>
+</div>
 
-<div class="post">
-	
-	<div class="header">
-	  <h1>Generate an SHA-1 signed certificate after cutover to SHA-2</h1>
-	  <h2></h2>
-	</div>
-	<div class="content">
+<div class="content">
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/">HTTPs Inspection on Android with Hyper-V and an Emulator</a></h2>
 
-	  <div class="post-meta">
+    <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>4  Jan 2017</time>
+    <time>5  Jan 2017</time>
   </div>
 
   
@@ -230,9 +237,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/android">Android</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>
     
   </div>
   
@@ -240,69 +247,22 @@
 
 </div>
 
-	  <p>You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.</p>
+  </header>
 
-<p>One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.</p>
+  <p>
+  I&rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
+  </p>
 
-<p>Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.</p>
+  
+  <footer>
+    <a href="/post/android-fiddler-hyperv-solution/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
 
-<pre><code class="language-powershell">certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsvc
-</code></pre>
-
-<p>Now issue your certificate, and switch back.</p>
-
-<pre><code class="language-powershell">certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsvc
-</code></pre>
-
-<p>Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&rsquo;t handle that then it is out of luck.</p>
-
-<p>There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour</p>
-
-<pre><code class="language-Powershell">certutil -restrict &quot;SubmittedWhen &gt;= now-00:01, Disposition = 20&quot; -view  csv | ConvertFrom-Csv | fl &quot;Request Submission Date&quot;,&quot;Requester Name&quot;,&quot;Issued Common Name&quot;
-</code></pre>
-
-<p>If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.</p>
-
-
-	  
-<div class="prev-next-post pure-g">
-  <div class="pure-u-1-24" style="text-align: left;">
-    
-    <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/"><i class="fa fa-chevron-left"></i></a>
-    
-  </div>
-  <div class="pure-u-10-24">
-    
-    <nav class="prev">
-      <a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/">Hosting for free with GitHub Pages using Windows (with custom domain)</a>
-    </nav>
-    
-  </div>
-  <div class="pure-u-2-24">
-    &nbsp;
-  </div>
-  <div class="pure-u-10-24">
-    
-    <nav class="next">
-      <a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/">HTTPs Inspection on Android with Hyper-V and an Emulator</a>
-    </nav>
-    
-  </div>
-  <div class="pure-u-1-24" style="text-align: right;">
-    
-    <a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/"><i class="fa fa-chevron-right"></i></a>
-    
-  </div>
+  
 </div>
 
-
-
-	  
-
-	</div>
-</div>
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -311,4 +271,3 @@ restart-service certsvc
 
 </body>
 </html>
-

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/android/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/android/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>HTTPs Inspection on Android with Hyper-V and an Emulator</title>
+      <link>http://www.wrish.com/post/android-fiddler-hyperv-solution/</link>
+      <pubDate>Thu, 05 Jan 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/android-fiddler-hyperv-solution/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.&lt;/p&gt;
+
+&lt;p&gt;~Option 1 - Go Home~
+Drag the device home and setup fiddler in a few minutes, but if you need to troubleshoot at work, that can be a pain.&lt;/p&gt;
+
+&lt;p&gt;~Option 2 - Android SDK/Emulator~
+This will work - as long as you aren&amp;rsquo;t running Hyper-V on your work machine already - you are? Oh.. well try option 3.&lt;/p&gt;
+
+&lt;p&gt;~Option 3 - Microsoft Android Emulator + Android SDK~
+Intune company portal APk
+&lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=49140&#34;&gt;https://www.microsoft.com/en-us/download/details.aspx?id=49140&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Download the Microsoft android emulator
+&lt;a href=&#34;https://www.visualstudio.com/vs/msft-android-emulator/&#34;&gt;https://www.visualstudio.com/vs/msft-android-emulator/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Download Android studio
+&lt;a href=&#34;https://developer.android.com/studio/index.html&#34;&gt;https://developer.android.com/studio/index.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Download fiddler
+&lt;a href=&#34;https://www.telerik.com/download/fiddler&#34;&gt;https://www.telerik.com/download/fiddler&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Download each of the tools and install them&lt;/li&gt;
+&lt;li&gt;Setup fiddler to allow remote connections&lt;/li&gt;
+&lt;li&gt;Configure the proxy in the Android device by press + holdon the network&lt;/li&gt;
+&lt;li&gt;Install the Intune Company portal by drag+Drop (if you need it)&lt;/li&gt;
+&lt;li&gt;Browse to the loopback connection in the Android browser &lt;a href=&#34;http://ipv4.fiddler:8888&#34;&gt;http://ipv4.fiddler:8888&lt;/a&gt; (default)&lt;/li&gt;
+&lt;li&gt;Install the root certificate&lt;/li&gt;
+&lt;li&gt;Start troubleshooting&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
