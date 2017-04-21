@@ -1,4 +1,4 @@
-$ProfileVersion = "1.18"
+$ProfileVersion = "1.20"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -29,11 +29,24 @@ function TryCopyProfile {
     }
 }
 
+function Import-SVCLog {
+ [cmdletbinding()]
+    Param (
+        [parameter(ValueFromPipeline=$True)]
+        [string[]]$FileName
+    )    
+    Process {
+       ([xml]("<LogRoot>" + (get-content $fileName) + "</LogRoot>" )).LogRoot.e2etraceevent | %{            
+            $_ | select @{l='EventID';e={$_.system.EventID}},@{l='Type';e={$_.system.Type}},@{l='TimeCreated';e={$_.system.TimeCreated.SystemTime}},@{l='Source';e={$_.system.Source.Name}},@{l='Correlation';e={$_.system.Correlation.activityID}},@{l='Computer';e={$_.system.Computer}},@{l='Info';e={$_.ApplicationData}},@{l='XMLData';e={$_}}                       
+       }
+    }
+}
+
 function list-ProfileFunctions ($regex='^###########$') {
     get-content $profile.currentuserAllhosts | select-string "^function|^New-Alias" |%{$_ -replace '^function|^New-Alias','' -replace '\{.*',''}| sort | ho $regex
 }
 New-Alias lf list-ProfileFunctions
-Write-host lf list-ProfileFunctions
+Write-HOst lf list-ProfileFunctions
 
 
 #Get a new Secure Credential and store it in encrypted format to a file
@@ -63,17 +76,17 @@ Function Stored-Credential($name, [switch]$New, [switch]$check)
     }        
 }
 
-Write-Host "Stored-Credential"
+#Write-HOst "Stored-Credential"
 
 function backup-ADFSConfiguration ($path =".\"){
     get-command get-adfs* | %{$cmd = $_.name; $file = "$cmd.xml"; Invoke-Expression -command "$cmd | export-clixml $file"} 
 }
-Write-Host "backup-ADFSConfiguration"
+#Write-HOst "backup-ADFSConfiguration"
 
 function lctc {
 (get-history)[-1].commandline | clip
 }
-Write-Host "lctc"
+#Write-HOst "lctc"
 
 function search-history ($regex,[switch]$ShowAll){
 
@@ -84,7 +97,7 @@ function search-history ($regex,[switch]$ShowAll){
     }
 
 }
-Write-Host "Search-History"
+#Write-HOst "Search-History"
 
 function ADFSClipFilter ($activityID){
        $filternew = @"
@@ -97,7 +110,7 @@ function ADFSClipFilter ($activityID){
 $filterNew | clip
 $filterNew
 }
-Write-Host "ADFSClipFilter"
+#Write-HOst "ADFSClipFilter"
 
 
 function highlight-String($pattern,[switch]$exact,[switch]$casesensitive) {
@@ -148,7 +161,7 @@ Displays the current directory and highlights all files that have a .doc extensi
         }
     }
 } #End Higlight-String
-Write-Host "Highlight-String"
+#Write-HOst "Highlight-String"
 
 function highlight-output ($pattern,[switch]$exact,[switch]$casesensitive){
  <#
@@ -164,7 +177,7 @@ Displays the current directory and highlights all files that have a .doc extensi
  #>
     $input | out-string -stream | highlight-string @PSBoundParameters
 }
-Write-Host "Highlight-Output Alias:HO"
+#Write-HOst "Highlight-Output Alias:HO"
 
 #Create  HO as an alias; Get-childitem | ho "\w+\.doc"
 new-alias ho highlight-output 
@@ -181,7 +194,7 @@ function connect-MSOL ($name, [switch]$new)
 
 }
 new-alias cm connect-MSOL 
-Write-Host "Connect-MSOL Alias:CM"
+#Write-HOst "Connect-MSOL Alias:CM"
 
  function prompt {
 
@@ -331,7 +344,7 @@ http://www.wrish.com
 
 
 new-alias csbs Compare-SideBySide 
-Write-Host "Compare-SideBytSide Alias:csbs"
+#Write-HOst "Compare-SideBytSide Alias:csbs"
 
 Function Port-Ping {
     param([Array]$hostlist,[Array]$ports = $(80,443,389,636,3268),[Int]$timeout = "50")
@@ -367,7 +380,7 @@ Function Port-Ping {
     }    
 }
 
-Write-Host "Port-Ping"
+#Write-HOst "Port-Ping"
 
 Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP) { 
   
@@ -497,10 +510,10 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
 }
 
 new-alias tp Test-Port 
-Write-Host "Test-Port Alias:tp"
+#Write-HOst "Test-Port Alias:tp"
 
 new-alias pp Port-Ping 
-Write-Host "Port-Ping Alias:pp"
+#Write-HOst "Port-Ping Alias:pp"
 function get-adsite ($sitename='*',$ldapfilter,$Server,$pageSize=1000)
 <#
 .DESCRIPTION
@@ -542,7 +555,7 @@ LDAP Search page size, default 1000
         write-output $SiteObject
     }
 }
-Write-Host "get-adsite"
+#Write-HOst "get-adsite"
 
 
 function ForEach-Parallel {
@@ -630,7 +643,7 @@ List of functions that should be available to the script block
             }
 
 New-Alias %p ForEach-Parallel
-Write-host Foreach-Parallel Alias:%p
+#Write-HOst Foreach-Parallel Alias:%p
             
 function get-ForestDomainControllers ()
 {
@@ -641,7 +654,7 @@ function get-ForestDomainControllers ()
     }
     return $mresult;
 }
-Write-host Get-forestDomainControllers
+#Write-HOst Get-forestDomainControllers
 
 function get-adsite ($sitename='*',$ldapfilter,$Server,$pageSize=1000)
 <#
@@ -685,7 +698,7 @@ LDAP Search page size, default 1000
     }
 }
 
-Write-host get-adsite
+#Write-HOst get-adsite
 
 function get-adsitelink ($SiteLinkName='*',$ldapfilter,$Server,$pageSize=1000)
 <#
@@ -729,7 +742,7 @@ LDAP Search page size, default 1000
     }
 }
 
-Write-host get-adsitelink
+#Write-HOst get-adsitelink
 
 function get-adsubnet ($subnetName='*',$ldapfilter,$Server,$pageSize=1000)
 <#
@@ -773,7 +786,7 @@ LDAP Search page size, default 1000
     }
 }
 
-write-host get-adsubnet
+#Write-HOst get-adsubnet
 
 function get-ADConfServer ($ServerName='*',$DN,$server,$LDAPFilter,$PageSize)
 {
@@ -804,7 +817,7 @@ function get-ADConfServer ($ServerName='*',$DN,$server,$LDAPFilter,$PageSize)
         write-output $SCObject
     }
 }
-write-host get-adconfServer
+#Write-HOst get-adconfServer
 
 function get-adConnection ($fromServer,$toServer,$anyServer,$server,$site,$ldapfilter,$pageSize=1000){
 <#
@@ -883,7 +896,7 @@ LDAP Search page size, default 1000
     }
 }
 
-write-host get-adConnection
+#Write-HOst get-adConnection
 
 function Check-ForestReplications {
     get-ForestDomainControllers | ForEach-Parallel {                
@@ -894,7 +907,7 @@ function Check-ForestReplications {
 
 
 
-write-host Check-ForestReplications
+#Write-HOst Check-ForestReplications
 
 function get-adDevice ($DisplayName='*',$RegisteredOwner,$RegisteredUser,$ldapfilter,$Server,$pageSize=1000)
 <#
@@ -999,7 +1012,7 @@ LDAP Search page size, default 1000
         write-output $DeviceObject
     }
 }
-Write-Host get-adDevice
+#Write-HOst get-adDevice
 
 #locate the AD Device Container within the domain
 function get-ADDeviceContainer ($Server)
@@ -1026,7 +1039,7 @@ function get-ADDeviceContainer ($Server)
         write-output $DeviceContainerObject
     }
 }
-Write-Host get-ADDeviceContainer
+#Write-HOst get-ADDeviceContainer
 Function CleanupUserProfiles
 {
   [CmdletBinding(
@@ -1060,7 +1073,7 @@ Function CleanupUserProfiles
     }
   }
 }
-write-host cleanupuserprofiles
+#Write-HOst cleanupuserprofiles
 
 function Open-profile { 
     if (! (Test-Path $profile.CurrentUserAllHosts)){
@@ -1070,7 +1083,7 @@ function Open-profile {
 
     notepad $profile.CurrentUserAllHosts
     }
-write-host Open-profile 
+#Write-HOst Open-profile 
 
 function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
 <#
@@ -1338,7 +1351,7 @@ Created by Shane Wright. Neossian@gmail.com
     }
 
 }
-write-host Listen-Port
+#Write-HOst Listen-Port
 
 function Check-ADFSFederationForAllDomains {
     
@@ -1352,7 +1365,7 @@ function Check-ADFSFederationForAllDomains {
          }
       } 
 }
-write-host 'Check-ADFSFederationForAllDomains'
+#Write-HOst 'Check-ADFSFederationForAllDomains'
 
 Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
     
@@ -1362,7 +1375,7 @@ Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
        
       } 
 }
-Write-Host 'Update-ADFSFederationForAllDomains' 
+#Write-HOst 'Update-ADFSFederationForAllDomains' 
 Function get-HTTPSSlcertBinding (){
     $BindingsAsText = & netsh http show sslcert
     $bindings = @()
@@ -1379,7 +1392,7 @@ Function get-HTTPSSlcertBinding (){
     }
     $bindings | ?{$_.name}
 }
-Write-Host 'get-HTTPSSlcertBinding'
+#Write-HOst 'get-HTTPSSlcertBinding'
 
 Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$CertificateStoreName,$VerifyClientCertRev,$VerifyRevocationUsingCachedOnly,$UsageCheck,$RevocationFreshnessTime,$URLRetrievalTimeout,$CTLIdentifier,$CTLStoreName,$DSMapper,$NegotiateClientCert){
     $bindingToUpdate = get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
@@ -1440,7 +1453,7 @@ Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$Certi
     }
     get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
 }
-Write-Host 'update-HTTPSSlcertBinding'
+#Write-HOst 'update-HTTPSSlcertBinding'
 
 
 
@@ -1460,8 +1473,8 @@ function get-ADObjectFromImmutableID{
    process { get-adobject  ([guid]([system.convert]::FromBase64String($ImmutableID)))}
 }
 
-Write-Host 'get-ImmutableIDfromADObject'
-write-host 'get-ADObjectFromImmutableID'
+#Write-HOst 'get-ImmutableIDfromADObject'
+#Write-HOst 'get-ADObjectFromImmutableID'
 
 function CreateArrayFromPastedText ($returnvalue = "")
 {
@@ -1476,7 +1489,7 @@ function CreateArrayFromPastedText ($returnvalue = "")
     }
 }
 
-Write-Host 'CreateArrayFromPastedText'
+#Write-HOst 'CreateArrayFromPastedText'
 
 
 function EnumerateMemberOf($Object, $ResultSoFar=@())
@@ -1515,7 +1528,7 @@ function get-ADNestedMembership
         }
     }
 }
-Write-Host get-adNestedMembership
+#Write-HOst get-adNestedMembership
 
 function Retrieve-ServerCertFromSocket ($hostname, $port=443, $SNIHeader, [switch]$FailWithoutTrust)
 <#
@@ -1657,7 +1670,7 @@ function get-LdapTokenGroups {
 }
 
 new-alias gssl Retrieve-ServerCertFromSocket
-write-host gssl Retrieve-ServerCertFromSocket
+#Write-HOst gssl Retrieve-ServerCertFromSocket
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
