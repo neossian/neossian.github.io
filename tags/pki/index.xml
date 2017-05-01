@@ -9,6 +9,109 @@
     <atom:link href="http://www.wrish.com/tags/pki/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Extracting objects from commands that output text</title>
+      <link>http://www.wrish.com/post/extracting-objects-from-text-certutil/</link>
+      <pubDate>Sun, 30 Apr 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/extracting-objects-from-text-certutil/</guid>
+      <description>&lt;p&gt;There are many ways to throw a spanner. But if you really must throw it with powershell you&amp;rsquo;ll want it to result in an object.&lt;/p&gt;
+
+&lt;p&gt;The versatility of objects can give much to legacy commands that still linger in the Windows administration world. This short tutorial should teach you to turn most legacy commands into one or more commandlets in some concise code.
+&lt;/p&gt;
+
+&lt;h2 id=&#34;step-1-get-your-command&#34;&gt;Step 1 - Get your command&lt;/h2&gt;
+
+&lt;p&gt;First you&amp;rsquo;ll need to find your command, in this case we are going to try to list all CAs in the forest &lt;code&gt;Get-CA&lt;/code&gt; this can be done with &lt;code&gt;certutil -dump&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-none&#34;&gt;certutil -dump
+
+Entry 0:
+  Name:                     `Contoso Issuing Certificate Authority&#39;
+  Organizational Unit:      `Contoso IT Services&#39;
+  Organization:             `Contoso&#39;
+  ...
+  Country/region:           `US&#39;
+  Config:                   `CAServer.contoso.com\IssuingCertificateAuthority&#39;
+  ...
+  Short Name:               `Contoso Issuing Certificate Authority&#39;
+  Sanitized Short Name:     `Contoso Issuing Certificate Authority&#39;
+  Flags:                    `1&#39;
+  Web Enrollment Servers: 
+  ... Some data ...
+CertUtil: -dump command completed successfully.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-2-design-your-regex&#34;&gt;Step 2 - Design your regex&lt;/h2&gt;
+
+&lt;p&gt;The output of &lt;code&gt;certutil -dump&lt;/code&gt; has two key sections &lt;code&gt;Entry 0:&lt;/code&gt; which defines an object delimiter. And &lt;code&gt;Country/region:    `US&#39;&lt;/code&gt; which is the general format of our name value pairs.
+&lt;code&gt;&#39;^Entry \d+:&lt;/code&gt; is the first regex we will use. &lt;code&gt;^&lt;/code&gt; represents the start of the line and &lt;code&gt;\d+&lt;/code&gt; represents &amp;ldquo;one or more digits&amp;rdquo; the rest is just direct character matching.
+&lt;code&gt;&amp;quot;  (?&amp;lt;variable&amp;gt;[\w\s]+):\s+``(?&amp;lt;value&amp;gt;.*)&#39;&amp;quot;&lt;/code&gt; is the second regex. &lt;code&gt;?&amp;lt;varible&amp;gt;&lt;/code&gt; puts the matched value into a property for use &lt;code&gt;[\w\s]+&lt;/code&gt; matches any number of letter or whitepace characters and &lt;code&gt;.*&lt;/code&gt; is zero or more of any character. Note that the string part of this line starts with a backtick, to include a backtick you need to escape it so `` represents only one backtick.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3-parse-your-result&#34;&gt;Step 3 - Parse your result&lt;/h2&gt;
+
+&lt;p&gt;This same technique was used to wrap dnscmd before it had native Powershell counterparts.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt; #Get the result in a variable
+ $result = certutil -dump
+ #prepare an array for the objects
+    $CAs = @()
+    #Parse through the result
+    switch -regex ($result){
+        &#39;^Entry \d+:&#39;  {
+            #When you hit an Entry put the object into the Array and create a new object
+            if ($thisEntry){$CAs += $thisEntry}
+            $thisEntry = new-object psobject;
+        }
+        &amp;quot;  (?&amp;lt;variable&amp;gt;[\w\s]+):\s+``(?&amp;lt;value&amp;gt;.*)&#39;&amp;quot;{
+            #When you hit a parameter, add it to the object
+            $thisEntry | Add-Member -MemberType NoteProperty -Name $matches.variable -value $matches.value -force
+        }
+    }    
+    #If we finish parsing, put the last object in the array
+    if ($thisEntry){$CAs += $thisEntry}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that &lt;code&gt;$CAs&lt;/code&gt;` contains our list of CAs!&lt;/p&gt;
+
+&lt;h3 id=&#34;step-4-build-your-function&#34;&gt;Step 4 - Build your function&lt;/h3&gt;
+
+&lt;p&gt;Wrap your code up in a function. As a bonus I have also included a command to list the published templates on each CA.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function get-CAs {
+    $result = certutil -dump
+    $CAs = @()
+    
+    switch -regex ($result){
+        &#39;^Entry \d+:&#39;  {
+            if ($thisEntry){$CAs += $thisEntry}
+            $thisEntry = new-object psobject;
+        }
+        &amp;quot;  (?&amp;lt;variable&amp;gt;[\w\s]+):\s+``(?&amp;lt;value&amp;gt;.*)&#39;&amp;quot;{
+            $thisEntry | Add-Member -MemberType NoteProperty -Name $matches.variable -value $matches.value -force
+        }
+    }    
+    if ($thisEntry){$CAs += $thisEntry}
+    return $CAs
+}
+
+function get-CATemplatesAvailableToIssue ($CA) {
+    if (!$CA -or $CA -notmatch &#39;^[\w\.]+\\\w+$&#39;) {
+        $CAs = get-CAs
+        $CAsToLookup = $CAs | ?{$_.Config -match $CA -or $_.Config -like $CA}
+    } else {
+        $CAsToLookup = new-object psobject -Property @{Config=$CA}
+    }
+    foreach ($Ca in $CAsToLookup) {        
+        $result = certutil -config $($CA.config) -caTemplates
+        switch -regex ($result) {
+            &#39;^(?&amp;lt;Name&amp;gt;\w+): (?&amp;lt;DisplayName&amp;gt;.+) -- .+$&#39;{new-object psobject -Property @{Name=$matches.name;DisplayName=$matches.DisplayName;CA=$CA.config}}
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    
+    <item>
       <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
       <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
       <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.17" />
+
+  <title>Extracting objects from commands that output text &middot; WRISH</title>
+
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-old-ie-min.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
+  <!--<![endif]-->
+
+  <!--[if lte IE 8]>
+  <link rel="stylesheet" href="/css/side-menu-old-ie.css">
+  <![endif]-->
+  <!--[if gt IE 8]><!-->
+  <link rel="stylesheet" href="/css/side-menu.css">
+  <!--<![endif]-->
+
+  <link rel="stylesheet" href="/css/blackburn.css">
+
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+  
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="http://www.wrish.com/css/atom-one-light.css">
+  <script src="http://www.wrish.com/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  
+
+  <link rel="shortcut icon" href="http://www.wrish.com/img/favicon.ico" type="image/x-icon" />
+
+  
+  
+
+</head>
+
+
+<body>
+<div id="layout">
+
+  
+<a href="#menu" id="menuLink" class="menu-link">
+  
+  <span></span>
+</a>
+<div id="menu">
+
+  
+  <a class="pure-menu-heading brand" href="/"><img src='/img/w.svg' height='65px' width='auto'>RISH</a>
+
+
+  <div class="pure-menu">
+    <ul class="pure-menu-list">
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/about/"><i class='fa fa-user fa-fw'></i>About</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+    </ul>
+  </div>
+  
+
+  <div class="pure-menu social">
+  <ul class="pure-menu-list">
+
+    
+
+    
+
+    
+
+	
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://social.technet.microsoft.com/profile/Shane%20Wright" target="_blank"><i class="fa fa-windows fa-fw"></i>Technet</a>
+    </li>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://linkedin.com/in/neossian" target="_blank"><i class="fa fa-linkedin-square fa-fw"></i>LinkedIn</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <li class="pure-menu-item">
+      <a class="pure-menu-link" href="https://stackoverflow.com/users/1111059/neossian" target="_blank"><i class="fa fa-stack-overflow fa-fw"></i>Stack Overflow</a>
+    </li>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+  </ul>
+</div>
+
+  
+  
+  <div>
+  <div class="small-print">
+    <small>&copy; 2016. All rights reserved.</small>
+  </div>
+  <div class="small-print">
+    <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
+    <small>Theme&nbsp;<a href="https://github.com/yoshiharuyamashita/blackburn" target="_blank">Blackburn</a></small>	
+  </div>
+  
+</div>
+
+
+  </div>
+
+
+  <div id="main">
+
+
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Extracting objects from commands that output text</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>30  Apr 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>
+    
+  </div>
+  
+  
+
+</div>
+
+	  <p>There are many ways to throw a spanner. But if you really must throw it with powershell you&rsquo;ll want it to result in an object.</p>
+
+<p>The versatility of objects can give much to legacy commands that still linger in the Windows administration world. This short tutorial should teach you to turn most legacy commands into one or more commandlets in some concise code.
+</p>
+
+<h2 id="step-1-get-your-command">Step 1 - Get your command</h2>
+
+<p>First you&rsquo;ll need to find your command, in this case we are going to try to list all CAs in the forest <code>Get-CA</code> this can be done with <code>certutil -dump</code>.</p>
+
+<pre><code class="language-none">certutil -dump
+
+Entry 0:
+  Name:                     `Contoso Issuing Certificate Authority'
+  Organizational Unit:      `Contoso IT Services'
+  Organization:             `Contoso'
+  ...
+  Country/region:           `US'
+  Config:                   `CAServer.contoso.com\IssuingCertificateAuthority'
+  ...
+  Short Name:               `Contoso Issuing Certificate Authority'
+  Sanitized Short Name:     `Contoso Issuing Certificate Authority'
+  Flags:                    `1'
+  Web Enrollment Servers: 
+  ... Some data ...
+CertUtil: -dump command completed successfully.
+</code></pre>
+
+<h2 id="step-2-design-your-regex">Step 2 - Design your regex</h2>
+
+<p>The output of <code>certutil -dump</code> has two key sections <code>Entry 0:</code> which defines an object delimiter. And <code>Country/region:    `US'</code> which is the general format of our name value pairs.
+<code>'^Entry \d+:</code> is the first regex we will use. <code>^</code> represents the start of the line and <code>\d+</code> represents &ldquo;one or more digits&rdquo; the rest is just direct character matching.
+<code>&quot;  (?&lt;variable&gt;[\w\s]+):\s+``(?&lt;value&gt;.*)'&quot;</code> is the second regex. <code>?&lt;varible&gt;</code> puts the matched value into a property for use <code>[\w\s]+</code> matches any number of letter or whitepace characters and <code>.*</code> is zero or more of any character. Note that the string part of this line starts with a backtick, to include a backtick you need to escape it so `` represents only one backtick.</p>
+
+<h2 id="step-3-parse-your-result">Step 3 - Parse your result</h2>
+
+<p>This same technique was used to wrap dnscmd before it had native Powershell counterparts.</p>
+
+<pre><code class="language-PowerShell"> #Get the result in a variable
+ $result = certutil -dump
+ #prepare an array for the objects
+    $CAs = @()
+    #Parse through the result
+    switch -regex ($result){
+        '^Entry \d+:'  {
+            #When you hit an Entry put the object into the Array and create a new object
+            if ($thisEntry){$CAs += $thisEntry}
+            $thisEntry = new-object psobject;
+        }
+        &quot;  (?&lt;variable&gt;[\w\s]+):\s+``(?&lt;value&gt;.*)'&quot;{
+            #When you hit a parameter, add it to the object
+            $thisEntry | Add-Member -MemberType NoteProperty -Name $matches.variable -value $matches.value -force
+        }
+    }    
+    #If we finish parsing, put the last object in the array
+    if ($thisEntry){$CAs += $thisEntry}
+</code></pre>
+
+<p>Now that <code>$CAs</code>` contains our list of CAs!</p>
+
+<h3 id="step-4-build-your-function">Step 4 - Build your function</h3>
+
+<p>Wrap your code up in a function. As a bonus I have also included a command to list the published templates on each CA.</p>
+
+<pre><code class="language-Powershell">function get-CAs {
+    $result = certutil -dump
+    $CAs = @()
+    
+    switch -regex ($result){
+        '^Entry \d+:'  {
+            if ($thisEntry){$CAs += $thisEntry}
+            $thisEntry = new-object psobject;
+        }
+        &quot;  (?&lt;variable&gt;[\w\s]+):\s+``(?&lt;value&gt;.*)'&quot;{
+            $thisEntry | Add-Member -MemberType NoteProperty -Name $matches.variable -value $matches.value -force
+        }
+    }    
+    if ($thisEntry){$CAs += $thisEntry}
+    return $CAs
+}
+
+function get-CATemplatesAvailableToIssue ($CA) {
+    if (!$CA -or $CA -notmatch '^[\w\.]+\\\w+$') {
+        $CAs = get-CAs
+        $CAsToLookup = $CAs | ?{$_.Config -match $CA -or $_.Config -like $CA}
+    } else {
+        $CAsToLookup = new-object psobject -Property @{Config=$CA}
+    }
+    foreach ($Ca in $CAsToLookup) {        
+        $result = certutil -config $($CA.config) -caTemplates
+        switch -regex ($result) {
+            '^(?&lt;Name&gt;\w+): (?&lt;DisplayName&gt;.+) -- .+$'{new-object psobject -Property @{Name=$matches.name;DisplayName=$matches.DisplayName;CA=$CA.config}}
+        }
+    }
+}
+</code></pre>
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/use-powershell-to-open-svclog-files/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/use-powershell-to-open-svclog-files/">import-svclog to import SVCLOG files</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
+</div>
+</div>
+<script src="http://www.wrish.com/js/ui.js"></script>
+
+
+
+</body>
+</html>
+
