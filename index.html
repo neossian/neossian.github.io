@@ -231,6 +231,52 @@
   
     <article>
   <header>
+    <h2><a href="http://www.wrish.com/post/powershell-oneliners/">PowerShell Oneliners</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>17  May 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  <p>Just a list of useful oneliners for powershell server and AD management
+</p>
+  </p>
+
+  
+  <footer>
+    <a href="/post/powershell-oneliners/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
     <h2><a href="http://www.wrish.com/post/extracting-objects-from-text-certutil/">Extracting objects from commands that output text</a></h2>
 
     <div class="post-meta">
@@ -658,54 +704,6 @@ Create a profile on your ADFS servers
   
   <footer>
     <a href="/post/check-adfs-certificates-with-office365-configuration/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>4  Jan 2017</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.
-One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.
-Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.
-certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsvc  Now issue your certificate, and switch back.
-  </p>
-
-  
-  <footer>
-    <a href="/post/switch-ms-pki-back-to-sha1/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
   </footer>
   
 </article>

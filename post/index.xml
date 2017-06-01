@@ -6,8 +6,41 @@
     <description>Recent content in Post-rsses on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <lastBuildDate>Sun, 30 Apr 2017 23:47:35 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 17 May 2017 11:42:35 -0500</lastBuildDate>
     <atom:link href="http://www.wrish.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>PowerShell Oneliners</title>
+      <link>http://www.wrish.com/post/powershell-oneliners/</link>
+      <pubDate>Wed, 17 May 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/powershell-oneliners/</guid>
+      <description>&lt;p&gt;Just a list of useful oneliners for powershell server and AD management
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Retrieve the PDC AD Object using ADSI
+$PDC = [adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent 
+
+#PDC name to the clipboard
+([adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent ).dnshostname | clip
+
+#get the last executed command to the clipboard
+(get-history)[-1].commandline | clip
+
+#Get the last boot time to a date/time object
+wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?&amp;lt;month&amp;gt;\d\d)(?&amp;lt;day&amp;gt;\d\d)&#39;} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
+(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
+
+#get the last boot time to the clipboard
+wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?&amp;lt;month&amp;gt;\d\d)(?&amp;lt;day&amp;gt;\d\d)&#39;} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
+
+#Create a scheduled task to restart the server in x hours 
+$hours = 1
+schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $((get-date).addhours($hours).tostring(&#39;hh:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $((get-date).addhours($hours).tostring(&#39;MM/dd/yyyy&#39;))
+
+
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
     
     <item>
       <title>Extracting objects from commands that output text</title>
@@ -809,19 +842,6 @@ ldifde -f OUStructure.ldif -d $($domain.Distinguishedname) -c `&amp;quot;$($doma
 &lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Domain = get-addomain
 ldifde -i -v -k -f OUStructure.ldif  -c `&amp;quot;DC=X`&amp;quot; `&amp;quot;$($domain.Distinguishedname)`&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;</description>
-    </item>
-    
-    <item>
-      <title>Azure AD Connect - Cannot Retrieve Single Sign On Status</title>
-      <link>http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/</link>
-      <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/</guid>
-      <description>&lt;p&gt;If you landed here, then you are very unlucky. You downloaded AADConnect version &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-aadconnect-version-history#113700&#34;&gt;1.1.370.0&lt;/a&gt; with it&amp;rsquo;s known issue.
-You don&amp;rsquo;t have port 9090 open externally, so you don&amp;rsquo;t get an undocumented error &lt;code&gt;Cannot retrieve single sign on status. Learn more&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;But do not fear. Just go and &lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=47594&#34;&gt;download the latest version&lt;/a&gt;.&lt;/p&gt;
-</description>
     </item>
     
   </channel>

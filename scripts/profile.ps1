@@ -1,4 +1,4 @@
-$ProfileVersion = "1.20"
+$ProfileVersion = "1.22"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -8,6 +8,9 @@ Write-output "Loading version $ProfileVersion"
 
  . $profile.currentuserallhosts
 
+ md $profile.CurrentUserAllHosts | out-null
+ rd $profile.CurrentUserAllHosts
+ invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
 #>
 
 function TryCopyProfile {
@@ -382,7 +385,7 @@ Function Port-Ping {
 
 #Write-HOst "Port-Ping"
 
-Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP) { 
+Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous) { 
   
     
     #ScriptBlock to check the port and return the result
@@ -470,42 +473,50 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
      $pool.open()
      $threads = @()
      $ScriptBlock = $ExecutionContext.InvokeCommand.NewScriptBlock($Script_CheckPort.toString())
-
-     foreach ($Destination in $DestinationHosts) {
-        foreach ($port in $POrtsToQuery) {
-            $powershell = [powershell]::Create().addscript($scriptblock).addargument($hostname).addargument($Destination).AddArgument($port).AddArgument($pingTimeout).AddArgument($ShowDestIP)
-            $powershell.runspacepool=$pool
-            $threads+= @{
-                instance = $powershell
-                handle = $powershell.begininvoke()
-            }            
+     try {
+         While ($continuous) {
+             foreach ($Destination in $DestinationHosts) {
+                foreach ($port in $POrtsToQuery) {
+                    $powershell = [powershell]::Create().addscript($scriptblock).addargument($hostname).addargument($Destination).AddArgument($port).AddArgument($pingTimeout).AddArgument($ShowDestIP)
+                    $powershell.runspacepool=$pool
+                    $threads+= @{
+                        instance = $powershell
+                        handle = $powershell.begininvoke()
+                    }            
            
-        }
-     }
+                }
+             }
      
-     $notdone = $true
-     while ($notdone) {
-        $notdone = $false
-        for ($i=0; $i -lt $threads.count; $i++) {
-            $thread = $threads[$i]
-            if ($thread) {
-                if ($thread.handle.iscompleted) {
-                    $thread.instance.endinvoke($thread.handle)
-                    $thread.instance.dispose()
-                    $threads[$i] = $null
+             $notdone = $true
+             while ($notdone) {
+                $notdone = $false
+                for ($i=0; $i -lt $threads.count; $i++) {
+                    $thread = $threads[$i]
+                    if ($thread) {
+                        if ($thread.handle.iscompleted) {
+                            $thread.instance.endinvoke($thread.handle)
+                            $thread.instance.dispose()
+                            $threads[$i] = $null
+                        }
+                        else {
+                            $notdone = $true
+                        }
+                    }
                 }
-                else {
-                    $notdone = $true
-                }
+                Start-Sleep -milliseconds 300
+            }
+            if ($continuous) {
+                Start-Sleep -Milliseconds 300
             }
         }
-        Start-Sleep -milliseconds 300
+    } catch {
+        throw $_
+    } finally {
+        $pool.close()  
+        $iss = $null
+        $threads = $null
+        $scriptblock = $null
     }
-    $pool.close()  
-    $iss = $null
-    $threads = $null
-    $scriptblock = $null
-
 
 }
 
@@ -1066,7 +1077,7 @@ Function CleanupUserProfiles
         }
     }
     if ($MatchesExclusion) {continue;}
-    $activity = "Remove profile for user $($profile.SID) from computer $Computername with local path $($profile.localpath)"
+    $activity = "Remove profile for user $($profile.SID) from computer $Computername with local path $($profile.localpath), last used $dateLastUsed"
     if ($pscmdlet.ShouldProcess($activity)) {
         Write-Verbose "Attempting to $activity"
         $profile.Delete()       
@@ -1376,7 +1387,9 @@ Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
       } 
 }
 #Write-HOst 'Update-ADFSFederationForAllDomains' 
-Function get-HTTPSSlcertBinding (){
+Function get-HTTPSSlcertBinding {
+    [cmdletbinding()]Param()
+    write-verbose "netsh http show sslcert"
     $BindingsAsText = & netsh http show sslcert
     $bindings = @()
     $thisbinding = $null
@@ -1394,7 +1407,9 @@ Function get-HTTPSSlcertBinding (){
 }
 #Write-HOst 'get-HTTPSSlcertBinding'
 
-Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$CertificateStoreName,$VerifyClientCertRev,$VerifyRevocationUsingCachedOnly,$UsageCheck,$RevocationFreshnessTime,$URLRetrievalTimeout,$CTLIdentifier,$CTLStoreName,$DSMapper,$NegotiateClientCert){
+Function update-HTTPSSlcertBinding {
+    
+     [cmdletbinding()]Param($name,$RevocationFreshnessTime,$DSMapperUsage,$CtlIdentifier,$CertificateStoreName,$ApplicationID,$VerifyRevocationUsingCachedClientCertificateOnly,$NegotiateClientCertificate,$URLRetrievalTimeout,$CtlStoreName,$CertificateHash,$UsageCheck,$VerifyClientCertificateRevocation)
     $bindingToUpdate = get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
     if (!$bindingToUpdate){
         throw "No binding named '$name' could be found on the local machine"     
@@ -1402,7 +1417,6 @@ Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$Certi
     }
     $bindingToUpdate | fl *    
     $nameToTag = @{
-
     'Certificate Hash'='certhash'   ;
     'Application ID'='appid' ;                
     'Certificate Store Name'='certstorename' ;        
@@ -1416,7 +1430,11 @@ Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$Certi
     'DS Mapper Usage'='dsmapperusage' ;
     'Negotiate Client Certificate'='clientcertnegotiation'
     }
-
+    $ParamToName = @{}
+    $nametoTag.keys | %{
+        $ParamToName.add(($_ -replace ' ',''),$_)
+    }
+   
     $valueTranslater = @{
     'Enabled'='enable';
     'Disabled'='disable'
@@ -1425,9 +1443,15 @@ Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$Certi
     $nametag = $bindingToUpdate | Get-Member -MemberType NoteProperty | ?{$_.name -match ':'} |%{$_.name -replace ':',''}
     
     #update the object values to the entry that will be recreated
-    if ($CertificateHash) {$bindingToUpdate.'Certificate Hash' = $CertificateHash}
-
+    foreach ($argument in $PSBoundParameters.GetEnumerator()){
+        $($ParamToName.$($argument.key))
+        if ($($ParamToName.$($argument.key))){
+            $bindingToUpdate.$($ParamToName.$($argument.key)) = $argument.value
+        }
+    }
+        
     #delete the existing binding
+    write-verbose "netsh http delete sslcert $nametag=$name"
     $DeleteResult = & netsh http delete sslcert $nametag=$name
     $DeleteREsult = $DeleteResult -join ''
     if ($DeleteResult -notmatch 'SSL Certificate successfully deleted'){
@@ -1445,6 +1469,7 @@ Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$Certi
             $bindingCreatingString += " $tag=$value"
         }
     }
+    Write-Verbose $bindingCreatingString
     $CreateResult = Invoke-Expression $bindingCreatingString
     $CreateResult = $Createresult -join ''
     
@@ -1453,6 +1478,7 @@ Function update-HTTPSSlcertBinding ($name,$CertificateHash,$ApplicationID,$Certi
     }
     get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
 }
+
 #Write-HOst 'update-HTTPSSlcertBinding'
 
 
@@ -1674,7 +1700,7 @@ new-alias gssl Retrieve-ServerCertFromSocket
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
-if(!$MyInvocation.Scriptname) {TryCopyProfile}
+#if(!$MyInvocation.Scriptname) {TryCopyProfile}
 $ErrorActionPreference = 'Continue'
 
 cd $env:USERPROFILE\documents

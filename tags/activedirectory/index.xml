@@ -9,6 +9,39 @@
     <atom:link href="http://www.wrish.com/tags/activedirectory/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>PowerShell Oneliners</title>
+      <link>http://www.wrish.com/post/powershell-oneliners/</link>
+      <pubDate>Wed, 17 May 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/post/powershell-oneliners/</guid>
+      <description>&lt;p&gt;Just a list of useful oneliners for powershell server and AD management
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Retrieve the PDC AD Object using ADSI
+$PDC = [adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent 
+
+#PDC name to the clipboard
+([adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent ).dnshostname | clip
+
+#get the last executed command to the clipboard
+(get-history)[-1].commandline | clip
+
+#Get the last boot time to a date/time object
+wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?&amp;lt;month&amp;gt;\d\d)(?&amp;lt;day&amp;gt;\d\d)&#39;} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
+(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
+
+#get the last boot time to the clipboard
+wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?&amp;lt;month&amp;gt;\d\d)(?&amp;lt;day&amp;gt;\d\d)&#39;} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
+
+#Create a scheduled task to restart the server in x hours 
+$hours = 1
+schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $((get-date).addhours($hours).tostring(&#39;hh:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $((get-date).addhours($hours).tostring(&#39;MM/dd/yyyy&#39;))
+
+
+&lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    
+    <item>
       <title>Office 365 - Convert between Immutable ID and AD Object </title>
       <link>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</link>
       <pubDate>Thu, 22 Dec 2016 20:53:49 -0500</pubDate>

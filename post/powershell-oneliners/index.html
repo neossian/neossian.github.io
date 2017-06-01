@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Tags &middot; WRISH</title>
+  <title>PowerShell Oneliners &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -191,18 +185,6 @@
 </div>
 
   
-<div>
-  <div class="pure-menu-center">
-    <p>
-				
-			Language:<a href="http://www.wrish.com/fr/tags/">fr</a> 		
-			</p>
-				
-	
-	 <a href="https://www.revolvermaps.com/?target=enlarge&amp;i=5fnnzpxl7dm"><img src="//rf.revolvermaps.com/w/3/s/a/0/40/0/999999/191919/999999/5fnnzpxl7dm.png" alt="Stats" style="border:0;"></a>
-  </div>
-</div>
-
   
   <div>
   <div class="small-print">
@@ -222,111 +204,99 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Tags</h1>
-</div>
-<div class="content">
-  <ul>
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>PowerShell Oneliners</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>17  May 2017</time>
+  </div>
+
+  
+
+  
+
   
   
-    <li>
-      <a href="powershell">powershell</a>
-      <span>&#40;21&#41;</span>
-    </li>
   
-    <li>
-      <a href="activedirectory">activedirectory</a>
-      <span>&#40;7&#41;</span>
-    </li>
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>
+    
+  </div>
   
-    <li>
-      <a href="azuread">azuread</a>
-      <span>&#40;4&#41;</span>
-    </li>
   
-    <li>
-      <a href="intune">intune</a>
-      <span>&#40;4&#41;</span>
-    </li>
-  
-    <li>
-      <a href="office365">office365</a>
-      <span>&#40;3&#41;</span>
-    </li>
-  
-    <li>
-      <a href="adfs">adfs</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azure">azure</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="cheatsheets">cheatsheets</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="conditionalaccess">conditionalaccess</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="pki">pki</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="aadconnect">aadconnect</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="android">android</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azureiaas">azureiaas</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="certificates">certificates</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="exchange">exchange</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="hosting">hosting</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="servercore">servercore</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="skypeforbusiness">skypeforbusiness</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="windowsserver">windowsserver</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-  </ul>
+
 </div>
 
+	  <p>Just a list of useful oneliners for powershell server and AD management
+</p>
+
+<pre><code class="language-powershell">#Retrieve the PDC AD Object using ADSI
+$PDC = [adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent 
+
+#PDC name to the clipboard
+([adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent ).dnshostname | clip
+
+#get the last executed command to the clipboard
+(get-history)[-1].commandline | clip
+
+#Get the last boot time to a date/time object
+wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
+(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
+
+#get the last boot time to the clipboard
+wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
+
+#Create a scheduled task to restart the server in x hours 
+$hours = 1
+schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $((get-date).addhours($hours).tostring('hh:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $((get-date).addhours($hours).tostring('MM/dd/yyyy'))
+
+
+</code></pre>
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/extracting-objects-from-text-certutil/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/extracting-objects-from-text-certutil/">Extracting objects from commands that output text</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -335,3 +305,4 @@
 
 </body>
 </html>
+
