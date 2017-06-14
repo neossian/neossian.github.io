@@ -1,4 +1,4 @@
-$ProfileVersion = "1.22"
+$ProfileVersion = "1.23"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -7,10 +7,10 @@ Write-output "Loading version $ProfileVersion"
  notepad $profile.currentUserallhosts
 
  . $profile.currentuserallhosts
-
- md $profile.CurrentUserAllHosts | out-null
+md $profile.CurrentUserAllHosts | out-null
  rd $profile.CurrentUserAllHosts
  invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
+ 
 #>
 
 function TryCopyProfile {
@@ -385,7 +385,7 @@ Function Port-Ping {
 
 #Write-HOst "Port-Ping"
 
-Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous) { 
+Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous,$waitTimeMilliseconds=300) { 
   
     
     #ScriptBlock to check the port and return the result
@@ -393,7 +393,7 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
         $Source = $Args[0];
         $Destination = $args[1];
         $Port = $args[2];
-        $PingTimeout = $Args[3];
+        $PingTimeout = $Args[3]; 
         $ShowIP = $args[4];
 
         #Generate the result Object
@@ -433,6 +433,7 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
                 $thisError = $_
                 switch -regex ($_.ToString()) {
                     'actively refused' { $result.result ='Refused'; break;}
+                    'No such host is known' {$result.result = 'HostName Error';break;}
                     default {$result.result = 'FAIL'}
                 }
             } finally {
@@ -473,8 +474,9 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
      $pool.open()
      $threads = @()
      $ScriptBlock = $ExecutionContext.InvokeCommand.NewScriptBlock($Script_CheckPort.toString())
-     try {
-         While ($continuous) {
+     $FirstRun = $True
+     try {           
+         While ($continuous -or $FirstRun) {
              foreach ($Destination in $DestinationHosts) {
                 foreach ($port in $POrtsToQuery) {
                     $powershell = [powershell]::Create().addscript($scriptblock).addargument($hostname).addargument($Destination).AddArgument($port).AddArgument($pingTimeout).AddArgument($ShowDestIP)
@@ -506,7 +508,9 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
                 Start-Sleep -milliseconds 300
             }
             if ($continuous) {
-                Start-Sleep -Milliseconds 300
+                Start-Sleep -Milliseconds $waitTimeMilliseconds
+            } else {
+                $firstrun = $False
             }
         }
     } catch {
