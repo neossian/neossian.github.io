@@ -23,6 +23,9 @@ $PDC = [adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quo
 #PDC name to the clipboard
 ([adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent ).dnshostname | clip
 
+#Quickly list dnshostname of all DCs in the forest
+(New-Object adsisearcher([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).configurationNamingContext)&amp;quot;,&amp;quot;(objectClass=nTDSDSA)&amp;quot;)).findall() | %{($_.properties.distinguishedname[0] -replace &#39;cn=NTDS Settings,&#39;,&#39;&#39;)} | %{[adsi]&amp;quot;LDAP://$_&amp;quot;} | select -expand dnshostname
+
 #get the last executed command to the clipboard
 (get-history)[-1].commandline | clip
 

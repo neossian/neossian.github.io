@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Tags &middot; WRISH</title>
+  <title>Powershell get Exchange Online IP addresses (for Firewall rules) &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -191,18 +185,6 @@
 </div>
 
   
-<div>
-  <div class="pure-menu-center">
-    <p>
-				
-			Language:<a href="http://www.wrish.com/fr/tags/">fr</a> 		
-			</p>
-				
-	
-	 <a href="https://www.revolvermaps.com/?target=enlarge&amp;i=5fnnzpxl7dm"><img src="//rf.revolvermaps.com/w/3/s/a/0/40/0/999999/191919/999999/5fnnzpxl7dm.png" alt="Stats" style="border:0;"></a>
-  </div>
-</div>
-
   
   <div>
   <div class="small-print">
@@ -222,111 +204,109 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Tags</h1>
-</div>
-<div class="content">
-  <ul>
+
+<div class="post">
+	
+	<div class="header">
+	  <h1>Powershell get Exchange Online IP addresses (for Firewall rules)</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
+
+	  <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>15  Jun 2017</time>
+  </div>
+
+  
+
+  
+
   
   
-    <li>
-      <a href="powershell">powershell</a>
-      <span>&#40;22&#41;</span>
-    </li>
   
-    <li>
-      <a href="activedirectory">activedirectory</a>
-      <span>&#40;7&#41;</span>
-    </li>
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+    
+  </div>
   
-    <li>
-      <a href="azuread">azuread</a>
-      <span>&#40;4&#41;</span>
-    </li>
   
-    <li>
-      <a href="intune">intune</a>
-      <span>&#40;4&#41;</span>
-    </li>
-  
-    <li>
-      <a href="office365">office365</a>
-      <span>&#40;4&#41;</span>
-    </li>
-  
-    <li>
-      <a href="adfs">adfs</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azure">azure</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="cheatsheets">cheatsheets</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="conditionalaccess">conditionalaccess</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="pki">pki</a>
-      <span>&#40;2&#41;</span>
-    </li>
-  
-    <li>
-      <a href="aadconnect">aadconnect</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="android">android</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="azureiaas">azureiaas</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="certificates">certificates</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="exchange">exchange</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="hosting">hosting</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="servercore">servercore</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="skypeforbusiness">skypeforbusiness</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-    <li>
-      <a href="windowsserver">windowsserver</a>
-      <span>&#40;1&#41;</span>
-    </li>
-  
-  </ul>
+
 </div>
 
+	  <p>This one-liner will download the Office 365 IP list XML file and extract the IPv4 addresses for EOP and Exchange Online.
+</p>
+
+<pre><code class="language-powershell">([xml](invoke-webrequest -uri https://go.microsoft.com/fwlink/?LinkId=533185) | select-xml -XPath './/product[@name = &quot;EOP&quot; or @name = &quot;EXO&quot;]//addresslist[@type = &quot;IPv4&quot;]//address').node.&quot;#text&quot;
+</code></pre>
+
+<p>We are using an XPATH filter to examine the XML document for the appropriate data. Like regular expressions for almost all text, understanding XPath can be very helpful for anything that uses XML underneath the covers, like event logs.</p>
+
+<p>The basic file structure of the XML document looks like this</p>
+
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+    &lt;products updated=&quot;6/6/2017&quot;&gt;
+        &lt;product name=&quot;o365&quot;&gt;
+            &lt;addresslist type=&quot;IPv6&quot;&gt;
+                &lt;address&gt;2603:1020:200::682f:a1d8/128&lt;/address&gt;
+                    ...             
+            &lt;/addresslist&gt;
+            &lt;addresslist type=&quot;IPv4&quot;&gt;
+                &lt;address&gt;13.64.196.27/32&lt;/address&gt;              
+                    ...
+            &lt;/addresslist&gt;
+            &lt;addresslist type=&quot;URL&quot;&gt;
+                &lt;address&gt;*.aadrm.com&lt;/address&gt;              
+                    ...
+            &lt;/addresslist&gt;
+        &lt;/product&gt;
+        &lt;product name=&quot;EOP&quot;&gt;
+            ...
+        &lt;/product&gt;
+    &lt;/products&gt;
+</code></pre>
+
+<p>The Xpath Command <code>.//product[@name = &quot;EOP&quot; or @name = &quot;EXO&quot;]//addresslist[@type = &quot;IPv4&quot;]//address</code> is saying
+Search from the root for a <em>product</em> with <em>name</em> attribute of <em>EOP</em> or <em>EXO</em> and find <em>addresslist</em> under it with <em>type</em> of <em>IPv4</em>
+This gives us all the IPv4 addresses within the products EOP and EXO in CIDR format.</p>
+
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
+    
+    <a href="http://www.wrish.com/post/powershell-oneliners/"><i class="fa fa-chevron-left"></i></a>
+    
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/powershell-oneliners/">PowerShell Oneliners</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
+</div>
+
+
+
+	  
+
+	</div>
+</div>
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -335,3 +315,4 @@
 
 </body>
 </html>
+

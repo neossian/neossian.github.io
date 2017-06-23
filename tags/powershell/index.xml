@@ -9,6 +9,49 @@
     <atom:link href="http://www.wrish.com/tags/powershell/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Powershell get Exchange Online IP addresses (for Firewall rules)</title>
+      <link>http://www.wrish.com/post/quickly-get-exchange-online-ips/</link>
+      <pubDate>Thu, 15 Jun 2017 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/quickly-get-exchange-online-ips/</guid>
+      <description>&lt;p&gt;This one-liner will download the Office 365 IP list XML file and extract the IPv4 addresses for EOP and Exchange Online.
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;([xml](invoke-webrequest -uri https://go.microsoft.com/fwlink/?LinkId=533185) | select-xml -XPath &#39;.//product[@name = &amp;quot;EOP&amp;quot; or @name = &amp;quot;EXO&amp;quot;]//addresslist[@type = &amp;quot;IPv4&amp;quot;]//address&#39;).node.&amp;quot;#text&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We are using an XPATH filter to examine the XML document for the appropriate data. Like regular expressions for almost all text, understanding XPath can be very helpful for anything that uses XML underneath the covers, like event logs.&lt;/p&gt;
+
+&lt;p&gt;The basic file structure of the XML document looks like this&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;utf-8&amp;quot;?&amp;gt;
+    &amp;lt;products updated=&amp;quot;6/6/2017&amp;quot;&amp;gt;
+        &amp;lt;product name=&amp;quot;o365&amp;quot;&amp;gt;
+            &amp;lt;addresslist type=&amp;quot;IPv6&amp;quot;&amp;gt;
+                &amp;lt;address&amp;gt;2603:1020:200::682f:a1d8/128&amp;lt;/address&amp;gt;
+                    ...             
+            &amp;lt;/addresslist&amp;gt;
+            &amp;lt;addresslist type=&amp;quot;IPv4&amp;quot;&amp;gt;
+                &amp;lt;address&amp;gt;13.64.196.27/32&amp;lt;/address&amp;gt;              
+                    ...
+            &amp;lt;/addresslist&amp;gt;
+            &amp;lt;addresslist type=&amp;quot;URL&amp;quot;&amp;gt;
+                &amp;lt;address&amp;gt;*.aadrm.com&amp;lt;/address&amp;gt;              
+                    ...
+            &amp;lt;/addresslist&amp;gt;
+        &amp;lt;/product&amp;gt;
+        &amp;lt;product name=&amp;quot;EOP&amp;quot;&amp;gt;
+            ...
+        &amp;lt;/product&amp;gt;
+    &amp;lt;/products&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The Xpath Command &lt;code&gt;.//product[@name = &amp;quot;EOP&amp;quot; or @name = &amp;quot;EXO&amp;quot;]//addresslist[@type = &amp;quot;IPv4&amp;quot;]//address&lt;/code&gt; is saying
+Search from the root for a &lt;em&gt;product&lt;/em&gt; with &lt;em&gt;name&lt;/em&gt; attribute of &lt;em&gt;EOP&lt;/em&gt; or &lt;em&gt;EXO&lt;/em&gt; and find &lt;em&gt;addresslist&lt;/em&gt; under it with &lt;em&gt;type&lt;/em&gt; of &lt;em&gt;IPv4&lt;/em&gt;
+This gives us all the IPv4 addresses within the products EOP and EXO in CIDR format.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>PowerShell Oneliners</title>
       <link>http://www.wrish.com/post/powershell-oneliners/</link>
       <pubDate>Wed, 17 May 2017 11:42:35 -0500</pubDate>
@@ -22,6 +65,9 @@ $PDC = [adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quo
 
 #PDC name to the clipboard
 ([adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent ).dnshostname | clip
+
+#Quickly list dnshostname of all DCs in the forest
+(New-Object adsisearcher([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).configurationNamingContext)&amp;quot;,&amp;quot;(objectClass=nTDSDSA)&amp;quot;)).findall() | %{($_.properties.distinguishedname[0] -replace &#39;cn=NTDS Settings,&#39;,&#39;&#39;)} | %{[adsi]&amp;quot;LDAP://$_&amp;quot;} | select -expand dnshostname
 
 #get the last executed command to the clipboard
 (get-history)[-1].commandline | clip
@@ -688,38 +734,6 @@ Count Name                       Group
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Unable to verify an Azure AD domain</title>
-      <link>http://www.wrish.com/post/unable-to-verify-azure-domain/</link>
-      <pubDate>Wed, 23 Nov 2016 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/unable-to-verify-azure-domain/</guid>
-      <description>&lt;p&gt;After you&amp;rsquo;ve added a domain to Azure AD (or Office 365) using powershell, while connected to your ADFS like this:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;New-MsolDomain -Name domaintest.wrish.com -Authentication Federated
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;When you add your verification record and try to verify the domain from the GUI you might get an error like this:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/unable-to-verify-azure-domain.png&#34; alt=&#34;Unable to verify domain name. Ensure you have added the record above at the registrar &#39;contoso.com&#39;, and try again in a little while&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can&amp;rsquo;t verify your domain using the GUI when you create the Domain using powershell, instead you have to confirm the domain using powershell while entering all Federation options. You will need to pass the following:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;IssuerURI&lt;/li&gt;
-&lt;li&gt;ActiveLogOnUri&lt;/li&gt;
-&lt;li&gt;LogOffUri&lt;/li&gt;
-&lt;li&gt;PassiveLogOnUri&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You can pass whatever you like to these values and then just update the domain federation data afterwards&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Confirm-MsolDomain -domainname domaintest.wrish.com -IssuerUri http://whatever/ -ActiveLogOnUri https://whatever/ -LogOffUri https://whatever/ -PassiveLogOnUri https://whatever/
-Update-MsolFederatedDomain -DomainName domaintest.wrish.com -SupportMultipleDomain $true
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

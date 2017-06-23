@@ -1,14 +1,12 @@
-$ProfileVersion = "1.23"
+$ProfileVersion = "1.26"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
- md $profile.CurrentUserAllHosts | out-null
- rd $profile.CurrentUserAllHosts
+ md (split-path $profile.CurrentUserAllHosts) | out-null
  notepad $profile.currentUserallhosts
 
  . $profile.currentuserallhosts
-md $profile.CurrentUserAllHosts | out-null
- rd $profile.CurrentUserAllHosts
+md (split-path $profile.CurrentUserAllHosts) | out-null
  invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
  
 #>
@@ -602,7 +600,9 @@ List of functions that should be available to the script block
                     [Parameter(Mandatory=$false)]
                     [int]$MaxThreads=100,
                     [Parameter(Mandatory=$false)]$arguments,
-                    [Parameter(Mandatory=$false)][string[]]$ImportFunctions
+                    [Parameter(Mandatory=$false)][string[]]$ImportFunctions,
+                    [switch]$noProgress,
+                    [String]$ActivityName = "Multithreaded Foreach-Parallel"
                 )
                 BEGIN {
                     $iss = [system.management.automation.runspaces.initialsessionstate]::CreateDefault()
@@ -635,10 +635,14 @@ List of functions that should be available to the script block
                         instance = $powershell
                         handle = $powershell.begininvoke()
                     }
+                    if(!$noprogress){write-progress -Activity $ACtivityname -Status "Creating Threads [Threads Created:$($threads.count)]" -PercentComplete -1}
+                    $totalThreads = $threads.count
                 }
                 END {
                     $notdone = $true
-                    while ($notdone) {
+                    $threadsClosed = 0
+                    while ($notdone -and $totalThreads -gt 0) {
+                        if(!$noprogress){ write-progress -Activity $ACtivityname  -Status "Running Threads [Completed:$threadsClosed total:$totalThreads]" -PercentComplete ([math]::floor(($threadsClosed/$totalThreads) * 100))}
                         $notdone = $false
                         for ($i=0; $i -lt $threads.count; $i++) {
                             $thread = $threads[$i]
@@ -647,27 +651,36 @@ List of functions that should be available to the script block
                                     $thread.instance.endinvoke($thread.handle)
                                     $thread.instance.dispose()
                                     $threads[$i] = $null
+                                    $threadsClosed += 1
+                                   if(!$noprogress){ write-progress -Activity $ACtivityname  -Status "Running Threads [Completed:$threadsClosed total:$totalThreads]" -PercentComplete ([math]::floor(($threadsClosed/$totalThreads) * 100))}
                                 }
                                 else {
                                     $notdone = $true
                                 }
                             }
                         }
+                        start-sleep -Milliseconds 300
                     }
                 }
             }
 
 New-Alias %p ForEach-Parallel
 #Write-HOst Foreach-Parallel Alias:%p
+
+
             
-function get-ForestDomainControllers ()
+function get-ForestDomainControllers ([switch]$quickly)
 {
-    $mresult = @()
-    $AllDomains = ([System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()).domains 
-    Foreach ($domain in $alldomains){
-        $mresult += get-addomaincontroller -filter * -server $domain.name | select Domain,Name,hostname,site,OperatingSystem,Ipv4Address;
+    if ($quickly) {
+        return (New-Object adsisearcher([adsi]"LDAP://$(([adsi]"LDAP://rootdse").configurationNamingContext)","(objectClass=nTDSDSA)")).findall() | %{($_.properties.distinguishedname[0] -replace 'cn=NTDS Settings,','')} | %{[adsi]"LDAP://$_"} | select -expand dnshostname
+    } else {
+        $mresult = @()
+        $AllDomains = ([System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()).domains     
+        Foreach ($domain in $alldomains){
+            $mresult += get-addomaincontroller -filter * -server $domain.name | select Domain,Name,hostname,site,OperatingSystem,Ipv4Address;
+        }
+        return $mresult;
     }
-    return $mresult;
 }
 #Write-HOst Get-forestDomainControllers
 
@@ -1485,7 +1498,48 @@ Function update-HTTPSSlcertBinding {
 
 #Write-HOst 'update-HTTPSSlcertBinding'
 
+function Connect-Exchange ($Server,$UserCredential=(get-credential -message "Enter Exchange Credential" -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)),[switch]$list,$version,$site)
+{
+    if ($server -eq $null){        
+        $search = new-object adsisearcher -ArgumentList ([adsi]"LDAP://$(([adsi]"LDAP://rootdse").configurationNamingContext)"), "(&(objectclass=msExchPowerShellVirtualDirectory)(msexchinternalhostname=*))",@("msExchVersion","msExchInternalHostName","distinguishedname")
+        $num=0;
+        $PSDir =  $search.findall() | sort -descending {$_.properties.msexchversion[0]}  |%{
+            
+            $vdir = new-object psobject -Property @{num=$null;path=$_.properties.msexchinternalhostname[0];server=$null;Site=$null;version=$null}
+            if ($list -or $version -or $site){
+                $ServerPath = ($_.properties.distinguishedname[0] -split ",")[3..100] -join ","
+                $Serverobj = [adsi]"LDAP://$serverPath"                
+                $vdir.version = $serverObj.serialnumber[0]
+                $vdir.server = $serverobj.name[0]
+                $vdir.Site = $serverobj.msExchServerSite[0] -replace '^CN=|,.*$',''
+            }
+            $vdir
+        }
+        $session = $null
+        if ($list -or $version -or $site){
+            while (!$session)
+            { 
+                $num = 0
+                $PSDir | ?{$list -or ($version -and $_.version -match $version) -or ($site -and $_.site -match $site)} | %{$_.num = $num;$num++; $_} | select Num,Server,Version,Site | ft -AutoSize
+                $chosen = read-host "Ctrl+C to cancel or enter a number 0 to $($num -1) to select a server"
+                $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos -Credential $UserCredential
+            }
 
+        } else {
+            foreach ($vdir in $PSDir){
+                $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos -Credential $UserCredential
+                if ($session) {break;}
+            }
+        }
+    } else {
+        $path = "http://$server/PowerShell/"
+        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $path -Authentication Kerberos -Credential $UserCredential
+    }
+    Write-Warning "Importing connection from $($session.ComputerName) for configuration $($session.ConfigurationName) and overwriting local commands."
+    Import-pssession $session -AllowClobber
+}
+
+New-Alias ce connect-exchange
 
 function get-ImmutableIDfromADObject
 {
