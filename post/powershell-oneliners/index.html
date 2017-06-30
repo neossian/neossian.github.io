@@ -249,6 +249,9 @@ $PDC = [adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://roo
 #PDC name to the clipboard
 ([adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent ).dnshostname | clip
 
+#On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
+get-counter -counter '\directoryservices(ntds)\ds security descriptor propagator runtime queue','\directoryservices(ntds)\ds security descriptor propagations events'
+
 #Quickly list dnshostname of all DCs in the forest
 (New-Object adsisearcher([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).configurationNamingContext)&quot;,&quot;(objectClass=nTDSDSA)&quot;)).findall() | %{($_.properties.distinguishedname[0] -replace 'cn=NTDS Settings,','')} | %{[adsi]&quot;LDAP://$_&quot;} | select -expand dnshostname
 

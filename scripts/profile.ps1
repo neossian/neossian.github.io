@@ -415,6 +415,8 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
             } catch {
                 $result.error += $_;
                 $result.Result = "Unresolvable"
+            } finally {
+                if($ping){$ping.dispose();$ping = $null}
             }
         
         } else {
@@ -1113,7 +1115,7 @@ function Open-profile {
     }
 #Write-HOst Open-profile 
 
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
 <#
 .DESCRIPTION
 Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
@@ -1249,6 +1251,10 @@ Version 1.2 updated to add referral chasing
     switch ($TrustedForDelegation) {
         $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=524288)"}
         $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=524288)"}
+    }
+    switch ($DontRequirePreauth) {
+        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
+        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
     }
     
 
