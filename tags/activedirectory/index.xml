@@ -23,6 +23,9 @@ $PDC = [adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quo
 #PDC name to the clipboard
 ([adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent ).dnshostname | clip
 
+#List all PDCs in the forest (Requires ActiveDirectory powershell module)
+get-adforest | select -expand domains | %{Resolve-DnsName &amp;quot;_ldap._tcp.pdc._msdcs.$_&amp;quot; -Type SRV} | ?{$_.querytype -eq &#39;A&#39;} | select name,Address
+
 #On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
 get-counter -counter &#39;\directoryservices(ntds)\ds security descriptor propagator runtime queue&#39;,&#39;\directoryservices(ntds)\ds security descriptor propagations events&#39;
 
@@ -41,8 +44,15 @@ wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?
 
 #Create a scheduled task to restart the server in x hours 
 $hours = 1
-schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $((get-date).addhours($hours).tostring(&#39;hh:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $((get-date).addhours($hours).tostring(&#39;MM/dd/yyyy&#39;))
+schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $((get-date).addhours($hours).tostring(&#39;HH:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $((get-date).addhours($hours).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace(&#39;M+&#39;, &#39;MM&#39;).replace(&#39;d+&#39;, &#39;dd&#39;)))
 
+#Create a scheduled task to restart at a specific date and time
+$date = get-date -hour 21 -minute 30 -day 20
+schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $(($date).tostring(&#39;HH:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace(&#39;M+&#39;, &#39;MM&#39;).replace(&#39;d+&#39;, &#39;dd&#39;)))
+
+#Seize all roles
+$domain = &amp;quot;contoso.com&amp;quot;
+ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $domain&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
 
 &lt;/code&gt;&lt;/pre&gt;</description>
     </item>

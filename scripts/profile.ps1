@@ -1,4 +1,4 @@
-$ProfileVersion = "1.26"
+$ProfileVersion = "1.28"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -8,7 +8,7 @@ Write-output "Loading version $ProfileVersion"
  . $profile.currentuserallhosts
 md (split-path $profile.CurrentUserAllHosts) | out-null
  invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
- 
+  . $profile.currentuserallhosts
 #>
 
 function TryCopyProfile {
@@ -30,6 +30,234 @@ function TryCopyProfile {
     }
 }
 
+function Change-Password ($domain,$samaccountname,$oldPassword,$newpassword){
+([adsi]"WinNT://$domain/$samaccountname,user").ChangePassword($oldPassword,$newpassword)
+}
+
+
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
+<#
+.DESCRIPTION
+Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
+
+.PARAMETER LDAPFilter
+Enter any standard LDAP filter here eg "|(objectclass=user)(objectclass=computer)". Note that any
+
+.PARAMETER SearchRoot
+The base to start searching from, by default this is the root of the domain. If the GC is selected this will be the root of the forest. eg CN=users,DC=contoso,dc=com
+
+.PARAMETER Server
+Enter a server and/or port eg Test.mydomain.com:389. Only cleartext ports are supported with this version of the tool.
+
+.PARAMETER GC
+Enable this switch to automatically search from the root of the forest and search the global catalog. Be aware that the global catalog does not contain a full set of attribute data.
+
+.PARAMETER pageSize
+PageSize sets the number of records to be returned in a single connection to the server, a lower page size will return results quicker for a small number of results.
+
+.PARAMETER Sizelimit
+The maximum number of records to return - 0 for unlimited
+
+.PARAMETER verbose
+Provide verbose output
+
+.Parameter Properties
+Select specific ldap properties to be returned, by default all properties are returned.
+
+.EXAMPLE 
+get-ldapdata
+
+Return all data for all objects in the current domain
+
+.EXAMPLE 
+get-ldapdata -GC -extensionAttribute10 *
+
+Search the the global catalog from the root of the forest for any object with extensionattribute10 set to any value
+
+.EXAMPLE 
+get-ldapdata -givenName Joe -sn Smith -objectclass user -gc
+
+Search the global catalog for any user object with a given name = Joe and Lastname equal Smith
+
+.INFO
+Version 1.1 Updated to resolve exchange guids, objectSids and process useraccountcontrolflags
+Version 1.2 updated to add referral chasing
+Version 1.3 updated to add some additional UAC filters
+
+#>
+{
+    $useraccountControls = @{
+    "UAC-SCRIPT"="1"
+    "UAC-Disabled"="2"
+    "UAC-HomeDirRequired"="8"
+    "UAC-AccountLocked"="16"
+    "UAC-PasswordNotRequired"="32"
+    "UAC-CannotChangePassword"="64"
+    "UAC-EncryptedPasswordAllowed"="128"
+    "UAC-TempDuplicateAccount"="256"
+    "UAC-NormalAccount"="512"
+    "UAC-InterDomainTrustAccount"="2048"
+    "UAC-WorkstationTrustAccount"="4096"
+    "UAC-ServerTrustAccount"="8192"
+    "UAC-PasswordNeverExpires"="65536"
+    "UAC-MNS_LOGON_ACCOUNT"="131072"
+    "UAC-SmartCardRequired"="262144"
+    "UAC-TrustedForDelegation"="524288"
+    "UAC-NotDelegated"="1048576"
+    "UAC-USE_DES_KEY_ONLY"="2097152"
+    "UAC-DONT_REQ_PREAUTH"="4194304"
+    "UAC-PasswordExpired"="8388608"
+    "UAC-TRUSTED_TO_AUTH_FOR_DELEGATION"="16777216"
+    "UAC-PARTIAL_SECRETS_ACCOUNT"="67108864"
+    }
+    
+    if ($server){ $server = "/$Server"}
+          
+    if ($verbose) {
+        $VerbosePreference = "Continue"
+    }
+
+    
+    if($O365Find){
+        $ldapfilter += "(|(userprincipalname=$o365Find)(proxyaddresses=SMTP:$O365Find)(mail=$O365Find)(proxyaddresses=SIP:$O365Find)(msrtcsip-primaryuseraddress=SIP:$O365Find))"
+    }
+
+    if ($ldapfilter){
+        $ldapfilter = "($ldapfilter)"
+    } elseif ($args) {
+        #args declared, set filter to nothing
+        $ldapfilter = ""
+    } else {
+        #no filter declared, get everything
+        $ldapfilter = "(objectclass=*)"
+    }
+    
+    $Root = [ADSI]"LDAP:/$server/RootDSE"
+
+    if ($GC) {
+        $protocol = "GC:"        
+    } else {
+        $protocol = "LDAP:"
+    }
+
+    if (!$searchRoot -and $GC){
+        $Searchroot  = $root.rootDomainNamingContext
+    } elseif (!$searchRoot) {
+        $searchroot = $root.defaultnamingContext
+    }
+
+    #LDAP arbitrary Searcher
+    $attributeName= ""
+    for ($i=0;$i -lt $args.count;$i+=2){
+         $ldapfilter += "($($args[$i] -replace '^-','')=$(if ($args[$i+1]){$args[$i+1]}else {'*'}))"
+    }
+    #Process useraccountcontrol searches
+    switch ($enabled) {
+        $true {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=2)"}
+        $false {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=2)"}
+    }
+    switch ($passwordnotrequired) {
+        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=32)"}
+        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=32)"}
+    }
+    switch ($CannotChangePassword) {
+        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=64)"}
+        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=64)"}
+    }
+    switch ($PasswordNeverExpires) {
+        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=65536)"}
+        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=65536)"}
+    }
+    switch ($TrustedForDelegation) {
+        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=524288)"}
+        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=524288)"}
+    }
+    switch ($DontRequirePreauth) {
+        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
+        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
+    }
+    
+
+    $ldapfilter = "(&$ldapfilter)"
+    Write-Verbose "Filter being used $ldapfilter"
+    
+    
+    #Connect to the Domain and setup the searcher
+    $AdSearcher = [adsisearcher]$ldapfilter
+    $AdSearcher.Searchroot = [ADSI]("$protocol/$Server/$Searchroot")
+    Write-Verbose ("Searchroot: " + $ADSearcher.SearchRoot.path.tostring())
+    $ADSearcher.PageSize = $pageSize
+    $ADSearcher.Sizelimit = $sizeLimit
+    $adsearcher.ReferralChasing = [DirectoryServices.ReferralChasingOption]::All    
+    $properties | %{$ADSearcher.PropertiesToLoad.Add($_) | out-null}   
+    
+    #perform the search and process the objects
+    foreach ($LDAPResult in $ADSearcher.Findall()){
+        $LDAPObject = new-object psobject
+
+        foreach ($property in ($LDAPResult.properties.get_propertyNames())){
+            $PropertyValue = $null           
+            switch -regex ($property) {
+                    'msds-registered(owner|users)'{
+                            #ByteString represented SID values
+                           $UserList = @()
+                           #Registered owners/users are stored as a char representation of the SID value
+                           foreach ($ByteSid in $LDAPResult.properties.$property){
+                                $stringSid = [System.Text.Encoding]::ASCII.getstring($ByteSid)  
+                                $SIDValue = New-Object System.Security.Principal.SecurityIdentifier($stringSid)                                 
+                                try{
+                                    $StringRep = $SIDValue.Translate([System.Security.Principal.NTAccount])                                   
+                                }
+                                catch{
+                                    $StringRep = $SIDValue
+                                }
+                                $UserList += $stringRep                                                               
+                            }
+                            if ($userlist.count -eq 1) {$PropertyValue = $userlist[0]} else {$PropertyValue = $userlist}
+
+                    }                    
+                    'objectguid|msds-(deviceid|cloudAnchor)|msexcharchiveguid|msexchmailboxguid'{
+                            #GUID Properties 
+                            $ValueList = @()
+                            foreach ($Value in $LDAPResult.properties.$property){  
+                                $ValueList += [guid]$value
+                               }
+                               if ($ValueList.count -eq 1) {$PropertyValue = $ValueList[0]} else {$PropertyValue = $ValueList}
+                    }
+                     'objectsid'{                                
+                            $SidValue = [byte[]]($ldapresult.properties.$property[0])                                                   
+                            $PropertyValue = New-Object System.Security.Principal.SecurityIdentifier($SIDValue,0)        
+                    } 
+                     'badpasswordtime|lastlogontimestamp|lockouttime'{
+                        $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
+                     }
+                     'UserAccountControl'{                           
+                            $UACValue =   $LDAPResult.properties.$property[0]
+                            $PropertyValue = $UacValue
+                            $useraccountControls.GetEnumerator() | %{
+                                if ($uacValue -band $_.value){
+                                    $LDAPObject | Add-Member -name $_.name -value $true -Membertype NoteProperty -force
+                                } else {
+                                    $LDAPObject | Add-Member -name $_.name -value $false -Membertype NoteProperty -force
+                                }
+                            }
+                            
+                    }                    
+
+                    default{
+                        #remove ugly arrays
+                        if (($LDAPResult.properties.$property | measure).count -le 1){$PropertyValue = $LDAPResult.properties.$property[0]} else {$PropertyValue = $LDAPResult.properties.$property}
+                    }
+            }
+            #pin the property to the object
+            $LDAPObject | add-member -name $property -value $PropertyValue -MemberType NoteProperty
+        }
+        write-output $LDAPObject
+    }
+}
+
+
+
 function Import-SVCLog {
  [cmdletbinding()]
     Param (
@@ -49,6 +277,26 @@ function list-ProfileFunctions ($regex='^###########$') {
 New-Alias lf list-ProfileFunctions
 Write-HOst lf list-ProfileFunctions
 
+function Schedule-Restart ($ondatetime,$hour,$minute,$day,$inHours,$inMinutes,$inDays){
+    $date = $null
+    if ($ondatetime) {
+        
+        $date = $ondatetime
+    } elseif ($hour -ne $null -or $minute -ne $null -or $day -ne $null) {
+        $DateParams = $MyInvocation.BoundParameters 
+        $dateParams.Remove('ondatetime')|out-null;$dateParams.Remove('inHours')|out-null;$dateParams.Remove('inMinutes')|out-null
+        $date = get-date @dateParams
+        if ($date -lt (get-date)) {$date = $date.addhours(24)}
+    } else {
+        $date = get-date
+    }
+    if ($inhours){$date = $date.addhours($inhours)}
+    if ($inMinutes){$date = $date.AddMinutes($inMinutes)}
+    if ($inDays){$date = $date.AddDays($inDays)}
+    Write-verbose "Date chosen to restart is ($($date.tostring('f')))"
+    Write-verbose "Scheduled Task command is [schtasks /Create /RU `"NT AUTHORITY\SYSTEM`" /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR `"%windir%\system32\Shutdown.exe /r /t 10`" /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))]"
+    schtasks /Create /RU "NT AUTHORITY\SYSTEM" /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR "%windir%\system32\Shutdown.exe /r /t 10" /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
+}
 
 #Get a new Secure Credential and store it in encrypted format to a file
 Function Stored-Credential($name, [switch]$New, [switch]$check)
@@ -383,7 +631,7 @@ Function Port-Ping {
 
 #Write-HOst "Port-Ping"
 
-Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous,$waitTimeMilliseconds=300) { 
+Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous,$waitTimeMilliseconds=300,$maxthreads = 100) { 
   
     
     #ScriptBlock to check the port and return the result
@@ -468,7 +716,7 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
      $hostname = hostname
      #run the lookup
 
-     $maxthreads = 5;
+     
      $iss = [system.management.automation.runspaces.initialsessionstate]::CreateDefault()
      $pool = [Runspacefactory]::CreateRunspacePool(1, $maxthreads, $iss, $host)
      $pool.open()
@@ -1114,229 +1362,6 @@ function Open-profile {
     notepad $profile.CurrentUserAllHosts
     }
 #Write-HOst Open-profile 
-
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
-<#
-.DESCRIPTION
-Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
-
-.PARAMETER LDAPFilter
-Enter any standard LDAP filter here eg "|(objectclass=user)(objectclass=computer)". Note that any
-
-.PARAMETER SearchRoot
-The base to start searching from, by default this is the root of the domain. If the GC is selected this will be the root of the forest. 
-
-.PARAMETER Server
-Enter a server and/or port eg Test.mydomain.com:389. Only cleartext ports are supported with this version of the tool.
-
-.PARAMETER GC
-Enable this switch to automatically search from the root of the forest and search the global catalog. Be aware that the global catalog does not contain a full set of attribute data.
-
-.PARAMETER pageSize
-PageSize sets the number of records to be returned in a single connection to the server, a lower page size will return results quicker for a small number of results.
-
-.PARAMETER Sizelimit
-The maximum number of records to return - 0 for unlimited
-
-.PARAMETER verbose
-Provide verbose output
-
-.Parameter Properties
-Select specific ldap properties to be returned, by default all properties are returned.
-
-.EXAMPLE 
-get-ldapdata
-
-Return all data for all objects in the current domain
-
-.EXAMPLE 
-get-ldapdata -extensionAttribute10 -GC
-
-Search the the global catalog from the root of the forest for any object with extensionattribute10 set to any value
-
-.EXAMPLE 
-get-ldapdata -givenName Joe -sn Smith -objectclass user -gc
-
-Search the global catalog for any user object with a given name = Joe and Lastname equal Smith
-
-.INFO
-Version 1.1 Updated to resolve exchange guids, objectSids and process useraccountcontrolflags
-Version 1.2 updated to add referral chasing
-
-#>
-{
-    $useraccountControls = @{
-    "UAC-SCRIPT"="1"
-    "UAC-Disabled"="2"
-    "UAC-HomeDirRequired"="8"
-    "UAC-AccountLocked"="16"
-    "UAC-PasswordNotRequired"="32"
-    "UAC-CannotChangePassword"="64"
-    "UAC-EncryptedPasswordAllowed"="128"
-    "UAC-TempDuplicateAccount"="256"
-    "UAC-NormalAccount"="512"
-    "UAC-InterDomainTrustAccount"="2048"
-    "UAC-WorkstationTrustAccount"="4096"
-    "UAC-ServerTrustAccount"="8192"
-    "UAC-PasswordNeverExpires"="65536"
-    "UAC-MNS_LOGON_ACCOUNT"="131072"
-    "UAC-SmartCardRequired"="262144"
-    "UAC-TrustedForDelegation"="524288"
-    "UAC-NotDelegated"="1048576"
-    "UAC-USE_DES_KEY_ONLY"="2097152"
-    "UAC-DONT_REQ_PREAUTH"="4194304"
-    "UAC-PasswordExpired"="8388608"
-    "UAC-TRUSTED_TO_AUTH_FOR_DELEGATION"="16777216"
-    "UAC-PARTIAL_SECRETS_ACCOUNT"="67108864"
-    }
-    
-
-    if ($server){ $server = "/$Server"}
-          
-    if ($verbose) {
-        $VerbosePreference = "Continue"
-    }
-
-    
-    if($O365Find){
-        $ldapfilter += "(|(userprincipalname=$o365Find)(proxyaddresses=SMTP:$O365Find)(mail=$O365Find)(proxyaddresses=SIP:$O365Find)(msrtcsip-primaryuseraddress=SIP:$O365Find))"
-    }
-
-    if ($ldapfilter){
-        $ldapfilter = "($ldapfilter)"
-    } elseif ($args) {
-        #args declared, set filter to nothing
-        $ldapfilter = ""
-    } else {
-        #no filter declared, get everything
-        $ldapfilter = "(objectclass=*)"
-    }
-    
-    $Root = [ADSI]"LDAP:/$server/RootDSE"
-
-    if ($GC) {
-        $protocol = "GC:"        
-    } else {
-        $protocol = "LDAP:"
-    }
-
-    if (!$searchRoot -and $GC){
-        $Searchroot  = $root.rootDomainNamingContext
-    } elseif (!$searchRoot) {
-        $searchroot = $root.defaultnamingContext
-    }
-
-    #LDAP arbitrary Searcher
-    $attributeName= ""
-    for ($i=0;$i -lt $args.count;$i+=2){
-         $ldapfilter += "($($args[$i] -replace '^-','')=$(if ($args[$i+1]){$args[$i+1]}else {'*'}))"
-    }
-    #Process useraccountcontrol searches
-    switch ($enabled) {
-        $true {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=2)"}
-        $false {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=2)"}
-    }
-    switch ($passwordnotrequired) {
-        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=32)"}
-        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=32)"}
-    }
-    switch ($CannotChangePassword) {
-        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=64)"}
-        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=64)"}
-    }
-    switch ($PasswordNeverExpires) {
-        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=65536)"}
-        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=65536)"}
-    }
-    switch ($TrustedForDelegation) {
-        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=524288)"}
-        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=524288)"}
-    }
-    switch ($DontRequirePreauth) {
-        $true {$ldapfilter += "(UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
-        $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
-    }
-    
-
-    $ldapfilter = "(&$ldapfilter)"
-    Write-Verbose "Filter being used $ldapfilter"
-    
-    
-    #Connect to the Domain and setup the searcher
-    $AdSearcher = [adsisearcher]$ldapfilter
-    $AdSearcher.Searchroot = [ADSI]("$protocol/$Server/$Searchroot")
-    Write-Verbose ("Searchroot: " + $ADSearcher.SearchRoot.path.tostring())
-    $ADSearcher.PageSize = $pageSize
-    $ADSearcher.Sizelimit = $sizeLimit
-    $adsearcher.ReferralChasing = [DirectoryServices.ReferralChasingOption]::All    
-    $properties | %{$ADSearcher.PropertiesToLoad.Add($_) | out-null}   
-    
-    #perform the search and process the objects
-    foreach ($LDAPResult in $ADSearcher.Findall()){
-        $LDAPObject = new-object psobject
-
-        foreach ($property in ($LDAPResult.properties.get_propertyNames())){
-            $PropertyValue = $null           
-            switch -regex ($property) {
-                    'msds-registered(owner|users)'{
-                            #ByteString represented SID values
-                           $UserList = @()
-                           #Registered owners/users are stored as a char representation of the SID value
-                           foreach ($ByteSid in $LDAPResult.properties.$property){
-                                $stringSid = [System.Text.Encoding]::ASCII.getstring($ByteSid)  
-                                $SIDValue = New-Object System.Security.Principal.SecurityIdentifier($stringSid)                                 
-                                try{
-                                    $StringRep = $SIDValue.Translate([System.Security.Principal.NTAccount])                                   
-                                }
-                                catch{
-                                    $StringRep = $SIDValue
-                                }
-                                $UserList += $stringRep                                                               
-                            }
-                            if ($userlist.count -eq 1) {$PropertyValue = $userlist[0]} else {$PropertyValue = $userlist}
-
-                    }                    
-                    'objectguid|msds-(deviceid|cloudAnchor)|msexcharchiveguid|msexchmailboxguid'{
-                            #GUID Properties 
-                            $ValueList = @()
-                            foreach ($Value in $LDAPResult.properties.$property){  
-                                $ValueList += [guid]$value
-                               }
-                               if ($ValueList.count -eq 1) {$PropertyValue = $ValueList[0]} else {$PropertyValue = $ValueList}
-                    }
-                     'objectsid'{                                
-                            $SidValue = [byte[]]($ldapresult.properties.$property[0])                                                   
-                            $PropertyValue = New-Object System.Security.Principal.SecurityIdentifier($SIDValue,0)        
-                    } 
-                     'badpasswordtime|lastlogontimestamp|lockouttime'{
-                        $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
-                     }
-                     'UserAccountControl'{                           
-                            $UACValue =   $LDAPResult.properties.$property[0]
-                            $PropertyValue = $UacValue
-                            $useraccountControls.GetEnumerator() | %{
-                                if ($uacValue -band $_.value){
-                                    $LDAPObject | Add-Member -name $_.name -value $true -Membertype NoteProperty -force
-                                } else {
-                                    $LDAPObject | Add-Member -name $_.name -value $false -Membertype NoteProperty -force
-                                }
-                            }
-                            
-                    }                    
-
-                    default{
-                        #remove ugly arrays
-                        if (($LDAPResult.properties.$property | measure).count -le 1){$PropertyValue = $LDAPResult.properties.$property[0]} else {$PropertyValue = $LDAPResult.properties.$property}
-                    }
-            }
-            #pin the property to the object
-            $LDAPObject | add-member -name $property -value $PropertyValue -MemberType NoteProperty
-        }
-         
-        write-output $LDAPObject
-    }
-}
-
 
 function Listen-Port ($port=80){
 <#

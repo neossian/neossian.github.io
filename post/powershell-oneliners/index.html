@@ -249,6 +249,9 @@ $PDC = [adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://roo
 #PDC name to the clipboard
 ([adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent ).dnshostname | clip
 
+#List all PDCs in the forest (Requires ActiveDirectory powershell module)
+get-adforest | select -expand domains | %{Resolve-DnsName &quot;_ldap._tcp.pdc._msdcs.$_&quot; -Type SRV} | ?{$_.querytype -eq 'A'} | select name,Address
+
 #On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
 get-counter -counter '\directoryservices(ntds)\ds security descriptor propagator runtime queue','\directoryservices(ntds)\ds security descriptor propagations events'
 
@@ -267,8 +270,15 @@ wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt
 
 #Create a scheduled task to restart the server in x hours 
 $hours = 1
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $((get-date).addhours($hours).tostring('hh:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $((get-date).addhours($hours).tostring('MM/dd/yyyy'))
+schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $((get-date).addhours($hours).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $((get-date).addhours($hours).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
 
+#Create a scheduled task to restart at a specific date and time
+$date = get-date -hour 21 -minute 30 -day 20
+schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
+
+#Seize all roles
+$domain = &quot;contoso.com&quot;
+ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q
 
 </code></pre>
 
