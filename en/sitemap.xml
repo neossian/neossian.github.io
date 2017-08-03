@@ -3,7 +3,12 @@
   
   <url>
     <loc>http://www.wrish.com/</loc>
-    <lastmod>2017-07-12T02:47:35+00:00</lastmod>
+    <lastmod>2017-08-02T02:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/</loc>
+    <lastmod>2017-08-02T02:47:35+00:00</lastmod>
   </url>
   
   <url>
@@ -22,13 +27,13 @@
   </url>
   
   <url>
-    <loc>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</loc>
+    <loc>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</loc>
     <lastmod>2017-06-12T02:47:35+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</loc>
-    <lastmod>2017-06-12T02:47:35+00:00</lastmod>
+    <loc>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</loc>
+    <lastmod>2017-06-08T02:47:35+00:00</lastmod>
   </url>
   
   <url>

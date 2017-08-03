@@ -219,6 +219,54 @@
   
     <article>
   <header>
+    <h2><a href="http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/">Check if Office 365 has Your Updated ADFS Certificates</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>15  Jan 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/adfs">ADFS</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Download it here https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e
+This script has probably lived its useful life, but I&rsquo;m sharing it anyway, because.. well why not!
+When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use Get-MsolFederationProperty that&rsquo;s great if you have one domain.. but what if you have 25 or 50.
+Create a profile on your ADFS servers
+  </p>
+
+  
+  <footer>
+    <a href="/post/check-adfs-certificates-with-office365-configuration/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
     <h2><a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></h2>
 
     <div class="post-meta">
@@ -637,53 +685,6 @@ Starting with some scripts that I have built before foreach-parallel to do paral
   
   <footer>
     <a href="/post/track-skype-lync-schema-change/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/unable-to-verify-azure-domain/">Unable to verify an Azure AD domain</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>23  Nov 2016</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/azuread">AzureAD</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  After you&rsquo;ve added a domain to Azure AD (or Office 365) using powershell, while connected to your ADFS like this:
-New-MsolDomain -Name domaintest.wrish.com -Authentication Federated  When you add your verification record and try to verify the domain from the GUI you might get an error like this:
-You can&rsquo;t verify your domain using the GUI when you create the Domain using powershell, instead you have to confirm the domain using powershell while entering all Federation options.
-  </p>
-
-  
-  <footer>
-    <a href="/post/unable-to-verify-azure-domain/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
   </footer>
   
 </article>

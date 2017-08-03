@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Isolate a DC - Part 7: Seize all FSMO roles &middot; WRISH</title>
+  <title>Isolate a DC - Part 10: Reset KrbTGT password twice &middot; WRISH</title>
 
   
   
@@ -208,7 +208,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>Isolate a DC - Part 7: Seize all FSMO roles</h1>
+	  <h1>Isolate a DC - Part 10: Reset KrbTGT password twice</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -217,7 +217,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>12  Jun 2017</time>
+    <time>2  Aug 2017</time>
   </div>
 
   
@@ -244,32 +244,25 @@
 
 	  
 
-<p>This is Part 7 of a series on Active Directory Forest recovery; you need to have your FSMOs under control.</p>
+<p>This is Part 10 of a series on Active Directory Forest recovery; a new password for your domain.</p>
 
-<h2 id="seize-all-fsmo-roles">Seize all FSMO roles</h2>
+<h2 id="rest-krbtgt-password-twice">Rest KrbTGT password twice</h2>
 
-<p>The roles you seize will depend on if you are in a parent or child domain, the script below leverages NTDSUTIL to seize all roles for a forest root domain, and the Infrastructure Master, PDC and RID Master for Child domains. It also updates the FSMO owner attribute on your Application partitions (usually just Forest DNS zones and Domain DNS Zones)</p>
+<p>And finally, just in case someone still has a ticket lying around waiting to be used on your restored domain, sort that right out and update your KrbTGT password.</p>
 
-<pre><code class="language-Powershell">function seize-AllFSMORoles{
-    $domain = get-addomain
-    $forest = get-adforest
-    $DC = get-addomaincontroller
-    $grouplist = [System.Security.Principal.WindowsIdentity]::GetCurrent().Groups.value
-    if ($Domain.dnsroot -eq $forest.rootdomain) {
-        if (!($grouplist -match '-518$') -or !($grouplist -match '-519$') -or !($grouplist -match '-512$')) {Write-Warning &quot;You must have Domain, Schema and Enterprise Admin roles to proceed - no changes will be made&quot;;return;}
-        Write-verbose &quot;Using NTDSUtil to sieze all forest FSMO roles&quot;
-        ntdsutil &quot;roles&quot; con &quot;con to dom $($domain.dnsroot)&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q  
-        Write-Warning &quot;PDC role has been moved - be sure to update NTP configuration of local server&quot;      
-    } else {
-        if (!($grouplist -match '-512$')) {Write-Warning &quot;You must have Domain Admin to proceed - no changes will be made&quot;;return;}
-        Write-verbose &quot;Using NTDSUtil to sieze all child domain FSMO roles&quot;
-        ntdsutil &quot;roles&quot; con &quot;con to dom  $($domain.dnsroot)&quot; q  &quot;Sei Inf ma&quot; &quot;sei PDC&quot; &quot;sei rid ma&quot; q q
+<pre><code class="language-Powershell">function Reset-KrbtgtPasswordTwice{
+[CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = 'High')]param()
+    $targetPassword = (ConvertTo-SecureString &quot;!7Dm$(get-random -minimum 10000000000000000 -maximum 1000000000000000000)$(get-random -minimum 10000000000000000 -maximum 1000000000000000000)#*&amp;&quot; -AsPlainText -Force)
+     Write-Warning &quot;Resetting the KRBTGT password twice without allowing replication of the update may result in Domain Controllers that cannot replicate if they have temporarily lost connectivity. Proceed with caution.&quot;
+     if ($pscmdlet.ShouldProcess(((Get-ADUser krbtgt).DistinguishedName))){
+        Set-ADAccountPassword -Identity (Get-ADUser krbtgt).DistinguishedName -Reset -NewPassword $targetPassword
+        Set-ADAccountPassword -Identity (Get-ADUser krbtgt).DistinguishedName -Reset -NewPassword $targetPassword
     }
-    Write-verbose &quot;updating RoleOwner for application partitions&quot;       
-    $forest.applicationpartitions | ?{$_ -match &quot;^dc=[^,]+,$([regex]::escape($domain.distinguishedname))`$&quot;} | %{ set-adobject $_ -replace @{fSMORoleOwner=($DC.NTDSSettingsObjectDN)}}
 }
 
-seize-AllFSMORoles
+Reset-KrbtgtPasswordTwice
 </code></pre>
 
 <p>All the other parts of this series are available here</p>
@@ -292,13 +285,13 @@ seize-AllFSMORoles
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/">Isolate a DC - Part 6: Raise RID pool</a>
+      <a href="http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/">Isolate a DC - Part 9: Reset Intraforest trust passwords</a>
     </nav>
     
   </div>
@@ -307,14 +300,8 @@ seize-AllFSMORoles
   </div>
   <div class="pure-u-10-24">
     
-    <nav class="next">
-      <a href="http://www.wrish.com/post/quickly-get-exchange-online-ips/">Powershell get Exchange Online IP addresses (for Firewall rules)</a>
-    </nav>
-    
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
-    
-    <a href="http://www.wrish.com/post/quickly-get-exchange-online-ips/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>
