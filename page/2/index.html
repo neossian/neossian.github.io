@@ -219,6 +219,197 @@
   
     <article>
   <header>
+    <h2><a href="http://www.wrish.com/post/use-powershell-to-open-svclog-files/">import-svclog to import SVCLOG files</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>18  Apr 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  <p>The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.</p>
+
+<p>Don&rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
+</p>
+  </p>
+
+  
+  <footer>
+    <a href="/post/use-powershell-to-open-svclog-files/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/">HTTPs Inspection on Android with Hyper-V and an Emulator</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>16  Apr 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/android">Android</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/intune">Intune</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  <p>I&rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
+</p>
+  </p>
+
+  
+  <footer>
+    <a href="/post/android-fiddler-hyperv-solution/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/">Isolate a DC - Part 2: Reset SYSVOL Sync State</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>15  Apr 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/forestrecovery">ForestRecovery</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.
+Reset your DFSR SYSVol State A DC booting into it&rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&rsquo;ll need to force SYSVOL into a synced state.
+  </p>
+
+  
+  <footer>
+    <a href="/post/isolate-dc-pt2-reset-sysvol-syncstate/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
+    <h2><a href="http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/">Isolate a DC - Part 1: Configure the Network</a></h2>
+
+    <div class="post-meta">
+
+  <div>
+    <i class="fa fa-calendar fa-fw"></i>
+    <time>5  Apr 2017</time>
+  </div>
+
+  
+
+  
+
+  
+  
+  
+  <div>
+    <i class="fa fa-tags fa-fw"></i>
+    
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/network">Network</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/forestrecovery">ForestRecovery</a>
+    
+  </div>
+  
+  
+
+</div>
+
+  </header>
+
+  <p>
+  Dragging a single Domain Controller by its nostril into an isolated network can be time consuming. For testing or disaster recovery, the steps are the same, and while well documented almost everywhere, there don&rsquo;t seem to be any quick and dirty tools to do the steps for you. That is why I wrote this series of powershell functions that can be applied to a DC you have restored in your Virtual environment to get your test Forest up and running quickly.
+  </p>
+
+  
+  <footer>
+    <a href="/post/isolate-dc-pt1-configure-the-network/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
+  
+</article>
+
+  
+    <article>
+  <header>
     <h2><a href="http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/">ADFS Rapid restore tool errors</a></h2>
 
     <div class="post-meta">
@@ -504,196 +695,6 @@ Create a profile on your ADFS servers
   
   <footer>
     <a href="/post/check-adfs-certificates-with-office365-configuration/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/switch-ms-pki-back-to-sha1/">Generate an SHA-1 signed certificate after cutover to SHA-2</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>4  Jan 2017</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/pki">PKI</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  You&rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&hellip; but there is always one.
-One outlier application that won&rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.
-Don&rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.
-certutil -setreg ca\csp\CNGHashAlgorithm SHA1 restart-service certsvc  Now issue your certificate, and switch back.
-  </p>
-
-  
-  <footer>
-    <a href="/post/switch-ms-pki-back-to-sha1/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/">Hosting for free with GitHub Pages using Windows (with custom domain)</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>29  Dec 2016</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/hosting">Hosting</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  I am unashamedly cheap. Here is how to host your personal website for no cost on github pages running on a windows platform.
-Install a GIT client There are lots - I chose the one that came up first in a Google search and haven&rsquo;t tried any others. Download Git For Windows Run Git-2.xx.x-64-bit.exe that you just downloaded and install setting the following options
- Use Git from the Windows Command Prompt (default) Checkout as-is, commit as-is (not default) Everything else default  Choosing the second item just means you will see less verbose output if you are using a Windows only environment.
-  </p>
-
-  
-  <footer>
-    <a href="/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/convert-between-immutableid-and-ad-object/">Office 365 - Convert between Immutable ID and AD Object </a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>22  Dec 2016</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/azuread">AzureAD</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/office365">Office365</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  <p>Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
-</p>
-  </p>
-
-  
-  <footer>
-    <a href="/post/convert-between-immutableid-and-ad-object/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
-
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/list-all-nested-memberships/">List all of a users group memberships</a></h2>
-
-    <div class="post-meta">
-
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>19  Dec 2016</time>
-  </div>
-
-  
-
-  
-
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
-    
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>
-    
-  </div>
-  
-  
-
-</div>
-
-  </header>
-
-  <p>
-  Download the script here
-Auditing user access is hard, usually you audit from resource out - eg, finding all Domain Admins, or finding all users with full acecss to SecretShare$ share on SecretServer01. But occasionally want to audit from user out.. this is hard.. even impossible (if you have a very big environment). Lets talk about the first step Enumerating Nested Groups.
-Token Groups Each user has a constructed attribute called tokengroups that returns a list of all transitive group memberships.
-  </p>
-
-  
-  <footer>
-    <a href="/post/list-all-nested-memberships/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
   </footer>
   
 </article>

@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>PowerShell Oneliners &middot; WRISH</title>
+  <title>Isolate a DC - Part 7: Seize all FSMO roles &middot; WRISH</title>
 
   
   
@@ -208,7 +208,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>PowerShell Oneliners</h1>
+	  <h1>Isolate a DC - Part 7: Seize all FSMO roles</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -217,7 +217,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>17  May 2017</time>
+    <time>12  Jun 2017</time>
   </div>
 
   
@@ -230,9 +230,11 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/forestrecovery">ForestRecovery</a>
     
   </div>
   
@@ -240,59 +242,48 @@
 
 </div>
 
-	  <p>Just a list of useful oneliners for powershell server and AD management
-</p>
+	  
 
-<pre><code class="language-powershell">#Retrieve the PDC AD Object using ADSI
-$PDC = [adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent 
+<p>This is Part 7 of a series on Active Directory Forest recovery; you need to have your FSMOs under control.</p>
 
-#PDC name to the clipboard
-([adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent ).dnshostname | clip
+<h2 id="seize-all-fsmo-roles">Seize all FSMO roles</h2>
 
-#List all PDCs in the forest (Requires ActiveDirectory powershell module)
-get-adforest | select -expand domains | %{Resolve-DnsName &quot;_ldap._tcp.pdc._msdcs.$_&quot; -Type SRV} | ?{$_.querytype -eq 'A'} | select name,Address
+<p>The roles you seize will depend on if you are in a parent or child domain, the script below leverages NTDSUTIL to seize all roles for a forest root domain, and the Infrastructure Master, PDC and RID Master for Child domains. It also updates the FSMO owner attribute on your Application partitions (usually just Forest DNS zones and Domain DNS Zones)</p>
 
-#On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
-get-counter -counter '\directoryservices(ntds)\ds security descriptor propagator runtime queue','\directoryservices(ntds)\ds security descriptor propagations events'
+<pre><code class="language-Powershell">function seize-AllFSMORoles{
+    $domain = get-addomain
+    $forest = get-adforest
+    $DC = get-addomaincontroller
+    $grouplist = [System.Security.Principal.WindowsIdentity]::GetCurrent().Groups.value
+    if ($Domain.dnsroot -eq $forest.rootdomain) {
+        if (!($grouplist -match '-518$') -or !($grouplist -match '-519$') -or !($grouplist -match '-512$')) {Write-Warning &quot;You must have Domain, Schema and Enterprise Admin roles to proceed - no changes will be made&quot;;return;}
+        Write-verbose &quot;Using NTDSUtil to sieze all forest FSMO roles&quot;
+        ntdsutil &quot;roles&quot; con &quot;con to dom $($domain.dnsroot)&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q  
+        Write-Warning &quot;PDC role has been moved - be sure to update NTP configuration of local server&quot;      
+    } else {
+        if (!($grouplist -match '-512$')) {Write-Warning &quot;You must have Domain Admin to proceed - no changes will be made&quot;;return;}
+        Write-verbose &quot;Using NTDSUtil to sieze all child domain FSMO roles&quot;
+        ntdsutil &quot;roles&quot; con &quot;con to dom  $($domain.dnsroot)&quot; q  &quot;Sei Inf ma&quot; &quot;sei PDC&quot; &quot;sei rid ma&quot; q q
+    }
+    Write-verbose &quot;updating RoleOwner for application partitions&quot;       
+    $forest.applicationpartitions | ?{$_ -match &quot;^dc=[^,]+,$([regex]::escape($domain.distinguishedname))`$&quot;} | %{ set-adobject $_ -replace @{fSMORoleOwner=($DC.NTDSSettingsObjectDN)}}
+}
 
-#Quickly list dnshostname of all DCs in the forest
-(New-Object adsisearcher([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).configurationNamingContext)&quot;,&quot;(objectClass=nTDSDSA)&quot;)).findall() | %{($_.properties.distinguishedname[0] -replace 'cn=NTDS Settings,','')} | %{[adsi]&quot;LDAP://$_&quot;} | select -expand dnshostname
-
-#get the last executed command to the clipboard
-(get-history)[-1].commandline | clip
-
-#Get the last boot time to a date/time object
-wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
-(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
-
-#get the last boot time to the clipboard
-wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
-
-#Create a scheduled task to restart the server in x hours 
-$hours = 1
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $((get-date).addhours($hours).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $((get-date).addhours($hours).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
-
-#Create a scheduled task to restart at a specific date and time
-$date = get-date -hour 21 -minute 30 -day 20
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
-
-#Seize all roles
-$domain = &quot;contoso.com&quot;
-ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q
-
+seize-AllFSMORoles
 </code></pre>
+
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/powershell-oneliners/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/">Isolate a DC - Part 5: Disable Global Catalog</a>
+      <a href="http://www.wrish.com/post/powershell-oneliners/">PowerShell Oneliners</a>
     </nav>
     
   </div>
@@ -302,13 +293,13 @@ ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&qu
   <div class="pure-u-10-24">
     
     <nav class="next">
-      <a href="http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/">Isolate a DC - Part 7: Seize all FSMO roles</a>
+      <a href="http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/">Isolate a DC - Part 6: Raise RID pool</a>
     </nav>
     
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
     
-    <a href="http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/"><i class="fa fa-chevron-right"></i></a>
+    <a href="http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>

@@ -9,29 +9,98 @@
     <atom:link href="http://www.wrish.com/tags/powershell/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Isolate a DC - Part 2: Reset SYSVOL Sync State</title>
-      <link>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</link>
-      <pubDate>Tue, 01 Aug 2017 02:47:35 +0000</pubDate>
+      <title>Isolate a DC - Part 9: Reset Intraforest trust passwords</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/</link>
+      <pubDate>Wed, 12 Jul 2017 02:47:35 +0000</pubDate>
       
-      <guid>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</guid>
+      <guid>http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/</guid>
       <description>
 
-&lt;p&gt;This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.&lt;/p&gt;
+&lt;p&gt;This is Part 9 of a series on Active Directory Forest recovery; trust no-one, or at least no peer domains.&lt;/p&gt;
 
-&lt;h2 id=&#34;reset-your-dfsr-sysvol-state&#34;&gt;Reset your DFSR SYSVol State&lt;/h2&gt;
+&lt;h2 id=&#34;reset-intraforest-trust-passwords&#34;&gt;Reset Intraforest trust passwords&lt;/h2&gt;
 
-&lt;p&gt;A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
-domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a &lt;em&gt;synced&lt;/em&gt; state. Not by threatening to put it to bed early, but instead by tweaking its &lt;code&gt;msDFSR-Options&lt;/code&gt; on its &lt;code&gt;SYSVol Subscription&lt;/code&gt; object.&lt;/p&gt;
+&lt;p&gt;To avoid accidentally permitting interforest authentication with a Domain Controller that hasn&amp;rsquo;t been restored yet we need to reset the Intra-Forest trust passwords to a common value on both sides. This way the restored domains will all talk with the same hash. Update the trust shared secret to something actually secret before running this command.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-SYSVOLSyncState{
-    set-adobject &amp;quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;amp;hostname)).distinguishedname)&amp;quot; -Replace @{&#39;msDFSR-Options&#39;=1}
-    restart-service DFSR
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-IntraForestTrustPasswords{
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]param([parameter(Mandatory=$true)]
+    [String[]]$trustSharedSecret)
+    $trusts = get-adtrust -filter {intraforest -eq $true}
+    $localdomain = [system.directoryservices.activedirectory.domain]::GetCurrentDomain()
+    Write-Warning &amp;quot;Resetting the Intra-frest Trust passwords will break the Intraforest trusts, the same password must be used to reset the password on the other side to restore trust connectivity&amp;quot;
+    $trusts.name | %{
+        if ($pscmdlet.ShouldProcess($_)){
+            $localdomain.UpdateLocalSideOfTrustRelationship($_,$trustSharedSecret) 
+        }   
+    } 
 }
 
-Reset-SYSVOLSyncState
+Reset-IntraForestTrustPasswords -trustSharedSecret &amp;quot;OhWhatASecretySecretThisIs!Somuchsecret&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 8: Metadata cleanup all other DCs</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/</link>
+      <pubDate>Tue, 20 Jun 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/</guid>
+      <description>
 
-&lt;p&gt;You can see the other parts of this series here:&lt;/p&gt;
+&lt;p&gt;This is Part 8 of a series on Active Directory Forest recovery; make your DC lonely.&lt;/p&gt;
+
+&lt;h2 id=&#34;metadata-cleanup-all-other-dcs&#34;&gt;Metadata Cleanup all other DCs&lt;/h2&gt;
+
+&lt;p&gt;Its not recovered until all the DCs are alive, but first, you have to kill them off with Metadata cleanup. Unfortunately the powershell commands won&amp;rsquo;t just delete a Domain Controller for you. So its up to NTDSUTIL automation to do the work again. You will need to run these in the Console host, not the PowerShell ISE.&lt;/p&gt;
+
+&lt;p&gt;In this step we also purge DNS records created by those DCs and try to eliminate as many lingering bits of fluff as possible.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function MetadataCleanupAllOtherDCsInCurrentDomain{
+ [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]param()
+    $domainObj = get-addomain
+    $domain = $domainObj.dnsroot  
+    $domaindn = $domainObj.distinguishedName 
+    Write-Warning &amp;quot;Metadata will be removed for all domain controllers except $(&amp;amp;hostname) in $domain, performing this activity in a production environment will be catastrophic.&amp;quot;
+    if ($pscmdlet.ShouldProcess($domain.name)){ 
+        get-addomaincontroller -filter * | ?{$_.hostname -notmatch $(&amp;amp;hostname)} |  %{  
+            $domains = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot;  q q q
+            $DomainNum = &amp;quot;FailedToFindDomain&amp;quot;; switch -regex ($domains){ &amp;quot;^(\d+) - $domaindn&amp;quot;{$DomainNum = $matches[1];break; }  }             
+            $sites =  ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; q q q  
+            $sername = $_.name  
+            $sitename = $_.site  
+            $sitenum = &amp;quot;FailedTofindSite&amp;quot;; switch -regex ($sites){    &amp;quot;^(\d+) - .+$sitename&amp;quot;{$sitenum = $matches[1];break; }  }  
+            $servers = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; &amp;quot;sel site $sitenum&amp;quot; &amp;quot;list ser for dom in site&amp;quot; q q q  
+            $servnum = &amp;quot;FailedToFindServer&amp;quot;; switch -regex ($servers){&amp;quot;^(\d+).+$sername&amp;quot;{ $servnum = $matches[1];break; }  }   
+            write-verbose &amp;quot;Executing cleanup metadata $sername from $sitename : ntdsutil `&amp;quot;metadata cleanup`&amp;quot; `&amp;quot;con`&amp;quot; `&amp;quot;con to dom $domain`&amp;quot; q `&amp;quot;sel op ta`&amp;quot; `&amp;quot;list do`&amp;quot; `&amp;quot;select do $DomainNum`&amp;quot; `&amp;quot;list sites`&amp;quot; `&amp;quot;sel site $sitenum`&amp;quot; `&amp;quot;list ser for dom in site`&amp;quot; `&amp;quot;sel ser $servnum`&amp;quot; q `&amp;quot;rem sel server`&amp;quot; q q&amp;quot;  
+            $result = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; &amp;quot;sel site $sitenum&amp;quot; &amp;quot;list ser for dom in site&amp;quot; &amp;quot;sel ser $servnum&amp;quot; q &amp;quot;rem sel server&amp;quot; q q
+            if ($result -match &amp;quot;removed from server&amp;quot;) {  
+                Write-verbose ($_.name + &amp;quot; Metadata cleanup complete&amp;quot;)
+            }  
+        }  
+        Write-Verbose &amp;quot;Removing all SRV records, Domain A,AAAA and NS records&amp;quot;      
+        $DNSDOmain = $domain
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -Node &#39;@&#39; -RRType A | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;@&#39; -RRType AAAA | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;@&#39; -RRType NS | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;_kpasswd._udp&#39; -RRType SRV | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;_kpasswd._tcp&#39; -RRType SRV | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        try {$MSDCSRecords = Get-DnsServerResourceRecord -ZoneName _msdcs.$DNSDOmain -RRType SRV; $DNSDomain = &amp;quot;_msdcs.$DNSDOmain&amp;quot; } 
+        catch {$MSDCSRecords = Get-DnsServerResourceRecord -ZoneName $DNSDOmain -RRType SRV | ?{$_.hostname -match &#39;_msdcs&#39;}}
+        $MSDCSRecords | ?{$_.hostname -match &#39;^_(kerberos|ldap)&#39;} | remove-dnsserverresourcerecord -zonename $DnsDOmain -force
+        #Restart DNS and netlogon to recreate the records for this Domain Controller
+        Write-Verbose &amp;quot;Restarting DNS and Netlogon to recreate domain records from this server&amp;quot;   
+        restart-service dns
+        restart-service netlogon
+    }
+}
+
+MetadataCleanupAllOtherDCsInCurrentDomain
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
@@ -76,6 +145,77 @@ Reset-SYSVOLSyncState
 &lt;p&gt;The Xpath Command &lt;code&gt;.//product[@name = &amp;quot;EOP&amp;quot; or @name = &amp;quot;EXO&amp;quot;]//addresslist[@type = &amp;quot;IPv4&amp;quot;]//address&lt;/code&gt; is saying
 Search from the root for a &lt;em&gt;product&lt;/em&gt; with &lt;em&gt;name&lt;/em&gt; attribute of &lt;em&gt;EOP&lt;/em&gt; or &lt;em&gt;EXO&lt;/em&gt; and find &lt;em&gt;addresslist&lt;/em&gt; under it with &lt;em&gt;type&lt;/em&gt; of &lt;em&gt;IPv4&lt;/em&gt;
 This gives us all the IPv4 addresses within the products EOP and EXO in CIDR format.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 6: Raise RID pool</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</link>
+      <pubDate>Mon, 12 Jun 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</guid>
+      <description>
+
+&lt;p&gt;This is Part 6 of a series on Active Directory Forest recovery, in today&amp;rsquo;s exciting adventure we raise your RID pools by 100k and invalidate the current RID pool.&lt;/p&gt;
+
+&lt;h2 id=&#34;raise-rid-pools-allocation&#34;&gt;Raise RID Pools Allocation&lt;/h2&gt;
+
+&lt;p&gt;Resource Identifiers are handed out whenever you create objects you can assign security to, if you are knee deep in restoration of your forest, you&amp;rsquo;ll want to make sure you don&amp;rsquo;t accidentally grant access to something unexpectedly by re-using a list SID.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function raiseRIDPool($amount=100000){
+    $domain = get-addomain
+    $currentRidPool = get-adobject &amp;quot;CN=RID Manager$,CN=System,$($domain.DistinguishedName)&amp;quot; -properties rIDAvailablePool | select -expand rIDAvailablePool
+    Write-verbose &amp;quot;RidPool is currently $currentRidPool will be raised to $($currentRidPool + $amount)&amp;quot;
+    set-adobject &amp;quot;CN=RID Manager$,CN=System,$($domain.DistinguishedName)&amp;quot; -replace @{ridavailablePool=($currentRidPool + $amount)}
+    $Domain = New-Object System.DirectoryServices.DirectoryEntry
+    $DomainSid = $Domain.objectSid
+    $RootDSE = New-Object System.DirectoryServices.DirectoryEntry(&amp;quot;LDAP://RootDSE&amp;quot;)
+    $RootDSE.UsePropertyCache = $false
+    Write-Verbose &amp;quot;Invalidating the rid pool for the current domain $($domain.name)&amp;quot;
+    $RootDSE.Put(&amp;quot;invalidateRidPool&amp;quot;, $DomainSid.Value)
+    $RootDSE.SetInfo() 
+}
+
+raiseRIDPoool
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 7: Seize all FSMO roles</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</link>
+      <pubDate>Mon, 12 Jun 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</guid>
+      <description>
+
+&lt;p&gt;This is Part 7 of a series on Active Directory Forest recovery; you need to have your FSMOs under control.&lt;/p&gt;
+
+&lt;h2 id=&#34;seize-all-fsmo-roles&#34;&gt;Seize all FSMO roles&lt;/h2&gt;
+
+&lt;p&gt;The roles you seize will depend on if you are in a parent or child domain, the script below leverages NTDSUTIL to seize all roles for a forest root domain, and the Infrastructure Master, PDC and RID Master for Child domains. It also updates the FSMO owner attribute on your Application partitions (usually just Forest DNS zones and Domain DNS Zones)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function seize-AllFSMORoles{
+    $domain = get-addomain
+    $forest = get-adforest
+    $DC = get-addomaincontroller
+    $grouplist = [System.Security.Principal.WindowsIdentity]::GetCurrent().Groups.value
+    if ($Domain.dnsroot -eq $forest.rootdomain) {
+        if (!($grouplist -match &#39;-518$&#39;) -or !($grouplist -match &#39;-519$&#39;) -or !($grouplist -match &#39;-512$&#39;)) {Write-Warning &amp;quot;You must have Domain, Schema and Enterprise Admin roles to proceed - no changes will be made&amp;quot;;return;}
+        Write-verbose &amp;quot;Using NTDSUtil to sieze all forest FSMO roles&amp;quot;
+        ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $($domain.dnsroot)&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q  
+        Write-Warning &amp;quot;PDC role has been moved - be sure to update NTP configuration of local server&amp;quot;      
+    } else {
+        if (!($grouplist -match &#39;-512$&#39;)) {Write-Warning &amp;quot;You must have Domain Admin to proceed - no changes will be made&amp;quot;;return;}
+        Write-verbose &amp;quot;Using NTDSUtil to sieze all child domain FSMO roles&amp;quot;
+        ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom  $($domain.dnsroot)&amp;quot; q  &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei PDC&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
+    }
+    Write-verbose &amp;quot;updating RoleOwner for application partitions&amp;quot;       
+    $forest.applicationpartitions | ?{$_ -match &amp;quot;^dc=[^,]+,$([regex]::escape($domain.distinguishedname))`$&amp;quot;} | %{ set-adobject $_ -replace @{fSMORoleOwner=($DC.NTDSSettingsObjectDN)}}
+}
+
+seize-AllFSMORoles
+&lt;/code&gt;&lt;/pre&gt;
+</description>
     </item>
     
     <item>
@@ -367,6 +507,33 @@ dir | import-svclog | out-gridView
     </item>
     
     <item>
+      <title>Isolate a DC - Part 2: Reset SYSVOL Sync State</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</link>
+      <pubDate>Sat, 15 Apr 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</guid>
+      <description>
+
+&lt;p&gt;This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.&lt;/p&gt;
+
+&lt;h2 id=&#34;reset-your-dfsr-sysvol-state&#34;&gt;Reset your DFSR SYSVol State&lt;/h2&gt;
+
+&lt;p&gt;A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
+domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a &lt;em&gt;synced&lt;/em&gt; state. Not by threatening to put it to bed early, but instead by tweaking its &lt;code&gt;msDFSR-Options&lt;/code&gt; on its &lt;code&gt;SYSVol Subscription&lt;/code&gt; object.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-SYSVOLSyncState{
+    set-adobject &amp;quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;amp;hostname)).distinguishedname)&amp;quot; -Replace @{&#39;msDFSR-Options&#39;=1}
+    restart-service DFSR
+}
+
+Reset-SYSVOLSyncState
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can see the other parts of this series here:&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Isolate a DC - Part 1: Configure the Network</title>
       <link>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</link>
       <pubDate>Wed, 05 Apr 2017 02:47:35 +0000</pubDate>
@@ -481,179 +648,6 @@ $userprofiles[$whichOne].delete()
 
 &lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Paste an array into a variable</title>
-      <link>http://www.wrish.com/post/paste-me-an-array/</link>
-      <pubDate>Thu, 19 Jan 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/paste-me-an-array/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve got a list of values, you want that in an array.&lt;/p&gt;
-
-&lt;p&gt;You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could &lt;code&gt;Create-ArrayFromPastedText&lt;/code&gt;.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Create-ArrayFromPastedText ($returnvalue = &amp;quot;&amp;quot;)
-{
-    $result = @()
-    while ($true) {
-        $value = read-host    
-        if ($value -eq $returnvalue){
-            return $result
-        } else {
-            $result += $value
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;You can use it like this&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$MyArray = create-Arrayfrompastedtext
-#Here is a read-host line, just copy and paste your list of computers/users etc
-Item1
-Item2
-Item3
-
-#when you enter an empty line the array closes and returns
-#if you want your array to include empty lines use the -returnvalue paramter to change
-#the value that signifies the end of the array.
-
-#And then just use your array
-$MyArray |?{$_ -match &#39;[13]&#39;}
-Item1
-Item3
-&lt;/code&gt;&lt;/pre&gt;</description>
-    </item>
-    
-    <item>
-      <title>Check if Office 365 has Your Updated ADFS Certificates</title>
-      <link>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</link>
-      <pubDate>Sun, 15 Jan 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</guid>
-      <description>&lt;p&gt;Download it here &lt;a href=&#34;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&#34;&gt;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;This script has probably lived its useful life, but I&amp;rsquo;m sharing it anyway, because.. well why not!&lt;/p&gt;
-
-&lt;p&gt;When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use &lt;code&gt;Get-MsolFederationProperty&lt;/code&gt; that&amp;rsquo;s great if you have one domain.. but what if you have 25 or 50.&lt;/p&gt;
-
-&lt;p&gt;Create a profile on your ADFS servers&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;notepad $profile.alluserscurrenthost
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Copy and paste this into the profile and click save&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Check-ADFSFederationForAllDomains {
-    
-    get-msoldomain | ?{$_.authentication -eq &amp;quot;Federated&amp;quot; -and !$_.rootDomain } | %{
-        Write-host Processing $_.Name
-        $SETUP = Get-MsolFederationProperty –DomainName $_.Name
-        if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
-            Write-host $_.Name &amp;quot;Token Signing and Next Token Signing Certificates Match&amp;quot; -ForegroundColor Green      
-         } else {
-            Write-host $_.Name &amp;quot;Token Signing and/or Next Token Signing Certificates DO NOT Match&amp;quot; -ForegroundColor REd    
-         }
-      } 
-}
-write-host &#39;Check-ADFSFederationForAllDomains&#39;
-
-Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
-    
-    get-msoldomain | ?{$_.authentication -eq &amp;quot;Federated&amp;quot; -and !$_.rootDomain } | %{
-        Write-host Processing $_.Name
-        Update-MsolFederatedDomain –DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
-       
-      } 
-}
-Write-Host &#39;Update-ADFSFederationForAllDomains&#39; 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now when the time comes to check just run &lt;code&gt;Check-ADFSFederationForAllDomains&lt;/code&gt; followed by &lt;code&gt;Update-ADFSFedrationForAllDomains&lt;/code&gt; if you need to update.&lt;/p&gt;
-
-&lt;p&gt;Download it here &lt;a href=&#34;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&#34;&gt;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
-      <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
-      <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;
-
-&lt;p&gt;One outlier application that won&amp;rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.&lt;/p&gt;
-
-&lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsvc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsvc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
-
-&lt;p&gt;There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;certutil -restrict &amp;quot;SubmittedWhen &amp;gt;= now-00:01, Disposition = 20&amp;quot; -view  csv | ConvertFrom-Csv | fl &amp;quot;Request Submission Date&amp;quot;,&amp;quot;Requester Name&amp;quot;,&amp;quot;Issued Common Name&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Office 365 - Convert between Immutable ID and AD Object </title>
-      <link>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</link>
-      <pubDate>Thu, 22 Dec 2016 20:53:49 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</guid>
-      <description>&lt;p&gt;Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;
-function get-ImmutableIDfromADObject
-{
-    [CmdletBinding()] Param(
-        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ADObject) 
-   process{ 
-        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid}
-        [system.convert]::ToBase64String($ADObject.objectguid.tobytearray())
-    }
-}
-
-function get-ADObjectFromImmutableID{
-      [CmdletBinding()] Param(
-        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$ImmutableID)
-   process { get-adobject  ([guid]([system.convert]::FromBase64String($ImmutableID)))}
-}
-
-&amp;lt;#
-get-aduser shane.wright | get-ImmutableIDfromADObject
-6WuADX7LfUa8DVAQGxuZcA==
-
-get-aduser shane.wright | get-ImmutableIDfromADObject | get-ADObjectFromImmutableID
-
-DistinguishedName                          Name         ObjectClass ObjectGUID                          
------------------                          ----         ----------- ----------                          
-CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
-
-
-get-ADObjectFromImmutableID 6WuADX7LfUa8DVAQGxuZcA==
-DistinguishedName                          Name         ObjectClass ObjectGUID                          
------------------                          ----         ----------- ----------                          
-CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
-#&amp;gt;
-
-&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     
   </channel>

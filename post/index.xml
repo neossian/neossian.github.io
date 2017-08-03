@@ -6,33 +6,102 @@
     <description>Recent content in Post-rsses on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <lastBuildDate>Tue, 01 Aug 2017 02:47:35 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 12 Jul 2017 02:47:35 +0000</lastBuildDate>
     <atom:link href="http://www.wrish.com/post/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Isolate a DC - Part 2: Reset SYSVOL Sync State</title>
-      <link>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</link>
-      <pubDate>Tue, 01 Aug 2017 02:47:35 +0000</pubDate>
+      <title>Isolate a DC - Part 9: Reset Intraforest trust passwords</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/</link>
+      <pubDate>Wed, 12 Jul 2017 02:47:35 +0000</pubDate>
       
-      <guid>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</guid>
+      <guid>http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/</guid>
       <description>
 
-&lt;p&gt;This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.&lt;/p&gt;
+&lt;p&gt;This is Part 9 of a series on Active Directory Forest recovery; trust no-one, or at least no peer domains.&lt;/p&gt;
 
-&lt;h2 id=&#34;reset-your-dfsr-sysvol-state&#34;&gt;Reset your DFSR SYSVol State&lt;/h2&gt;
+&lt;h2 id=&#34;reset-intraforest-trust-passwords&#34;&gt;Reset Intraforest trust passwords&lt;/h2&gt;
 
-&lt;p&gt;A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
-domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a &lt;em&gt;synced&lt;/em&gt; state. Not by threatening to put it to bed early, but instead by tweaking its &lt;code&gt;msDFSR-Options&lt;/code&gt; on its &lt;code&gt;SYSVol Subscription&lt;/code&gt; object.&lt;/p&gt;
+&lt;p&gt;To avoid accidentally permitting interforest authentication with a Domain Controller that hasn&amp;rsquo;t been restored yet we need to reset the Intra-Forest trust passwords to a common value on both sides. This way the restored domains will all talk with the same hash. Update the trust shared secret to something actually secret before running this command.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-SYSVOLSyncState{
-    set-adobject &amp;quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;amp;hostname)).distinguishedname)&amp;quot; -Replace @{&#39;msDFSR-Options&#39;=1}
-    restart-service DFSR
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-IntraForestTrustPasswords{
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]param([parameter(Mandatory=$true)]
+    [String[]]$trustSharedSecret)
+    $trusts = get-adtrust -filter {intraforest -eq $true}
+    $localdomain = [system.directoryservices.activedirectory.domain]::GetCurrentDomain()
+    Write-Warning &amp;quot;Resetting the Intra-frest Trust passwords will break the Intraforest trusts, the same password must be used to reset the password on the other side to restore trust connectivity&amp;quot;
+    $trusts.name | %{
+        if ($pscmdlet.ShouldProcess($_)){
+            $localdomain.UpdateLocalSideOfTrustRelationship($_,$trustSharedSecret) 
+        }   
+    } 
 }
 
-Reset-SYSVOLSyncState
+Reset-IntraForestTrustPasswords -trustSharedSecret &amp;quot;OhWhatASecretySecretThisIs!Somuchsecret&amp;quot;
 &lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 8: Metadata cleanup all other DCs</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/</link>
+      <pubDate>Tue, 20 Jun 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/</guid>
+      <description>
 
-&lt;p&gt;You can see the other parts of this series here:&lt;/p&gt;
+&lt;p&gt;This is Part 8 of a series on Active Directory Forest recovery; make your DC lonely.&lt;/p&gt;
+
+&lt;h2 id=&#34;metadata-cleanup-all-other-dcs&#34;&gt;Metadata Cleanup all other DCs&lt;/h2&gt;
+
+&lt;p&gt;Its not recovered until all the DCs are alive, but first, you have to kill them off with Metadata cleanup. Unfortunately the powershell commands won&amp;rsquo;t just delete a Domain Controller for you. So its up to NTDSUTIL automation to do the work again. You will need to run these in the Console host, not the PowerShell ISE.&lt;/p&gt;
+
+&lt;p&gt;In this step we also purge DNS records created by those DCs and try to eliminate as many lingering bits of fluff as possible.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function MetadataCleanupAllOtherDCsInCurrentDomain{
+ [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]param()
+    $domainObj = get-addomain
+    $domain = $domainObj.dnsroot  
+    $domaindn = $domainObj.distinguishedName 
+    Write-Warning &amp;quot;Metadata will be removed for all domain controllers except $(&amp;amp;hostname) in $domain, performing this activity in a production environment will be catastrophic.&amp;quot;
+    if ($pscmdlet.ShouldProcess($domain.name)){ 
+        get-addomaincontroller -filter * | ?{$_.hostname -notmatch $(&amp;amp;hostname)} |  %{  
+            $domains = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot;  q q q
+            $DomainNum = &amp;quot;FailedToFindDomain&amp;quot;; switch -regex ($domains){ &amp;quot;^(\d+) - $domaindn&amp;quot;{$DomainNum = $matches[1];break; }  }             
+            $sites =  ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; q q q  
+            $sername = $_.name  
+            $sitename = $_.site  
+            $sitenum = &amp;quot;FailedTofindSite&amp;quot;; switch -regex ($sites){    &amp;quot;^(\d+) - .+$sitename&amp;quot;{$sitenum = $matches[1];break; }  }  
+            $servers = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; &amp;quot;sel site $sitenum&amp;quot; &amp;quot;list ser for dom in site&amp;quot; q q q  
+            $servnum = &amp;quot;FailedToFindServer&amp;quot;; switch -regex ($servers){&amp;quot;^(\d+).+$sername&amp;quot;{ $servnum = $matches[1];break; }  }   
+            write-verbose &amp;quot;Executing cleanup metadata $sername from $sitename : ntdsutil `&amp;quot;metadata cleanup`&amp;quot; `&amp;quot;con`&amp;quot; `&amp;quot;con to dom $domain`&amp;quot; q `&amp;quot;sel op ta`&amp;quot; `&amp;quot;list do`&amp;quot; `&amp;quot;select do $DomainNum`&amp;quot; `&amp;quot;list sites`&amp;quot; `&amp;quot;sel site $sitenum`&amp;quot; `&amp;quot;list ser for dom in site`&amp;quot; `&amp;quot;sel ser $servnum`&amp;quot; q `&amp;quot;rem sel server`&amp;quot; q q&amp;quot;  
+            $result = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; &amp;quot;sel site $sitenum&amp;quot; &amp;quot;list ser for dom in site&amp;quot; &amp;quot;sel ser $servnum&amp;quot; q &amp;quot;rem sel server&amp;quot; q q
+            if ($result -match &amp;quot;removed from server&amp;quot;) {  
+                Write-verbose ($_.name + &amp;quot; Metadata cleanup complete&amp;quot;)
+            }  
+        }  
+        Write-Verbose &amp;quot;Removing all SRV records, Domain A,AAAA and NS records&amp;quot;      
+        $DNSDOmain = $domain
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -Node &#39;@&#39; -RRType A | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;@&#39; -RRType AAAA | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;@&#39; -RRType NS | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;_kpasswd._udp&#39; -RRType SRV | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;_kpasswd._tcp&#39; -RRType SRV | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
+        try {$MSDCSRecords = Get-DnsServerResourceRecord -ZoneName _msdcs.$DNSDOmain -RRType SRV; $DNSDomain = &amp;quot;_msdcs.$DNSDOmain&amp;quot; } 
+        catch {$MSDCSRecords = Get-DnsServerResourceRecord -ZoneName $DNSDOmain -RRType SRV | ?{$_.hostname -match &#39;_msdcs&#39;}}
+        $MSDCSRecords | ?{$_.hostname -match &#39;^_(kerberos|ldap)&#39;} | remove-dnsserverresourcerecord -zonename $DnsDOmain -force
+        #Restart DNS and netlogon to recreate the records for this Domain Controller
+        Write-Verbose &amp;quot;Restarting DNS and Netlogon to recreate domain records from this server&amp;quot;   
+        restart-service dns
+        restart-service netlogon
+    }
+}
+
+MetadataCleanupAllOtherDCsInCurrentDomain
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
@@ -77,6 +146,77 @@ Reset-SYSVOLSyncState
 &lt;p&gt;The Xpath Command &lt;code&gt;.//product[@name = &amp;quot;EOP&amp;quot; or @name = &amp;quot;EXO&amp;quot;]//addresslist[@type = &amp;quot;IPv4&amp;quot;]//address&lt;/code&gt; is saying
 Search from the root for a &lt;em&gt;product&lt;/em&gt; with &lt;em&gt;name&lt;/em&gt; attribute of &lt;em&gt;EOP&lt;/em&gt; or &lt;em&gt;EXO&lt;/em&gt; and find &lt;em&gt;addresslist&lt;/em&gt; under it with &lt;em&gt;type&lt;/em&gt; of &lt;em&gt;IPv4&lt;/em&gt;
 This gives us all the IPv4 addresses within the products EOP and EXO in CIDR format.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 6: Raise RID pool</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</link>
+      <pubDate>Mon, 12 Jun 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</guid>
+      <description>
+
+&lt;p&gt;This is Part 6 of a series on Active Directory Forest recovery, in today&amp;rsquo;s exciting adventure we raise your RID pools by 100k and invalidate the current RID pool.&lt;/p&gt;
+
+&lt;h2 id=&#34;raise-rid-pools-allocation&#34;&gt;Raise RID Pools Allocation&lt;/h2&gt;
+
+&lt;p&gt;Resource Identifiers are handed out whenever you create objects you can assign security to, if you are knee deep in restoration of your forest, you&amp;rsquo;ll want to make sure you don&amp;rsquo;t accidentally grant access to something unexpectedly by re-using a list SID.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function raiseRIDPool($amount=100000){
+    $domain = get-addomain
+    $currentRidPool = get-adobject &amp;quot;CN=RID Manager$,CN=System,$($domain.DistinguishedName)&amp;quot; -properties rIDAvailablePool | select -expand rIDAvailablePool
+    Write-verbose &amp;quot;RidPool is currently $currentRidPool will be raised to $($currentRidPool + $amount)&amp;quot;
+    set-adobject &amp;quot;CN=RID Manager$,CN=System,$($domain.DistinguishedName)&amp;quot; -replace @{ridavailablePool=($currentRidPool + $amount)}
+    $Domain = New-Object System.DirectoryServices.DirectoryEntry
+    $DomainSid = $Domain.objectSid
+    $RootDSE = New-Object System.DirectoryServices.DirectoryEntry(&amp;quot;LDAP://RootDSE&amp;quot;)
+    $RootDSE.UsePropertyCache = $false
+    Write-Verbose &amp;quot;Invalidating the rid pool for the current domain $($domain.name)&amp;quot;
+    $RootDSE.Put(&amp;quot;invalidateRidPool&amp;quot;, $DomainSid.Value)
+    $RootDSE.SetInfo() 
+}
+
+raiseRIDPoool
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 7: Seize all FSMO roles</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</link>
+      <pubDate>Mon, 12 Jun 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</guid>
+      <description>
+
+&lt;p&gt;This is Part 7 of a series on Active Directory Forest recovery; you need to have your FSMOs under control.&lt;/p&gt;
+
+&lt;h2 id=&#34;seize-all-fsmo-roles&#34;&gt;Seize all FSMO roles&lt;/h2&gt;
+
+&lt;p&gt;The roles you seize will depend on if you are in a parent or child domain, the script below leverages NTDSUTIL to seize all roles for a forest root domain, and the Infrastructure Master, PDC and RID Master for Child domains. It also updates the FSMO owner attribute on your Application partitions (usually just Forest DNS zones and Domain DNS Zones)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function seize-AllFSMORoles{
+    $domain = get-addomain
+    $forest = get-adforest
+    $DC = get-addomaincontroller
+    $grouplist = [System.Security.Principal.WindowsIdentity]::GetCurrent().Groups.value
+    if ($Domain.dnsroot -eq $forest.rootdomain) {
+        if (!($grouplist -match &#39;-518$&#39;) -or !($grouplist -match &#39;-519$&#39;) -or !($grouplist -match &#39;-512$&#39;)) {Write-Warning &amp;quot;You must have Domain, Schema and Enterprise Admin roles to proceed - no changes will be made&amp;quot;;return;}
+        Write-verbose &amp;quot;Using NTDSUtil to sieze all forest FSMO roles&amp;quot;
+        ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $($domain.dnsroot)&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q  
+        Write-Warning &amp;quot;PDC role has been moved - be sure to update NTP configuration of local server&amp;quot;      
+    } else {
+        if (!($grouplist -match &#39;-512$&#39;)) {Write-Warning &amp;quot;You must have Domain Admin to proceed - no changes will be made&amp;quot;;return;}
+        Write-verbose &amp;quot;Using NTDSUtil to sieze all child domain FSMO roles&amp;quot;
+        ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom  $($domain.dnsroot)&amp;quot; q  &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei PDC&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
+    }
+    Write-verbose &amp;quot;updating RoleOwner for application partitions&amp;quot;       
+    $forest.applicationpartitions | ?{$_ -match &amp;quot;^dc=[^,]+,$([regex]::escape($domain.distinguishedname))`$&amp;quot;} | %{ set-adobject $_ -replace @{fSMORoleOwner=($DC.NTDSSettingsObjectDN)}}
+}
+
+seize-AllFSMORoles
+&lt;/code&gt;&lt;/pre&gt;
+</description>
     </item>
     
     <item>
@@ -410,6 +550,33 @@ dir | import-svclog | out-gridView
     </item>
     
     <item>
+      <title>Isolate a DC - Part 2: Reset SYSVOL Sync State</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</link>
+      <pubDate>Sat, 15 Apr 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</guid>
+      <description>
+
+&lt;p&gt;This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.&lt;/p&gt;
+
+&lt;h2 id=&#34;reset-your-dfsr-sysvol-state&#34;&gt;Reset your DFSR SYSVol State&lt;/h2&gt;
+
+&lt;p&gt;A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
+domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a &lt;em&gt;synced&lt;/em&gt; state. Not by threatening to put it to bed early, but instead by tweaking its &lt;code&gt;msDFSR-Options&lt;/code&gt; on its &lt;code&gt;SYSVol Subscription&lt;/code&gt; object.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-SYSVOLSyncState{
+    set-adobject &amp;quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;amp;hostname)).distinguishedname)&amp;quot; -Replace @{&#39;msDFSR-Options&#39;=1}
+    restart-service DFSR
+}
+
+Reset-SYSVOLSyncState
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can see the other parts of this series here:&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Isolate a DC - Part 1: Configure the Network</title>
       <link>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</link>
       <pubDate>Wed, 05 Apr 2017 02:47:35 +0000</pubDate>
@@ -487,273 +654,6 @@ The password you have provided for ADFS backup decryption is incorrect, check th
 
 &lt;p&gt;Even though the tool doesn&amp;rsquo;t respond to the &lt;code&gt;-Verbose&lt;/code&gt; flag, it does create a verbose log in the appdata folder &lt;code&gt;C:\Users\&amp;lt;username&amp;gt;\AppData\Local\ADFSRapidRecreationTool\ADFSRestore_Logs&lt;/code&gt; review the contents of these log files for help with errors.&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Assign EMS licenses to all licensed users with dynamic groups</title>
-      <link>http://www.wrish.com/post/assign-ems-licenses-with-dynamic-groups/</link>
-      <pubDate>Fri, 10 Mar 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/assign-ems-licenses-with-dynamic-groups/</guid>
-      <description>&lt;p&gt;Azure conditional access provides flexible control over access to Office 365 resources and services based on location/user group membership/device etc. If you set up conditional access rules, any user who doesn&amp;rsquo;t have an Azure AD Premium license will not be affected by them - access is permitted by default!&lt;/p&gt;
-
-&lt;p&gt;How to work around this without manually assigning licenses to every user or using a &lt;a href=&#34;http://www.wrish.com/post/assign-ems-licenses/&#34;&gt;dodgy script&lt;/a&gt;? Azure AD has a capability called &lt;em&gt;Dynamic Groups&lt;/em&gt;. With &lt;em&gt;Dynamic Groups&lt;/em&gt; you can create a group with membership based on a query.&lt;/p&gt;
-
-&lt;p&gt;This query will result in a group that contains all users with Exchange, Sharepoint, Office or S4B enabled.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(user.assignedPlans -any ((assignedPlan.service -match &amp;quot;exchange|SharePoint|Microsoft(CommunicationsOnline|Office)&amp;quot;) -and (assignedPlan.capabilityStatus -eq &amp;quot;Enabled&amp;quot;)))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Then you simply &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-licensing-group-assignment-azure-portal&#34;&gt;assign EMS licenses&lt;/a&gt; to the dynamic group. Now, when a user is activated for Exchange etc, they immediately get an EMS license and Conditional Access applies. The user will inherit the license until they are no longer a member of the group&lt;/p&gt;
-
-&lt;p&gt;Read more about creating &lt;em&gt;Dynamic Groups&lt;/em&gt; here &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-groups-dynamic-membership-azure-portal&#34;&gt;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-groups-dynamic-membership-azure-portal&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;During testing in a small environment I found that the license membership changed within 5 minutes.&lt;/p&gt;
-
-&lt;p&gt;Possible values for &lt;em&gt;assignedPlan.service&lt;/em&gt;&lt;/p&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;Value&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;Service Friendly Name&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;ProcessSimple&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Flow for Office365&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;PowerAppsService&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;PowerApps for Office 365&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;TeamspaceAPI&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Teams&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;ProjectWorkManagement&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Planner&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Sway&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Sway&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;YammerEnterprise&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Yammer&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MicrosoftOffice&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Office 365 ProPlus&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MicrosoftCommunicationsOnline&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Skype for Business Online&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;SharePoint&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;SharePoint Online&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;exchange&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Exchange Online&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Deskless&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Staff Hub&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;RMSOnline&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Azure Information Protection Plan &lt;br /&gt;Azure Rights Management&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MultiFactorService&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Azure Multi-Factor Authentication&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;AADPremiumService&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Azure Active Directory Premium&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;SCO&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Intune A Direct&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Adallom&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Cloud App Security&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;VolumeLicensing&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Business Center&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;Possible values for &lt;em&gt;assignedPlan.capabilityStatus&lt;/em&gt;&lt;/p&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;Value&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;Meaning&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Deleted&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;License has been removed&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Enabled&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;License is active&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Suspended&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;License has been removed (applies to EMS licenses)&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Assign EMS licenses to all licensed users</title>
-      <link>http://www.wrish.com/post/assign-ems-licenses/</link>
-      <pubDate>Mon, 13 Feb 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/assign-ems-licenses/</guid>
-      <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$VerbosePreference = &amp;quot;Continue&amp;quot;
-$SKU = get-msolaccountSKU | ?{$_.accountskuid -match &#39;:EMS$&#39;} | select -expand AccountSKUID
-if ($SKU) {
-    $LicensingFailures = @{}
-   $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
-   $allusersThatNeedEMS | %{
-        $u = $_;
-        try{ 
-            Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
-            Write-verbose &amp;quot;Successfully added $SKU to $($u.userprincipalname)&amp;quot; 
-        } catch {
-            Write-Error &amp;quot;Failed to add $SKU to $($u.userprincipalname) because: $_&amp;quot;
-            $LicensingFailures.&amp;quot;$($u.userprincipalname)&amp;quot; = $_
-        }
-    }
-    Write-host &amp;quot;The following failures occurred&amp;quot;
-    $LicensingFailures
-} else {
-    Write-host &amp;quot;No EMS license SKU found&amp;quot;
-}
-&lt;/code&gt;&lt;/pre&gt;</description>
-    </item>
-    
-    <item>
-      <title>User Profile Cleanup</title>
-      <link>http://www.wrish.com/post/cleanup-user-profiles/</link>
-      <pubDate>Mon, 23 Jan 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/cleanup-user-profiles/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Big environments get messy, lots of users, lots of admins, lots of logging in here and there.&lt;/p&gt;
-
-&lt;p&gt;Profiles accumulate, C drive starts to get full, oh the humanity! Fear not humble Admin, on our adventures today we discover how to remove old user profiles with naught but the flick of a WMI method.&lt;/p&gt;
-
-&lt;p&gt;The meat and bonse of this function is getting user profiles and deleting them:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$userprofiles = Get-WmiObject -Class Win32_UserProfile
-$userprofiles[$whichOne].delete()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;But before we can pull the trigger and send these profiles to the depths, there will be some evaluation of dates, some checking that they aren&amp;rsquo;t important, and some validating using ShouldProcess.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;[CmdletBinding(
-     SupportsShouldProcess=$true,
-    ConfirmImpact=&amp;quot;High&amp;quot;
-  )]param ($computerName= &#39;.&#39;,$AgeLimit=&#39;60&#39;, $Exclude)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;By declaring &lt;code&gt;supportsShouldProcess=$true&lt;/code&gt; it means that we can make use of the COnfirm/Force/Whatif because deleting user profiles is surely an activity to be feared. What if you delete a service account profile? Your best friend Greg? Such activities are the folley of adventurous Admins.&lt;/p&gt;
-
-&lt;p&gt;By wrapping our dangerous bits in &lt;code&gt;$Pscmdlet.shouldProcess(&amp;quot;The thing I am about to do&amp;quot;)&lt;/code&gt; we can give the Admin a chance to save their skin, and their friendships.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt; if ($pscmdlet.ShouldProcess($activity)) {
-        Write-Verbose &amp;quot;Attempting to $activity&amp;quot;
-        $profile.Delete()       
-    }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Go forth wayward Admin, delete those profiles, watch as you recover untold disk space and make the data gods smile.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Cleanup-UserProfiles-277a8084&#34;&gt;Download Cleanup-UserProfiles.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Paste an array into a variable</title>
-      <link>http://www.wrish.com/post/paste-me-an-array/</link>
-      <pubDate>Thu, 19 Jan 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/paste-me-an-array/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve got a list of values, you want that in an array.&lt;/p&gt;
-
-&lt;p&gt;You could copy it to a file, and import it. You could dump it as a string and split it into an array.. or you could &lt;code&gt;Create-ArrayFromPastedText&lt;/code&gt;.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Create-ArrayFromPastedText ($returnvalue = &amp;quot;&amp;quot;)
-{
-    $result = @()
-    while ($true) {
-        $value = read-host    
-        if ($value -eq $returnvalue){
-            return $result
-        } else {
-            $result += $value
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;You can use it like this&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$MyArray = create-Arrayfrompastedtext
-#Here is a read-host line, just copy and paste your list of computers/users etc
-Item1
-Item2
-Item3
-
-#when you enter an empty line the array closes and returns
-#if you want your array to include empty lines use the -returnvalue paramter to change
-#the value that signifies the end of the array.
-
-#And then just use your array
-$MyArray |?{$_ -match &#39;[13]&#39;}
-Item1
-Item3
-&lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     
   </channel>

@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>PowerShell Oneliners &middot; WRISH</title>
+  <title>Isolate a DC - Part 9: Reset Intraforest trust passwords &middot; WRISH</title>
 
   
   
@@ -208,7 +208,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>PowerShell Oneliners</h1>
+	  <h1>Isolate a DC - Part 9: Reset Intraforest trust passwords</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -217,7 +217,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>17  May 2017</time>
+    <time>12  Jul 2017</time>
   </div>
 
   
@@ -230,9 +230,11 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/forestrecovery">ForestRecovery</a>
     
   </div>
   
@@ -240,59 +242,44 @@
 
 </div>
 
-	  <p>Just a list of useful oneliners for powershell server and AD management
-</p>
+	  
 
-<pre><code class="language-powershell">#Retrieve the PDC AD Object using ADSI
-$PDC = [adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent 
+<p>This is Part 9 of a series on Active Directory Forest recovery; trust no-one, or at least no peer domains.</p>
 
-#PDC name to the clipboard
-([adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent ).dnshostname | clip
+<h2 id="reset-intraforest-trust-passwords">Reset Intraforest trust passwords</h2>
 
-#List all PDCs in the forest (Requires ActiveDirectory powershell module)
-get-adforest | select -expand domains | %{Resolve-DnsName &quot;_ldap._tcp.pdc._msdcs.$_&quot; -Type SRV} | ?{$_.querytype -eq 'A'} | select name,Address
+<p>To avoid accidentally permitting interforest authentication with a Domain Controller that hasn&rsquo;t been restored yet we need to reset the Intra-Forest trust passwords to a common value on both sides. This way the restored domains will all talk with the same hash. Update the trust shared secret to something actually secret before running this command.</p>
 
-#On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
-get-counter -counter '\directoryservices(ntds)\ds security descriptor propagator runtime queue','\directoryservices(ntds)\ds security descriptor propagations events'
+<pre><code class="language-Powershell">function Reset-IntraForestTrustPasswords{
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = 'High')]param([parameter(Mandatory=$true)]
+    [String[]]$trustSharedSecret)
+    $trusts = get-adtrust -filter {intraforest -eq $true}
+    $localdomain = [system.directoryservices.activedirectory.domain]::GetCurrentDomain()
+    Write-Warning &quot;Resetting the Intra-frest Trust passwords will break the Intraforest trusts, the same password must be used to reset the password on the other side to restore trust connectivity&quot;
+    $trusts.name | %{
+        if ($pscmdlet.ShouldProcess($_)){
+            $localdomain.UpdateLocalSideOfTrustRelationship($_,$trustSharedSecret) 
+        }   
+    } 
+}
 
-#Quickly list dnshostname of all DCs in the forest
-(New-Object adsisearcher([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).configurationNamingContext)&quot;,&quot;(objectClass=nTDSDSA)&quot;)).findall() | %{($_.properties.distinguishedname[0] -replace 'cn=NTDS Settings,','')} | %{[adsi]&quot;LDAP://$_&quot;} | select -expand dnshostname
-
-#get the last executed command to the clipboard
-(get-history)[-1].commandline | clip
-
-#Get the last boot time to a date/time object
-wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
-(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
-
-#get the last boot time to the clipboard
-wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
-
-#Create a scheduled task to restart the server in x hours 
-$hours = 1
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $((get-date).addhours($hours).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $((get-date).addhours($hours).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
-
-#Create a scheduled task to restart at a specific date and time
-$date = get-date -hour 21 -minute 30 -day 20
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
-
-#Seize all roles
-$domain = &quot;contoso.com&quot;
-ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q
-
+Reset-IntraForestTrustPasswords -trustSharedSecret &quot;OhWhatASecretySecretThisIs!Somuchsecret&quot;
 </code></pre>
+
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/">Isolate a DC - Part 5: Disable Global Catalog</a>
+      <a href="http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/">Isolate a DC - Part 8: Metadata cleanup all other DCs</a>
     </nav>
     
   </div>
@@ -301,14 +288,8 @@ ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&qu
   </div>
   <div class="pure-u-10-24">
     
-    <nav class="next">
-      <a href="http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/">Isolate a DC - Part 7: Seize all FSMO roles</a>
-    </nav>
-    
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
-    
-    <a href="http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>
