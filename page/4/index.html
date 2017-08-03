@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Cheatsheets &middot; WRISH</title>
+  <title>WRISH</title>
 
   
   
@@ -37,7 +37,7 @@
 
   
   
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/cheatsheets/index.xml" />
+  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/index.xml" />
   
 
   
@@ -104,7 +104,7 @@
 
     
     <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/cheatsheets/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
+      <a class="pure-menu-link" href="http://www.wrish.com/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
     </li>
     
 
@@ -211,20 +211,21 @@
 
 
 <div class="header">
-  <h1>Cheatsheets</h1>
+  <h1>WRISH</h1>
+  <h2>A new corner</h2>
 </div>
 
 <div class="content">
   
     <article>
   <header>
-    <h2><a href="http://www.wrish.com/post/do-it-with-a-command-line/">Do it with the command line</a></h2>
+    <h2><a href="http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/">Oh Damn Side by Side Comparison in Powershell</a></h2>
 
     <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>18  Nov 2016</time>
+    <time>31  Mar 2013</time>
   </div>
 
   
@@ -237,11 +238,7 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/servercore">ServerCore</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>
     
   </div>
   
@@ -252,13 +249,13 @@
   </header>
 
   <p>
-  You&rsquo;ve built a Windows server without the GUI (Server Core only). You&rsquo;re thinking, I use the command line all the time, this will be easy. It won&rsquo;t. This cheat sheet has a few useful bits and pieces on how to configure it.
-#Force Windows Updates (New-Object -ComObject Microsoft.Update.AutoUpdate).DetectNow() #Dump the network interface config (to edit it) netsh interface dump &gt; netcfg.dat #edit the config notepad netcfg.dat #Restore the interface config netsh exec netcfg.
+  I work in Directories, usually lots of them at the same time. Spend a little time comparing the same user in 3 or 4 different directories and you long for a way to show them side by side. The Compare-Object cmdlet is handy for comparing lists of files but actually compare objects it does not!
+You have two or more objects, one works, one does not, you want to find out what is different between the two - this cmdlet is for you!
   </p>
 
   
   <footer>
-    <a href="/post/do-it-with-a-command-line/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+    <a href="/post/oh-damn-side-by-side-comparison-in-powershell/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
   </footer>
   
 </article>
@@ -266,13 +263,13 @@
   
     <article>
   <header>
-    <h2><a href="http://www.wrish.com/post/regex-cheat-sheet/">Powershell Regex cheat sheet</a></h2>
+    <h2><a href="http://www.wrish.com/post/highlight-output/">Highlight-String and Highlight-Output</a></h2>
 
     <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>18  Nov 2016</time>
+    <time>20  Dec 2012</time>
   </div>
 
   
@@ -285,9 +282,7 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+      <a class="post-taxonomy-tag" href="/tags/powershell">powershell</a>
     
   </div>
   
@@ -298,14 +293,33 @@
   </header>
 
   <p>
-  A collection of regex&rsquo;s that I always find myself looking up.
-#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?)&gt;','&lt;cow&gt;' -replace '&lt;/([^/]+?)&gt;','&lt;/cow&gt;' #&lt;cow&gt;MyHeading&lt;/cow&gt; #negative lookbehind ($DistinguishedName -split '(?&lt;!\\),')[1..100] -join ','  
+  You are a Windows Systems Administrator, you trawl through logs, compare datasets, peruse help files and you use PowerShell, but once, you were a Linux System Administrator and you revelled in tools like sed and grep. Perhaps you were looking for a way to replicate the glorious grep &ndash;color command, perhaps you found Wes&rsquo;s Puzzling Blog for Highlighting Strings and What Have You. But for some reason, it didn&rsquo;t quite cut it.
   </p>
 
+  
+  <footer>
+    <a href="/post/highlight-output/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
   
 </article>
 
   
+
+  
+
+
+<nav class="pagination" role="pagination">
+  
+  <a href="/page/3/"><i class="fa fa-chevron-left"></i></a>
+  
+  <span>&nbsp;4 / 4&nbsp;</span>
+  
+  <i class="fa fa-chevron-right"></i>
+  
+</nav>
+
+
+
 </div>
 
 </div>
@@ -316,3 +330,4 @@
 
 </body>
 </html>
+

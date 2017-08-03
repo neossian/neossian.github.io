@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Cheatsheets &middot; WRISH</title>
+  <title>Isolate a DC - Part 2: Reset SYSVOL Sync State &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/cheatsheets/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/cheatsheets/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -210,21 +204,20 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Cheatsheets</h1>
-</div>
 
-<div class="content">
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/do-it-with-a-command-line/">Do it with the command line</a></h2>
+<div class="post">
+	
+	<div class="header">
+	  <h1>Isolate a DC - Part 2: Reset SYSVOL Sync State</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
 
-    <div class="post-meta">
+	  <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>18  Nov 2016</time>
+    <time>1  Aug 2017</time>
   </div>
 
   
@@ -237,11 +230,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/servercore">ServerCore</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>
     
   </div>
   
@@ -249,65 +240,57 @@
 
 </div>
 
-  </header>
+	  
 
-  <p>
-  You&rsquo;ve built a Windows server without the GUI (Server Core only). You&rsquo;re thinking, I use the command line all the time, this will be easy. It won&rsquo;t. This cheat sheet has a few useful bits and pieces on how to configure it.
-#Force Windows Updates (New-Object -ComObject Microsoft.Update.AutoUpdate).DetectNow() #Dump the network interface config (to edit it) netsh interface dump &gt; netcfg.dat #edit the config notepad netcfg.dat #Restore the interface config netsh exec netcfg.
-  </p>
+<p>This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.</p>
 
-  
-  <footer>
-    <a href="/post/do-it-with-a-command-line/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
+<h2 id="reset-your-dfsr-sysvol-state">Reset your DFSR SYSVol State</h2>
 
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/regex-cheat-sheet/">Powershell Regex cheat sheet</a></h2>
+<p>A DC booting into it&rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
+domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&rsquo;ll need to force SYSVOL into a <em>synced</em> state. Not by threatening to put it to bed early, but instead by tweaking its <code>msDFSR-Options</code> on its <code>SYSVol Subscription</code> object.</p>
 
-    <div class="post-meta">
+<pre><code class="language-Powershell">function Reset-SYSVOLSyncState{
+    set-adobject &quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;hostname)).distinguishedname)&quot; -Replace @{'msDFSR-Options'=1}
+    restart-service DFSR
+}
 
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>18  Nov 2016</time>
-  </div>
+Reset-SYSVOLSyncState
+</code></pre>
 
-  
+<p>You can see the other parts of this series here:</p>
 
-  
 
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+    <a href="http://www.wrish.com/post/quickly-get-exchange-online-ips/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
-  
-  
-
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/quickly-get-exchange-online-ips/">Powershell get Exchange Online IP addresses (for Firewall rules)</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+  </div>
 </div>
 
-  </header>
 
-  <p>
-  A collection of regex&rsquo;s that I always find myself looking up.
-#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?)&gt;','&lt;cow&gt;' -replace '&lt;/([^/]+?)&gt;','&lt;/cow&gt;' #&lt;cow&gt;MyHeading&lt;/cow&gt; #negative lookbehind ($DistinguishedName -split '(?&lt;!\\),')[1..100] -join ','  
-  </p>
 
-  
-</article>
+	  
 
-  
+	</div>
 </div>
-
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -316,3 +299,4 @@
 
 </body>
 </html>
+

@@ -3,7 +3,12 @@
   
   <url>
     <loc>http://www.wrish.com/</loc>
-    <lastmod>2017-06-15T23:47:35+00:00</lastmod>
+    <lastmod>2017-08-01T02:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</loc>
+    <lastmod>2017-08-01T02:47:35+00:00</lastmod>
   </url>
   
   <url>
@@ -17,8 +22,23 @@
   </url>
   
   <url>
+    <loc>http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/</loc>
+    <lastmod>2017-05-10T02:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>http://www.wrish.com/post/extracting-objects-from-text-certutil/</loc>
     <lastmod>2017-04-30T23:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password/</loc>
+    <lastmod>2017-04-29T02:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account/</loc>
+    <lastmod>2017-04-23T02:47:35+00:00</lastmod>
   </url>
   
   <url>
@@ -29,6 +49,11 @@
   <url>
     <loc>http://www.wrish.com/post/android-fiddler-hyperv-solution/</loc>
     <lastmod>2017-04-16T23:47:35+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</loc>
+    <lastmod>2017-04-05T02:47:35+00:00</lastmod>
   </url>
   
   <url>

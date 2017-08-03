@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>Cheatsheets &middot; WRISH</title>
+  <title>Isolate a DC - Part 5: Disable Global Catalog &middot; WRISH</title>
 
   
   
@@ -36,8 +36,6 @@
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet" type="text/css">
 
   
-  
-  <link rel="alternate" type="application/rss+xml" title="WRISH" href="http://www.wrish.com/tags/cheatsheets/index.xml" />
   
 
   
@@ -102,10 +100,6 @@
   <div class="pure-menu social">
   <ul class="pure-menu-list">
 
-    
-    <li class="pure-menu-item">
-      <a class="pure-menu-link" href="http://www.wrish.com/tags/cheatsheets/index.xml"><i class="fa fa-rss fa-fw"></i>RSS</a>
-    </li>
     
 
     
@@ -210,21 +204,20 @@
   <div id="main">
 
 
-<div class="header">
-  <h1>Cheatsheets</h1>
-</div>
 
-<div class="content">
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/do-it-with-a-command-line/">Do it with the command line</a></h2>
+<div class="post">
+	
+	<div class="header">
+	  <h1>Isolate a DC - Part 5: Disable Global Catalog</h1>
+	  <h2></h2>
+	</div>
+	<div class="content">
 
-    <div class="post-meta">
+	  <div class="post-meta">
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>18  Nov 2016</time>
+    <time>10  May 2017</time>
   </div>
 
   
@@ -237,11 +230,9 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/servercore">ServerCore</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>
     
   </div>
   
@@ -249,65 +240,70 @@
 
 </div>
 
-  </header>
+	  
 
-  <p>
-  You&rsquo;ve built a Windows server without the GUI (Server Core only). You&rsquo;re thinking, I use the command line all the time, this will be easy. It won&rsquo;t. This cheat sheet has a few useful bits and pieces on how to configure it.
-#Force Windows Updates (New-Object -ComObject Microsoft.Update.AutoUpdate).DetectNow() #Dump the network interface config (to edit it) netsh interface dump &gt; netcfg.dat #edit the config notepad netcfg.dat #Restore the interface config netsh exec netcfg.
-  </p>
+<p>This is Part 5 of a series on Active Directory Forest recovery which requires brining up restored DCs in their own network; bring them up with good manners and we all benefit.</p>
 
-  
-  <footer>
-    <a href="/post/do-it-with-a-command-line/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
-  </footer>
-  
-</article>
+<h2 id="disable-global-catalog">Disable Global Catalog</h2>
 
-  
-    <article>
-  <header>
-    <h2><a href="http://www.wrish.com/post/regex-cheat-sheet/">Powershell Regex cheat sheet</a></h2>
+<p>Now this step is strictly for Multi-Domain Forest recoveries. If your domains replicate cross domain boundaries, they&rsquo;ll start complaining about their USNs and nobody wants that. If you&rsquo;ve got yourself a nice simple single Domain environment, don&rsquo;t sweat it and move on your Global Catalog can merrily sing into the night air without anybody noticing.</p>
 
-    <div class="post-meta">
+<p>I mentioned in <a href="/post/isolate-dc-pt3-activate-administrator-account">Part 3: Activate Administrator Account</a> that only the Administrator could login with the Global Catalog missing, that isn&rsquo;t strictly true. This function will disable the GC on the local server, but also configure <code>IgnoreGCFailures</code> which conveniently allows anyone to login without a GC! Hurrah for workarounds, just be aware that your login will not include any Universal Group SIDS (because they are in the Global Catalog) which means that <insert wooping siren sounds> there is a possible vulnerability for bypassing Deny permissions set on Universal Groups.</p>
 
-  <div>
-    <i class="fa fa-calendar fa-fw"></i>
-    <time>18  Nov 2016</time>
-  </div>
+<pre><code class="language-Powershell">function Disable-GC {
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = 'High')]param()
+    if ($pscmdlet.ShouldProcess($(&amp;hostname))){
+        Write-verbose &quot;Disabling Global Catalog on local server&quot;    
+        repadmin.exe /options $(&amp;hostname) –IS_GC 
+        Write-Verbose &quot;Setting IgnoreGCFailures so that normal user accounts can login without GC&quot;
+        Write-Warning &quot;With IgnoreGCFailures enabled, permissions granted using Universal Groups including deny permissions will not be honoured&quot;
+        set-itemproperty -path &quot;HKLM:SYSTEM\CurrentControlSet\Control\Lsa&quot; -Name IgnoreGCFailures -Value 1 
+    }
+}
 
-  
+Disable-GC
+</code></pre>
 
-  
 
-  
-  
-  
-  <div>
-    <i class="fa fa-tags fa-fw"></i>
+	  
+<div class="prev-next-post pure-g">
+  <div class="pure-u-1-24" style="text-align: left;">
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
-    
-      <a class="post-taxonomy-tag" href="/tags/cheatsheets">CheatSheets</a>
+    <a href="http://www.wrish.com/post/extracting-objects-from-text-certutil/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
-  
-  
-
+  <div class="pure-u-10-24">
+    
+    <nav class="prev">
+      <a href="http://www.wrish.com/post/extracting-objects-from-text-certutil/">Extracting objects from commands that output text</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-2-24">
+    &nbsp;
+  </div>
+  <div class="pure-u-10-24">
+    
+    <nav class="next">
+      <a href="http://www.wrish.com/post/powershell-oneliners/">PowerShell Oneliners</a>
+    </nav>
+    
+  </div>
+  <div class="pure-u-1-24" style="text-align: right;">
+    
+    <a href="http://www.wrish.com/post/powershell-oneliners/"><i class="fa fa-chevron-right"></i></a>
+    
+  </div>
 </div>
 
-  </header>
 
-  <p>
-  A collection of regex&rsquo;s that I always find myself looking up.
-#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?)&gt;','&lt;cow&gt;' -replace '&lt;/([^/]+?)&gt;','&lt;/cow&gt;' #&lt;cow&gt;MyHeading&lt;/cow&gt; #negative lookbehind ($DistinguishedName -split '(?&lt;!\\),')[1..100] -join ','  
-  </p>
 
-  
-</article>
+	  
 
-  
+	</div>
 </div>
-
 </div>
 </div>
 <script src="http://www.wrish.com/js/ui.js"></script>
@@ -316,3 +312,4 @@
 
 </body>
 </html>
+

@@ -6,8 +6,35 @@
     <description>Recent content on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <lastBuildDate>Thu, 15 Jun 2017 23:47:35 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 01 Aug 2017 02:47:35 +0000</lastBuildDate>
     <atom:link href="http://www.wrish.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Isolate a DC - Part 2: Reset SYSVOL Sync State</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</link>
+      <pubDate>Tue, 01 Aug 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</guid>
+      <description>
+
+&lt;p&gt;This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.&lt;/p&gt;
+
+&lt;h2 id=&#34;reset-your-dfsr-sysvol-state&#34;&gt;Reset your DFSR SYSVol State&lt;/h2&gt;
+
+&lt;p&gt;A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
+domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a &lt;em&gt;synced&lt;/em&gt; state. Not by threatening to put it to bed early, but instead by tweaking its &lt;code&gt;msDFSR-Options&lt;/code&gt; on its &lt;code&gt;SYSVol Subscription&lt;/code&gt; object.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-SYSVOLSyncState{
+    set-adobject &amp;quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;amp;hostname)).distinguishedname)&amp;quot; -Replace @{&#39;msDFSR-Options&#39;=1}
+    restart-service DFSR
+}
+
+Reset-SYSVOLSyncState
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can see the other parts of this series here:&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Powershell get Exchange Online IP addresses (for Firewall rules)</title>
@@ -99,6 +126,40 @@ $domain = &amp;quot;contoso.com&amp;quot;
 ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $domain&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
 
 &lt;/code&gt;&lt;/pre&gt;</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 5: Disable Global Catalog</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/</link>
+      <pubDate>Wed, 10 May 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/</guid>
+      <description>
+
+&lt;p&gt;This is Part 5 of a series on Active Directory Forest recovery which requires brining up restored DCs in their own network; bring them up with good manners and we all benefit.&lt;/p&gt;
+
+&lt;h2 id=&#34;disable-global-catalog&#34;&gt;Disable Global Catalog&lt;/h2&gt;
+
+&lt;p&gt;Now this step is strictly for Multi-Domain Forest recoveries. If your domains replicate cross domain boundaries, they&amp;rsquo;ll start complaining about their USNs and nobody wants that. If you&amp;rsquo;ve got yourself a nice simple single Domain environment, don&amp;rsquo;t sweat it and move on your Global Catalog can merrily sing into the night air without anybody noticing.&lt;/p&gt;
+
+&lt;p&gt;I mentioned in &lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt; that only the Administrator could login with the Global Catalog missing, that isn&amp;rsquo;t strictly true. This function will disable the GC on the local server, but also configure &lt;code&gt;IgnoreGCFailures&lt;/code&gt; which conveniently allows anyone to login without a GC! Hurrah for workarounds, just be aware that your login will not include any Universal Group SIDS (because they are in the Global Catalog) which means that &lt;insert wooping siren sounds&gt; there is a possible vulnerability for bypassing Deny permissions set on Universal Groups.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Disable-GC {
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]param()
+    if ($pscmdlet.ShouldProcess($(&amp;amp;hostname))){
+        Write-verbose &amp;quot;Disabling Global Catalog on local server&amp;quot;    
+        repadmin.exe /options $(&amp;amp;hostname) –IS_GC 
+        Write-Verbose &amp;quot;Setting IgnoreGCFailures so that normal user accounts can login without GC&amp;quot;
+        Write-Warning &amp;quot;With IgnoreGCFailures enabled, permissions granted using Universal Groups including deny permissions will not be honoured&amp;quot;
+        set-itemproperty -path &amp;quot;HKLM:SYSTEM\CurrentControlSet\Control\Lsa&amp;quot; -Name IgnoreGCFailures -Value 1 
+    }
+}
+
+Disable-GC
+&lt;/code&gt;&lt;/pre&gt;
+</description>
     </item>
     
     <item>
@@ -205,6 +266,72 @@ function get-CATemplatesAvailableToIssue ($CA) {
     </item>
     
     <item>
+      <title>Isolate a DC - Part 4: Reset DSRM Password</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password/</link>
+      <pubDate>Sat, 29 Apr 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password/</guid>
+      <description>
+
+&lt;p&gt;This is Part 4 of a multi part blog post on Domain Recovery and DC Isolation with the aid of Powershell in todays installment we learn that Directory Services Restore Mode (DSRM) is not actually needed to perform a full forest recovery.&lt;/p&gt;
+
+&lt;h2 id=&#34;reset-dsrm-password&#34;&gt;Reset DSRM Password&lt;/h2&gt;
+
+&lt;p&gt;Another typically unnecessary step is getting your hands on your DSRM password - if you don&amp;rsquo;t already have it. DSRM password is only used in DSRM mode, which you don&amp;rsquo;t need for this fun exercise, but why not have it just in case!&lt;/p&gt;
+
+&lt;p&gt;Now this step is not really Powershell, and not really automated, if you wanted to do the later you could probably create an account, set its password, and then sync the password to the DSRM Administrator account, but I wasn&amp;rsquo;t feeling that energetic this morning. So just type your password a couple of times and be done with it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-DSRMPassword (){
+    Write-verbose &amp;quot;Calling NTDSUtil to reset the DSRM password on the local server&amp;quot;
+    ntdsutil &amp;quot;set DSRM Password&amp;quot; &amp;quot;Reset Password on Server NULL&amp;quot; q q
+}
+
+Reset-DSRMPassword
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 3: Activate Administrator Account</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account/</link>
+      <pubDate>Sun, 23 Apr 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account/</guid>
+      <description>
+
+&lt;p&gt;This is Part 3 of a multi part blog post automating AD Forest Recovery, take your forest to rehab, sit it down and force it not to have any AD corruption.&lt;/p&gt;
+
+&lt;h2 id=&#34;activate-administrator-account&#34;&gt;Activate Administrator Account&lt;/h2&gt;
+
+&lt;p&gt;Now I am not one for a false sense of security, but people building environments that I support are. That is why, more often than not, the Administrator account is renamed, the password is divided in 2 and stored at different ends of the earth, one under the 6 watchful eyes of Cerberus the other stuffed in a filing cabinet lost to the ages. Of course, one day you will need to promote a DC, or do a Schema change and so you have people with Domain Admin accounts. However, the Administrator account is the only one that can login if you don&amp;rsquo;t have a Global Catalog available&amp;hellip; so&amp;hellip; just in case, lets make all that skullduggery moot by ressurecting that Administrator account.&lt;/p&gt;
+
+&lt;p&gt;This script will devine your Admin account Samaccountname with nothing but two sticks and a well known SID. Ensure it is enabled, and set its password to something easy to remember that is conveniently printed to the screen.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Activate-AdminAccount{
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]
+    param($PlainTextPassword)
+        
+    #Identify and enable the Admin account (note that password will be reset)
+    $domainObj = get-addomain 
+    $AdminAccount = ([ADSI]&amp;quot;LDAP://&amp;lt;SID=$($domainObj.Domainsid)-500&amp;gt;&amp;quot;).distinguishedname[0]
+    Write-Verbose &amp;quot;AD Admin account located $AdminAccount&amp;quot;    
+    get-aduser $AdminAccount -properties Samaccountname  |fl Samaccountname,@{l=&#39;Password&#39;;e={$PlainTextPassword}}     
+    if ($pscmdlet.ShouldProcess($adminAccount)){
+        Write-verbose &amp;quot;Activating $AdminAccount and resetting password to $plainTextPassword&amp;quot;
+        $password = (ConvertTo-SecureString -AsPlainText $plainTextPassword -Force) 
+        set-adaccountpassword -Identity &amp;quot;$($domainObj.Domainsid)-500&amp;quot; -reset -newpassword $password
+        set-aduser $AdminAccount -Enabled $true
+    }    
+} 
+
+Activate-AdminAccount -plainTextPassword &amp;quot;ThisIsTheMostC0mplexPasswordICou1dThinkOf&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>import-svclog to import SVCLOG files</title>
       <link>http://www.wrish.com/post/use-powershell-to-open-svclog-files/</link>
       <pubDate>Tue, 18 Apr 2017 23:47:35 +0000</pubDate>
@@ -280,6 +407,49 @@ dir | import-svclog | out-gridView
 &lt;li&gt;Install the root certificate&lt;/li&gt;
 &lt;li&gt;Start troubleshooting&lt;/li&gt;
 &lt;/ul&gt;</description>
+    </item>
+    
+    <item>
+      <title>Isolate a DC - Part 1: Configure the Network</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</link>
+      <pubDate>Wed, 05 Apr 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</guid>
+      <description>
+
+&lt;p&gt;Dragging a single Domain Controller by its nostril into an isolated network can be time consuming. For testing or disaster recovery, the steps are the same, and while well documented almost everywhere, there don&amp;rsquo;t seem to be any quick and dirty tools to do the steps for you. That is why I wrote this series of powershell functions that can be applied to a DC you have restored in your Virtual environment to get your test Forest up and running quickly.&lt;/p&gt;
+
+&lt;p&gt;Note that all these functions are design to work in Windows 2012 R2 or higher, and while they&amp;rsquo;ve been tested, they are designed to do serious damage to your test environment and should never be used in production.&lt;/p&gt;
+
+&lt;h2 id=&#34;configure-the-network&#34;&gt;Configure the Network&lt;/h2&gt;
+
+&lt;p&gt;Configure the network card of your restored Domain Controller such that it points only to itself for DNS. Your Domain Controller needs to be able to locate itself when it is starting up to become healthy. So DNS and the network stack need to be operational. Make sure your Network is not connected externally. Having multiple DCs communicating on the same Name/IP Address/Domain Enviornment is unhealthy for your long term career prospects.&lt;/p&gt;
+
+&lt;p&gt;You&amp;rsquo;ll need to know your desired IP and subnet mask.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function ConfigureDCNetwork {
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]    
+    param([parameter(mandatory=$true,
+    HelpMessage=&amp;quot;Enter the IP Address this server will use&amp;quot;)][ValidatePattern(&#39;\b(?:\d{1,3}\.){3}\d{1,3}\b&#39;)][string]$IPAddress,
+    [parameter(mandatory=$true,HelpMessage=&amp;quot;Enter the number of bits in the subnet mask eg 24 = 255.255.255.0&amp;quot;)][ValidateRange(2,30)]$CIDRSubnet,
+    [parameter(mandatory=$true,HelpMessage=&amp;quot;Enter the default gateway IP address&amp;quot;)][ValidatePattern(&#39;\b(?:\d{1,3}\.){3}\d{1,3}\b&#39;)][string]$DefaultGateway)
+    Write-Warning &amp;quot;Changing the IP address may result in lost network connectivity - ensure you have console access to this host&amp;quot;
+    if ($pscmdlet.ShouldProcess($(&amp;amp;hostname))){  
+        $netadapter = Get-NetAdapter | select -first 1
+        Write-verbose &amp;quot;Disabling DHCP on first interface&amp;quot;
+        $netadapter | Set-NetIPInterface -DHCP Disabled
+        Write-verbose &amp;quot;Configuring Network Address and default gateway&amp;quot;
+        $netadapter | New-NetIPAddress -AddressFamily IPv4 -IPAddress $IPAddress -PrefixLength $CIDRSubnet -Type Unicast -DefaultGateway $DefaultGateway
+        Write-Verbose &amp;quot;Pointing Domain Controller at self for DNS&amp;quot;
+        Set-DnsClientServerAddress -InterfaceAlias $netadapter.Name -ServerAddresses $IPAddress  
+    }
+}
+#                 IP Address  Prefix Default Gateway
+ConfigureDCNetwork 192.168.1.10 24 192.168.1.1
+&lt;/code&gt;&lt;/pre&gt;
+</description>
     </item>
     
     <item>
@@ -584,297 +754,6 @@ $MyArray |?{$_ -match &#39;[13]&#39;}
 Item1
 Item3
 &lt;/code&gt;&lt;/pre&gt;</description>
-    </item>
-    
-    <item>
-      <title>Check if Office 365 has Your Updated ADFS Certificates</title>
-      <link>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</link>
-      <pubDate>Sun, 15 Jan 2017 11:42:35 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/check-adfs-certificates-with-office365-configuration/</guid>
-      <description>&lt;p&gt;Download it here &lt;a href=&#34;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&#34;&gt;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;This script has probably lived its useful life, but I&amp;rsquo;m sharing it anyway, because.. well why not!&lt;/p&gt;
-
-&lt;p&gt;When you want to quickly check to see if your published federation metadata (containing your ADFS token signing certificates) exists on Office 365 you can use &lt;code&gt;Get-MsolFederationProperty&lt;/code&gt; that&amp;rsquo;s great if you have one domain.. but what if you have 25 or 50.&lt;/p&gt;
-
-&lt;p&gt;Create a profile on your ADFS servers&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;notepad $profile.alluserscurrenthost
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Copy and paste this into the profile and click save&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Check-ADFSFederationForAllDomains {
-    
-    get-msoldomain | ?{$_.authentication -eq &amp;quot;Federated&amp;quot; -and !$_.rootDomain } | %{
-        Write-host Processing $_.Name
-        $SETUP = Get-MsolFederationProperty –DomainName $_.Name
-        if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
-            Write-host $_.Name &amp;quot;Token Signing and Next Token Signing Certificates Match&amp;quot; -ForegroundColor Green      
-         } else {
-            Write-host $_.Name &amp;quot;Token Signing and/or Next Token Signing Certificates DO NOT Match&amp;quot; -ForegroundColor REd    
-         }
-      } 
-}
-write-host &#39;Check-ADFSFederationForAllDomains&#39;
-
-Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
-    
-    get-msoldomain | ?{$_.authentication -eq &amp;quot;Federated&amp;quot; -and !$_.rootDomain } | %{
-        Write-host Processing $_.Name
-        Update-MsolFederatedDomain –DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
-       
-      } 
-}
-Write-Host &#39;Update-ADFSFederationForAllDomains&#39; 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now when the time comes to check just run &lt;code&gt;Check-ADFSFederationForAllDomains&lt;/code&gt; followed by &lt;code&gt;Update-ADFSFedrationForAllDomains&lt;/code&gt; if you need to update.&lt;/p&gt;
-
-&lt;p&gt;Download it here &lt;a href=&#34;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&#34;&gt;https://gallery.technet.microsoft.com/Check-and-Update-ADFS-3f27ee5e&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Generate an SHA-1 signed certificate after cutover to SHA-2</title>
-      <link>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</link>
-      <pubDate>Wed, 04 Jan 2017 23:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/switch-ms-pki-back-to-sha1/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve finally made the switch on your Microsoft AD CS PKI infrastructure to SHA2 (SHA256)&amp;hellip; but there is always one.&lt;/p&gt;
-
-&lt;p&gt;One outlier application that won&amp;rsquo;t accept an SHA-2 certificate and needs an SHA1 certificate to keep chugging for 1 more year.&lt;/p&gt;
-
-&lt;p&gt;Don&amp;rsquo;t worry, you can switch your Active Directory Certificate Services PKI infrastructure back to SHA-1 for a little bit.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA1
-restart-service certsvc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now issue your certificate, and switch back.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;certutil -setreg ca\csp\CNGHashAlgorithm SHA256
-restart-service certsvc
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Note that only the leaf certificate will be SHA1, your chain will still be SHA2 - if your application can&amp;rsquo;t handle that then it is out of luck.&lt;/p&gt;
-
-&lt;p&gt;There is a small chance that some auto-enrolled certificate ALSO got issued with an SHA1 certificate. So you can run a quick query to see all the certificates that were issued in the last hour&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;certutil -restrict &amp;quot;SubmittedWhen &amp;gt;= now-00:01, Disposition = 20&amp;quot; -view  csv | ConvertFrom-Csv | fl &amp;quot;Request Submission Date&amp;quot;,&amp;quot;Requester Name&amp;quot;,&amp;quot;Issued Common Name&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;If you were unlucky and a certificate was issued while you were in SHA1 you may want to go and renew it again.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Hosting for free with GitHub Pages using Windows (with custom domain)</title>
-      <link>http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/</link>
-      <pubDate>Thu, 29 Dec 2016 17:47:35 +0000</pubDate>
-      
-      <guid>http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/</guid>
-      <description>
-
-&lt;p&gt;I am unashamedly cheap. Here is how to host your personal website for no cost on github pages running on a windows platform.&lt;/p&gt;
-
-&lt;h2 id=&#34;install-a-git-client&#34;&gt;Install a GIT client&lt;/h2&gt;
-
-&lt;p&gt;There are lots - I chose the one that came up first in a Google search and haven&amp;rsquo;t tried any others.
-Download &lt;a href=&#34;https://git-scm.com/download/win&#34;&gt;Git For Windows&lt;/a&gt;
-Run &lt;em&gt;Git-2.xx.x-64-bit.exe&lt;/em&gt; that you just downloaded and install setting the following options&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Use Git from the Windows Command Prompt (default)&lt;/li&gt;
-&lt;li&gt;Checkout as-is, commit as-is (not default)&lt;/li&gt;
-&lt;li&gt;Everything else default&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Choosing the second item just means you will see less verbose output if you are using a Windows only environment.&lt;/p&gt;
-
-&lt;h2 id=&#34;sign-up-for-a-github-account&#34;&gt;Sign up for a GitHub account&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Go here &lt;a href=&#34;https://github.com/&#34;&gt;https://github.com/&lt;/a&gt; and follow the bouncing ball to create your account, mine is &lt;em&gt;wrish&lt;/em&gt; wherever I use &lt;em&gt;wrish&lt;/em&gt; replace it with your chosen name.&lt;/li&gt;
-&lt;li&gt;Choose the free option (obviously).&lt;/li&gt;
-&lt;li&gt;Verify your email address&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;create-your-website-repository&#34;&gt;Create your website repository&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Click &lt;em&gt;Start a Project&lt;/em&gt; to create a new repository&lt;/li&gt;
-&lt;li&gt;Enter the repository name as &lt;em&gt;wrish&lt;/em&gt;.github.io &amp;#8592; replace &lt;em&gt;wrish&lt;/em&gt; with your username&lt;/li&gt;
-&lt;li&gt;Click &lt;em&gt;Create Repository&lt;/em&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;upload-your-first-bits-and-pieces&#34;&gt;Upload your first bits and pieces&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;On your Windows workstation with Git installed, open a command prompt&lt;br /&gt;&lt;/li&gt;
-&lt;li&gt;Create your base folder&lt;br&gt;
-&lt;code&gt;md c:\website\www.wrish.com&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;cd c:\website\www.wrish.com&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Add a &lt;code&gt;robots.txt&lt;/code&gt; file (allow search engines to scan) and a &lt;code&gt;CNAME&lt;/code&gt; file (replace www.wrish.com with your custom domain)&lt;br&gt;
-&lt;code&gt;echo www.wrish.com &amp;gt; CNAME&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;echo User-agent: * &amp;gt; robots.txt&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;echo Disallow: &amp;gt;&amp;gt; robots.txt&lt;/code&gt;&lt;br&gt;&lt;/li&gt;
-&lt;li&gt;Here is where you copy your &lt;code&gt;index.html&lt;/code&gt; and other files into &lt;code&gt;c:\website\www.wrish.com&lt;/code&gt; or just create a placeholder index.html&lt;br&gt;
-&lt;code&gt;echo Hello World &amp;gt; index.html&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Init a Git database in the current folder (note if you get an error here, Git4Windows isn&amp;rsquo;t installed/working)&lt;br&gt;
-&lt;code&gt;git init&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git config --global credential.helper wincred&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git config user.name wrish&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Add your first commit (replace &lt;em&gt;wrish&lt;/em&gt; with your username)&lt;br&gt;
-&lt;code&gt;git add index.html CNAME robots.txt&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git commit -m &amp;quot;first commit&amp;quot;&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git remote add origin https://github.com/wrish/wrish.github.io.git&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git push -u origin master&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;At this point you will be prompted for your Git username and password and git should be notified that a new &lt;em&gt;branch&lt;/em&gt; called &lt;em&gt;master&lt;/em&gt; was created.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/github-success.png&#34; alt=&#34;Branch master set up to track remote branch master from origin&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can also browse to your website &lt;a href=&#34;https://wrish.github.io&#34;&gt;https://wrish.github.io&lt;/a&gt; and you should see Hello World or your content.&lt;/p&gt;
-
-&lt;h2 id=&#34;create-a-cname-to-make-your-website-work&#34;&gt;Create a CNAME to make your website work&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;If you don&amp;rsquo;t already have a custom domain, you will need to purchase one&lt;/li&gt;
-&lt;li&gt;Log into your DNS provider and create a CNAME records (alias) pointing to your Github Website (Don&amp;rsquo;t use a wildcard alias)&lt;br&gt;
-&lt;code&gt;WWW CNAME wrish.github.io&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Test it out! &lt;a href=&#34;http://www.wrish.com&#34;&gt;http://www.wrish.com&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Ok, so now you have a website, but you need to update it. It involves a few commands that, frankly, I don&amp;rsquo;t understand, so just create a batch file &lt;code&gt;Publish.bat&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;cd c:\website\www.wrish.com 
-git add * 
-git commit -m &amp;quot;Scripted Publish %date%&amp;quot; 
-git push origin master 
-pause 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now all it takes is a double click and anything you add to &lt;code&gt;c:\website\www.wrish.com&lt;/code&gt; will be uploaded.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Office 365 - Convert between Immutable ID and AD Object </title>
-      <link>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</link>
-      <pubDate>Thu, 22 Dec 2016 20:53:49 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</guid>
-      <description>&lt;p&gt;Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;
-function get-ImmutableIDfromADObject
-{
-    [CmdletBinding()] Param(
-        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ADObject) 
-   process{ 
-        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid}
-        [system.convert]::ToBase64String($ADObject.objectguid.tobytearray())
-    }
-}
-
-function get-ADObjectFromImmutableID{
-      [CmdletBinding()] Param(
-        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$ImmutableID)
-   process { get-adobject  ([guid]([system.convert]::FromBase64String($ImmutableID)))}
-}
-
-&amp;lt;#
-get-aduser shane.wright | get-ImmutableIDfromADObject
-6WuADX7LfUa8DVAQGxuZcA==
-
-get-aduser shane.wright | get-ImmutableIDfromADObject | get-ADObjectFromImmutableID
-
-DistinguishedName                          Name         ObjectClass ObjectGUID                          
------------------                          ----         ----------- ----------                          
-CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
-
-
-get-ADObjectFromImmutableID 6WuADX7LfUa8DVAQGxuZcA==
-DistinguishedName                          Name         ObjectClass ObjectGUID                          
------------------                          ----         ----------- ----------                          
-CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
-#&amp;gt;
-
-&lt;/code&gt;&lt;/pre&gt;</description>
-    </item>
-    
-    <item>
-      <title>List all of a users group memberships</title>
-      <link>http://www.wrish.com/post/list-all-nested-memberships/</link>
-      <pubDate>Mon, 19 Dec 2016 19:54:49 -0500</pubDate>
-      
-      <guid>http://www.wrish.com/post/list-all-nested-memberships/</guid>
-      <description>
-
-&lt;p&gt;Download the script &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-nested-group-e9ce3687&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Auditing user access is hard, usually you audit from resource out - eg, finding all Domain Admins, or finding all users with full acecss to &lt;em&gt;SecretShare$&lt;/em&gt; share on &lt;em&gt;SecretServer01&lt;/em&gt;. But occasionally want to audit from user out.. this is hard.. even impossible (if you have a very big environment). Lets talk about the first step &lt;em&gt;Enumerating Nested Groups&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id=&#34;token-groups&#34;&gt;Token Groups&lt;/h2&gt;
-
-&lt;p&gt;Each user has a constructed attribute called &lt;a href=&#34;https://msdn.microsoft.com/en-us/library/ms680275(v=vs.85).aspx&#34;&gt;&lt;code&gt;tokengroups&lt;/code&gt;&lt;/a&gt; that returns a list of all transitive group memberships. You can query &lt;a href=&#34;https://msdn.microsoft.com/en-us/library/ms680275(v=vs.85).aspx&#34;&gt;&lt;code&gt;tokengroups&lt;/code&gt;&lt;/a&gt; using &lt;code&gt;get-adobject&lt;/code&gt; like this&amp;hellip;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt;$userDN = &#39;CN=Tom,OU=sales,DC=wrish,DC=com&#39;
-get-adobject -SearchBase $userDN -SearchScope Base -Properties TokenGroups  -filter *
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&amp;hellip; but there are a couple of problems, you get back SIDs and only SIDs, that means no &lt;em&gt;Distribution Only&lt;/em&gt; groups and you have to manually convert them into objects or DNs if you want useful visual reporting. You can do that pretty easily (but slowly) like this&amp;hellip;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function get-TokenGroups ($objectDN) {
-    $ADObject = get-adobject -SearchBase $objectDN -SearchScope Base -Properties TokenGroups  -filter *
-    foreach ($Sid in $ADObject.tokengroups){
-        ([ADSI]&amp;quot;LDAP://&amp;lt;SID=$SID&amp;gt;&amp;quot;).distinguishedname
-    }       
-}
-get-TokenGroups  &#39;CN=Tom,OU=sales,DC=wrish,DC=com&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&amp;hellip; also, some groups are missing in a multi-domain environment - &lt;em&gt;Domain Local&lt;/em&gt; groups in remote domains. &lt;em&gt;Domain Local&lt;/em&gt; group memberships aren&amp;rsquo;t replicated to the &lt;em&gt;Global Catalog&lt;/em&gt;, so the GC doesn&amp;rsquo;t add them to the tokengroups value when queried.&lt;/p&gt;
-
-&lt;h2 id=&#34;memberof-evaluation&#34;&gt;MemberOf Evaluation&lt;/h2&gt;
-
-&lt;p&gt;Each user has a &lt;code&gt;MemberOf&lt;/code&gt; attribute which you can query recursively to get at all those juicy remote domain groups. There are plenty of examples of these scripts available they usually commit the various sins of PowerShelling like &lt;a href=&#34;https://gallery.technet.microsoft.com/Export-nested-groups-of-36e761f1&#34;&gt;exporting to csv&lt;/a&gt; or &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-nested-group-15f725f2&#34;&gt;not generating objects at all&lt;/a&gt; or a &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-ADUserNestedGroupMember-d39bb04d&#34;&gt;particularly good one that even outputs some nice verbose info&amp;hellip; but breaks when group memberships traverse domains&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;They are also all incredibly complicated, sigh.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function EnumerateMemberOf($Object, $ResultSoFar=@())
-{ 
-#Helper function to walk $object&#39;s memberof attribute and list out all group memberships    
-    if ($object.memberof){
-        $Results =  @();        
-        foreach ($group in $Object.memberof){
-            #prevent nesting loops trapping by checking to make sure the group hasn&#39;t been searched already
-            if ($ResultSoFar -notcontains $Group) {
-                #Bind directly to the group with ADSI - this will automatically follow referrals and work with 
-                #multi domain forests
-                $TempGroup = [ADSI]&amp;quot;LDAP://$Group&amp;quot; ;
-                $ResultSoFar += $Group.ToString();
-                #Enumerate the next level of memberof
-                $Results += EnumerateMemberOf $TempGroup $ResultSoFar ;
-                $Results += $Group;
-            }            
-         }
-        return $Results
-    } 
-}
-
-function get-ADNestedMembership ($Identity) 
-    $ADuser = get-aduser $Identity -Properties memberof,distinguishedname,primaryGroup
-    write-output (new-object psobject -property @{distinguishedname=$aduser.distinguishedname;&#39;NestedMemberOf&#39;=(@(enumerateMemberof $ADuser)+(enumerateMemberof (get-adgroup $AdUser.primaryGroup -properties memberof)))})
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;For the advanced functions (with pipline goodness) you&amp;rsquo;ll need to download it &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-nested-group-e9ce3687&#34;&gt;https://gallery.technet.microsoft.com/Get-nested-group-e9ce3687&lt;/a&gt;.&lt;/p&gt;
-</description>
     </item>
     
   </channel>

@@ -1,11 +1,11 @@
-$ProfileVersion = "1.28"
+$ProfileVersion = "1.31"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
  md (split-path $profile.CurrentUserAllHosts) | out-null
  notepad $profile.currentUserallhosts
-
  . $profile.currentuserallhosts
+
 md (split-path $profile.CurrentUserAllHosts) | out-null
  invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
   . $profile.currentuserallhosts
@@ -30,10 +30,10 @@ function TryCopyProfile {
     }
 }
 
+
 function Change-Password ($domain,$samaccountname,$oldPassword,$newpassword){
 ([adsi]"WinNT://$domain/$samaccountname,user").ChangePassword($oldPassword,$newpassword)
 }
-
 
 function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
 <#
@@ -258,6 +258,7 @@ Version 1.3 updated to add some additional UAC filters
 
 
 
+
 function Import-SVCLog {
  [cmdletbinding()]
     Param (
@@ -270,12 +271,6 @@ function Import-SVCLog {
        }
     }
 }
-
-function list-ProfileFunctions ($regex='^###########$') {
-    get-content $profile.currentuserAllhosts | select-string "^function|^New-Alias" |%{$_ -replace '^function|^New-Alias','' -replace '\{.*',''}| sort | ho $regex
-}
-New-Alias lf list-ProfileFunctions
-Write-HOst lf list-ProfileFunctions
 
 function Schedule-Restart ($ondatetime,$hour,$minute,$day,$inHours,$inMinutes,$inDays){
     $date = $null
@@ -298,8 +293,15 @@ function Schedule-Restart ($ondatetime,$hour,$minute,$day,$inHours,$inMinutes,$i
     schtasks /Create /RU "NT AUTHORITY\SYSTEM" /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR "%windir%\system32\Shutdown.exe /r /t 10" /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
 }
 
+function list-ProfileFunctions ($regex='^###########$') {
+    get-content $profile.currentuserAllhosts | select-string "^function|^New-Alias" |%{$_ -replace '^function|^New-Alias','' -replace '\{.*',''}| sort | ho $regex
+}
+New-Alias lf list-ProfileFunctions
+Write-HOst lf list-ProfileFunctions
+
+
 #Get a new Secure Credential and store it in encrypted format to a file
-Function Stored-Credential($name, [switch]$New, [switch]$check)
+Function Stored-Credential($name, [switch]$New, [switch]$check, $userName="")
 {
    $pathToCred = $env:userprofile + "\$name.securecredential"
     if ($check) {
@@ -313,7 +315,7 @@ Function Stored-Credential($name, [switch]$New, [switch]$check)
     } else
     {
         #Get the credential from the user
-        $Credential = get-credential -Message "Enter credential to be stored for $name";
+        $Credential = get-credential -Message "Enter credential to be stored for $name" -UserName $username;
         
         #Create a simple object
         $XMLCredential = new-object psobject -Property @{
@@ -503,7 +505,7 @@ http://www.wrish.com
 {
   param (
      $Properties = "*",
-     $NameProperty = @("displayName","userprincipalname","samaccountname","*name"),     
+     $NameProperty = @("Name","displayName","userprincipalname","samaccountname","*name"),     
      $excludedProperties = $null,
      [switch]$Differences
   )
@@ -575,16 +577,8 @@ http://www.wrish.com
     End{
         #return the transformed object
         if($Differences -and $CObject.length -gt 1 -and (get-member -inputobject $CObject[0] -memberType NoteProperty).length -gt 2){
-            foreach ($row in $CObject){
-                $Objs = get-member -inputobject $row -memberType NoteProperty;
-                $value = "!!!!NOTHING!!!!!"
-                foreach ($member in $objs){
-                    if ($member.name -ne "Property" -and $row.$($member.name) -ne $value -and $value -ne "!!!!NOTHING!!!!!"){ $row; break;} 
-                    elseif($member.name -eq "Property") {}
-                    else {$value = $row.$($member.name);}
-                }             
-            }
-            
+            $Objs = $CObject[0] | get-member -memberType NoteProperty | ?{$_.name -ne 'Property'} | select -expand Name;            
+            $CObject | ?{$row = $_; ($Objs | foreach-object {$row.$_}| select -unique | measure).count -gt 1}            
         } else {
             $CObject    
         }
@@ -633,7 +627,6 @@ Function Port-Ping {
 
 Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous,$waitTimeMilliseconds=300,$maxthreads = 100) { 
   
-    
     #ScriptBlock to check the port and return the result
     $Script_CheckPort = {
         $Source = $Args[0];
@@ -715,7 +708,6 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
      $PortsToQuery = $POrtsToQuery | Sort-Object -descending | Select-object -unique
      $hostname = hostname
      #run the lookup
-
      
      $iss = [system.management.automation.runspaces.initialsessionstate]::CreateDefault()
      $pool = [Runspacefactory]::CreateRunspacePool(1, $maxthreads, $iss, $host)
@@ -775,8 +767,7 @@ Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000"
 new-alias tp Test-Port 
 #Write-HOst "Test-Port Alias:tp"
 
-new-alias pp Port-Ping 
-#Write-HOst "Port-Ping Alias:pp"
+
 function get-adsite ($sitename='*',$ldapfilter,$Server,$pageSize=1000)
 <#
 .DESCRIPTION
@@ -917,6 +908,61 @@ List of functions that should be available to the script block
 New-Alias %p ForEach-Parallel
 #Write-HOst Foreach-Parallel Alias:%p
 
+function Invoke-SDPropagator 
+<#
+.Description 
+Invoke the SDPropagator on the current domain (users domain) 
+
+.Parameter ShowProgress
+Display progress and wait for sdpropagation to complete use -showprogress:$false to not wait for propagation to complete.
+
+.Parameter TimeoutMinutes
+The number of minutes to wait for SDPropagation to start
+
+.Parameter Domain
+Can be used to target remote domains - Domain Admin access is required, so this may not actually be possible.
+#>
+{
+    [CmdletBinding()]Param([switch]$showProgress=$true,$timeoutMinutes=10,[string]$Domain)
+    #https://support.microsoft.com/en-us/help/251343/manually-initializing-the-sd-propagator-thread-to-evaluate-inherited-p
+    try {
+        if ($domain) {$Domain += '/'}
+        $PDC =  ([adsi]([adsi]"LDAP://$(([adsi]"LDAP://$(([adsi]"LDAP://$domain`RootDSE").defaultNamingContext)").fsmoroleowner)").parent ).dnshostname 
+        Write-Verbose "PDC Located at $PDC"
+
+        $RootDSE = New-Object System.DirectoryServices.DirectoryEntry("LDAP://$PDC/RootDSE")
+        $RootDSE.UsePropertyCache = $false
+    
+        Write-Verbose "Initiating SD Propogation on $PDC"
+        $RootDSE.Put("fixupinheritance", "1")
+        $RootDSE.SetInfo() 
+
+        if ($showProgress){
+            Write-Verbose "Checking for start of SD Propagator"
+            $FailDetect = (get-date).AddMinutes($timeoutMinutes)
+            $RuntimeQueue = 0
+            $RuntimeMax = 0
+            $InvokeDetected = $false            
+            
+            while (($invokeDetected -eq $false -and  (get-date) -lt $FailDetect) -or ($InvokeDetected -eq $true -and $RuntimeQueue -gt 0)){
+                $RuntimeQUeue = (get-counter -counter '\directoryservices(ntds)\ds security descriptor propagator runtime queue' -ComputerName $PDC).countersamples.cookedvalue
+                if ($RuntimeQueue -gt $RuntimeMax){
+                    $InvokeDetected = $true
+                    $RuntimeMax = $RuntimeQueue
+                }
+                if ($InvokeDetected) {
+                    Write-Progress -Activity "Invoke-SDPropagator on $PDC" -Status "Waiting for SDPropagator to finish" -PercentComplete ((($runTimeMax - $RuntimeQueue)/($runtimemax)) * 100)
+                } else {
+                    Write-Progress -Activity "Invoke-SDPropagator on $PDC" -Status "Waiting for SDPropagator to start" -SecondsRemaining ($FailDetect - (get-date)).totalseconds
+                }
+                start-sleep -seconds .5
+            }
+        }
+    } catch {
+        Write-Error "Unable to complete SD Propogation because $_"
+    }
+}
+     
 
             
 function get-ForestDomainControllers ([switch]$quickly)
@@ -1363,6 +1409,7 @@ function Open-profile {
     }
 #Write-HOst Open-profile 
 
+
 function Listen-Port ($port=80){
 <#
 .DESCRIPTION
@@ -1529,7 +1576,7 @@ Function update-HTTPSSlcertBinding {
 
 #Write-HOst 'update-HTTPSSlcertBinding'
 
-function Connect-Exchange ($Server,$UserCredential=(get-credential -message "Enter Exchange Credential" -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)),[switch]$list,$version,$site)
+function Connect-Exchange ($Server,$UserCredential=(stored-credential -message "Enter Exchange Credential" -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)),[switch]$list,$version,$site)
 {
     if ($server -eq $null){        
         $search = new-object adsisearcher -ArgumentList ([adsi]"LDAP://$(([adsi]"LDAP://rootdse").configurationNamingContext)"), "(&(objectclass=msExchPowerShellVirtualDirectory)(msexchinternalhostname=*))",@("msExchVersion","msExchInternalHostName","distinguishedname")

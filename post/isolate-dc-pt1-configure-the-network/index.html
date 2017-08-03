@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="generator" content="Hugo 0.17" />
 
-  <title>PowerShell Oneliners &middot; WRISH</title>
+  <title>Isolate a DC - Part 1: Configure the Network &middot; WRISH</title>
 
   
   
@@ -208,7 +208,7 @@
 <div class="post">
 	
 	<div class="header">
-	  <h1>PowerShell Oneliners</h1>
+	  <h1>Isolate a DC - Part 1: Configure the Network</h1>
 	  <h2></h2>
 	</div>
 	<div class="content">
@@ -217,7 +217,7 @@
 
   <div>
     <i class="fa fa-calendar fa-fw"></i>
-    <time>17  May 2017</time>
+    <time>5  Apr 2017</time>
   </div>
 
   
@@ -230,9 +230,11 @@
   <div>
     <i class="fa fa-tags fa-fw"></i>
     
-      <a class="post-taxonomy-tag" href="/tags/powershell">Powershell</a>&nbsp;&#47;
+      <a class="post-taxonomy-tag" href="/tags/powershell">PowerShell</a>&nbsp;&#47;
     
-      <a class="post-taxonomy-tag" href="/tags/activedirectory">ActiveDirectory</a>
+      <a class="post-taxonomy-tag" href="/tags/active-directory">Active Directory</a>&nbsp;&#47;
+    
+      <a class="post-taxonomy-tag" href="/tags/network">Network</a>
     
   </div>
   
@@ -240,59 +242,53 @@
 
 </div>
 
-	  <p>Just a list of useful oneliners for powershell server and AD management
-</p>
+	  
 
-<pre><code class="language-powershell">#Retrieve the PDC AD Object using ADSI
-$PDC = [adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent 
+<p>Dragging a single Domain Controller by its nostril into an isolated network can be time consuming. For testing or disaster recovery, the steps are the same, and while well documented almost everywhere, there don&rsquo;t seem to be any quick and dirty tools to do the steps for you. That is why I wrote this series of powershell functions that can be applied to a DC you have restored in your Virtual environment to get your test Forest up and running quickly.</p>
 
-#PDC name to the clipboard
-([adsi]([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot;).fsmoroleowner)&quot;).parent ).dnshostname | clip
+<p>Note that all these functions are design to work in Windows 2012 R2 or higher, and while they&rsquo;ve been tested, they are designed to do serious damage to your test environment and should never be used in production.</p>
 
-#List all PDCs in the forest (Requires ActiveDirectory powershell module)
-get-adforest | select -expand domains | %{Resolve-DnsName &quot;_ldap._tcp.pdc._msdcs.$_&quot; -Type SRV} | ?{$_.querytype -eq 'A'} | select name,Address
+<h2 id="configure-the-network">Configure the Network</h2>
 
-#On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
-get-counter -counter '\directoryservices(ntds)\ds security descriptor propagator runtime queue','\directoryservices(ntds)\ds security descriptor propagations events'
+<p>Configure the network card of your restored Domain Controller such that it points only to itself for DNS. Your Domain Controller needs to be able to locate itself when it is starting up to become healthy. So DNS and the network stack need to be operational. Make sure your Network is not connected externally. Having multiple DCs communicating on the same Name/IP Address/Domain Enviornment is unhealthy for your long term career prospects.</p>
 
-#Quickly list dnshostname of all DCs in the forest
-(New-Object adsisearcher([adsi]&quot;LDAP://$(([adsi]&quot;LDAP://rootdse&quot;).configurationNamingContext)&quot;,&quot;(objectClass=nTDSDSA)&quot;)).findall() | %{($_.properties.distinguishedname[0] -replace 'cn=NTDS Settings,','')} | %{[adsi]&quot;LDAP://$_&quot;} | select -expand dnshostname
+<p>You&rsquo;ll need to know your desired IP and subnet mask.</p>
 
-#get the last executed command to the clipboard
-(get-history)[-1].commandline | clip
-
-#Get the last boot time to a date/time object
-wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
-(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
-
-#get the last boot time to the clipboard
-wmic os get lastbootuptime | ?{$_ -match '^(?&lt;year&gt;\d\d\d\d)(?&lt;month&gt;\d\d)(?&lt;day&gt;\d\d)'} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
-
-#Create a scheduled task to restart the server in x hours 
-$hours = 1
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $((get-date).addhours($hours).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $((get-date).addhours($hours).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
-
-#Create a scheduled task to restart at a specific date and time
-$date = get-date -hour 21 -minute 30 -day 20
-schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
-
-#Seize all roles
-$domain = &quot;contoso.com&quot;
-ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q
-
+<pre><code class="language-Powershell">function ConfigureDCNetwork {
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = 'High')]    
+    param([parameter(mandatory=$true,
+    HelpMessage=&quot;Enter the IP Address this server will use&quot;)][ValidatePattern('\b(?:\d{1,3}\.){3}\d{1,3}\b')][string]$IPAddress,
+    [parameter(mandatory=$true,HelpMessage=&quot;Enter the number of bits in the subnet mask eg 24 = 255.255.255.0&quot;)][ValidateRange(2,30)]$CIDRSubnet,
+    [parameter(mandatory=$true,HelpMessage=&quot;Enter the default gateway IP address&quot;)][ValidatePattern('\b(?:\d{1,3}\.){3}\d{1,3}\b')][string]$DefaultGateway)
+    Write-Warning &quot;Changing the IP address may result in lost network connectivity - ensure you have console access to this host&quot;
+    if ($pscmdlet.ShouldProcess($(&amp;hostname))){  
+        $netadapter = Get-NetAdapter | select -first 1
+        Write-verbose &quot;Disabling DHCP on first interface&quot;
+        $netadapter | Set-NetIPInterface -DHCP Disabled
+        Write-verbose &quot;Configuring Network Address and default gateway&quot;
+        $netadapter | New-NetIPAddress -AddressFamily IPv4 -IPAddress $IPAddress -PrefixLength $CIDRSubnet -Type Unicast -DefaultGateway $DefaultGateway
+        Write-Verbose &quot;Pointing Domain Controller at self for DNS&quot;
+        Set-DnsClientServerAddress -InterfaceAlias $netadapter.Name -ServerAddresses $IPAddress  
+    }
+}
+#                 IP Address  Prefix Default Gateway
+ConfigureDCNetwork 192.168.1.10 24 192.168.1.1
 </code></pre>
+
 
 	  
 <div class="prev-next-post pure-g">
   <div class="pure-u-1-24" style="text-align: left;">
     
-    <a href="http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/"><i class="fa fa-chevron-left"></i></a>
+    <a href="http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/"><i class="fa fa-chevron-left"></i></a>
     
   </div>
   <div class="pure-u-10-24">
     
     <nav class="prev">
-      <a href="http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/">Isolate a DC - Part 5: Disable Global Catalog</a>
+      <a href="http://www.wrish.com/post/errors-with-adfs-rapid-restore-tool/">ADFS Rapid restore tool errors</a>
     </nav>
     
   </div>
@@ -302,13 +298,13 @@ ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&qu
   <div class="pure-u-10-24">
     
     <nav class="next">
-      <a href="http://www.wrish.com/post/quickly-get-exchange-online-ips/">Powershell get Exchange Online IP addresses (for Firewall rules)</a>
+      <a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/">HTTPs Inspection on Android with Hyper-V and an Emulator</a>
     </nav>
     
   </div>
   <div class="pure-u-1-24" style="text-align: right;">
     
-    <a href="http://www.wrish.com/post/quickly-get-exchange-online-ips/"><i class="fa fa-chevron-right"></i></a>
+    <a href="http://www.wrish.com/post/android-fiddler-hyperv-solution/"><i class="fa fa-chevron-right"></i></a>
     
   </div>
 </div>

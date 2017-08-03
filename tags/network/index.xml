@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WRISH</title>
+    <link>http://www.wrish.com/tags/network/index.xml</link>
+    <description>Recent content on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
+    <atom:link href="http://www.wrish.com/tags/network/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Isolate a DC - Part 1: Configure the Network</title>
+      <link>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</link>
+      <pubDate>Wed, 05 Apr 2017 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</guid>
+      <description>
+
+&lt;p&gt;Dragging a single Domain Controller by its nostril into an isolated network can be time consuming. For testing or disaster recovery, the steps are the same, and while well documented almost everywhere, there don&amp;rsquo;t seem to be any quick and dirty tools to do the steps for you. That is why I wrote this series of powershell functions that can be applied to a DC you have restored in your Virtual environment to get your test Forest up and running quickly.&lt;/p&gt;
+
+&lt;p&gt;Note that all these functions are design to work in Windows 2012 R2 or higher, and while they&amp;rsquo;ve been tested, they are designed to do serious damage to your test environment and should never be used in production.&lt;/p&gt;
+
+&lt;h2 id=&#34;configure-the-network&#34;&gt;Configure the Network&lt;/h2&gt;
+
+&lt;p&gt;Configure the network card of your restored Domain Controller such that it points only to itself for DNS. Your Domain Controller needs to be able to locate itself when it is starting up to become healthy. So DNS and the network stack need to be operational. Make sure your Network is not connected externally. Having multiple DCs communicating on the same Name/IP Address/Domain Enviornment is unhealthy for your long term career prospects.&lt;/p&gt;
+
+&lt;p&gt;You&amp;rsquo;ll need to know your desired IP and subnet mask.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function ConfigureDCNetwork {
+    [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = &#39;High&#39;)]    
+    param([parameter(mandatory=$true,
+    HelpMessage=&amp;quot;Enter the IP Address this server will use&amp;quot;)][ValidatePattern(&#39;\b(?:\d{1,3}\.){3}\d{1,3}\b&#39;)][string]$IPAddress,
+    [parameter(mandatory=$true,HelpMessage=&amp;quot;Enter the number of bits in the subnet mask eg 24 = 255.255.255.0&amp;quot;)][ValidateRange(2,30)]$CIDRSubnet,
+    [parameter(mandatory=$true,HelpMessage=&amp;quot;Enter the default gateway IP address&amp;quot;)][ValidatePattern(&#39;\b(?:\d{1,3}\.){3}\d{1,3}\b&#39;)][string]$DefaultGateway)
+    Write-Warning &amp;quot;Changing the IP address may result in lost network connectivity - ensure you have console access to this host&amp;quot;
+    if ($pscmdlet.ShouldProcess($(&amp;amp;hostname))){  
+        $netadapter = Get-NetAdapter | select -first 1
+        Write-verbose &amp;quot;Disabling DHCP on first interface&amp;quot;
+        $netadapter | Set-NetIPInterface -DHCP Disabled
+        Write-verbose &amp;quot;Configuring Network Address and default gateway&amp;quot;
+        $netadapter | New-NetIPAddress -AddressFamily IPv4 -IPAddress $IPAddress -PrefixLength $CIDRSubnet -Type Unicast -DefaultGateway $DefaultGateway
+        Write-Verbose &amp;quot;Pointing Domain Controller at self for DNS&amp;quot;
+        Set-DnsClientServerAddress -InterfaceAlias $netadapter.Name -ServerAddresses $IPAddress  
+    }
+}
+#                 IP Address  Prefix Default Gateway
+ConfigureDCNetwork 192.168.1.10 24 192.168.1.1
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
