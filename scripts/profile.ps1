@@ -1,4 +1,4 @@
-$ProfileVersion = "1.31"
+$ProfileVersion = "1.32"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -120,6 +120,7 @@ Version 1.3 updated to add some additional UAC filters
     
     if($O365Find){
         $ldapfilter += "(|(userprincipalname=$o365Find)(proxyaddresses=SMTP:$O365Find)(mail=$O365Find)(proxyaddresses=SIP:$O365Find)(msrtcsip-primaryuseraddress=SIP:$O365Find))"
+        $GC = $true;
     }
 
     if ($ldapfilter){
@@ -300,6 +301,7 @@ New-Alias lf list-ProfileFunctions
 Write-HOst lf list-ProfileFunctions
 
 
+
 #Get a new Secure Credential and store it in encrypted format to a file
 Function Stored-Credential($name, [switch]$New, [switch]$check, $userName="")
 {
@@ -325,6 +327,64 @@ Function Stored-Credential($name, [switch]$New, [switch]$check, $userName="")
         $XMLCredential | export-clixml -Path $pathToCred        
         return $Credential
     }        
+}
+
+function Connect-Exchange ($Server,$UserCredential=(stored-credential Exchange -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)),[switch]$list,$version,$site)
+{
+    if ($server -eq $null){        
+        $search = new-object adsisearcher -ArgumentList ([adsi]"LDAP://$(([adsi]"LDAP://rootdse").configurationNamingContext)"), "(&(objectclass=msExchPowerShellVirtualDirectory)(msexchinternalhostname=*))",@("msExchVersion","msExchInternalHostName","distinguishedname")
+        $num=0;
+        $PSDir =  $search.findall() | sort -descending {$_.properties.msexchversion[0]}  |%{
+            
+            $vdir = new-object psobject -Property @{num=$null;path=$_.properties.msexchinternalhostname[0];server=$null;Site=$null;version=$null}
+            if ($list -or $version -or $site){
+                $ServerPath = ($_.properties.distinguishedname[0] -split ",")[3..100] -join ","
+                $Serverobj = [adsi]"LDAP://$serverPath"                
+                $vdir.version = $serverObj.serialnumber[0]
+                $vdir.server = $serverobj.name[0]
+                $vdir.Site = $serverobj.msExchServerSite[0] -replace '^CN=|,.*$',''
+            }
+            $vdir
+        }
+        $session = $null
+        if ($list -or $version -or $site){
+            while (!$session)
+            { 
+                $num = 0
+                $PSDir | ?{$list -or ($version -and $_.version -match $version) -or ($site -and $_.site -match $site)} | %{$_.num = $num;$num++; $_} | select Num,Server,Version,Site | ft -AutoSize
+                $chosen = read-host "Ctrl+C to cancel or enter a number 0 to $($num -1) to select a server"
+                try {$session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos -Credential $UserCredential}
+                catch{
+                    if($_ -match 'The username or password is incorrect'){
+                        write-warning "UserName or Password incorrect, reenter credentials";
+                        $UserCredential = (stored-credential Exchange  -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -new)
+                    }else{
+                        Write-Error $_
+                    } 
+                }
+            }
+
+        } else {
+            foreach ($vdir in $PSDir){
+                try{$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos -Credential $UserCredential}
+                catch{
+                    if($_ -match 'The username or password is incorrect'){
+                        write-warning "UserName or Password incorrect, reenter credentials";
+                        $UserCredential = (stored-credential Exchange  -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -new)
+                    }else{
+                        Write-Error $_
+                    } 
+                }
+
+                if ($session) {break;}
+            }
+        }
+    } else {
+        $path = "http://$server/PowerShell/"
+        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $path -Authentication Kerberos -Credential $UserCredential
+    }
+    Write-Warning "Importing connection from $($session.ComputerName) for configuration $($session.ConfigurationName) and overwriting local commands."
+    Import-pssession $session -AllowClobber
 }
 
 #Write-HOst "Stored-Credential"
