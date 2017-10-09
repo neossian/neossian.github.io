@@ -51,8 +51,13 @@ $date = get-date -hour 21 -minute 30 -day 20
 schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $(($date).tostring(&#39;HH:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace(&#39;M+&#39;, &#39;MM&#39;).replace(&#39;d+&#39;, &#39;dd&#39;)))
 
 #Seize all roles
-$domain = &amp;quot;contoso.com&amp;quot;
-ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $domain&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
+ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $((get-addomain).name)&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
+
+#find deleted computer objects
+get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq &#39;MyServer$&#39;} -properties *
+
+#find deleted computer user
+get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq &#39;SmithJ&#39;} -properties *
 
 &lt;/code&gt;&lt;/pre&gt;</description>
     </item>

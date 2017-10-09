@@ -277,8 +277,13 @@ $date = get-date -hour 21 -minute 30 -day 20
 schtasks /Create /RU &quot;NT AUTHORITY\SYSTEM&quot; /SC ONCE /st $(($date).tostring('HH:mm')) /TN My-ScheduledRestart /RL HIGHEST /TR &quot;%windir%\system32\Shutdown.exe /r /t 10&quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace('M+', 'MM').replace('d+', 'dd')))
 
 #Seize all roles
-$domain = &quot;contoso.com&quot;
-ntdsutil &quot;roles&quot; con &quot;con to dom $domain&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q
+ntdsutil &quot;roles&quot; con &quot;con to dom $((get-addomain).name)&quot; q &quot;Sei PDC&quot; &quot;Sei Inf ma&quot; &quot;sei sch ma&quot; &quot;sei na ma&quot; &quot;sei rid ma&quot; q q
+
+#find deleted computer objects
+get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq 'MyServer$'} -properties *
+
+#find deleted computer user
+get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq 'SmithJ'} -properties *
 
 </code></pre>
 

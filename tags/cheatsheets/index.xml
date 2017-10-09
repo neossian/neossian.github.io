@@ -44,6 +44,9 @@ $matches.Value
 #cowColour
 #Brown
 
+#Matching without returning the match with (?:matching)
+&amp;quot;Subnet:10.1.1.0/24&amp;quot; -match &#39;Subnet:(?&amp;lt;SiteSubnet&amp;gt;(?:\d{1,3}\.){3}\d{1,3}/\d+)&#39;
+
 #Replace to reformat a string 
 &#39;This is a wild test&#39; -replace &#39;.*(w[^ ]+).*&#39;,&#39;Not so $1&#39;
 #Not so wild
@@ -55,6 +58,8 @@ $matches.Value
 #negative lookbehind
 ($DistinguishedName -split &#39;(?&amp;lt;!\\),&#39;)[1..100] -join &#39;,&#39;
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Last Updated September 13&lt;/p&gt;
 </description>
     </item>
     

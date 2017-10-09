@@ -1,4 +1,4 @@
-$ProfileVersion = "1.32"
+$ProfileVersion = "1.34"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -31,11 +31,38 @@ function TryCopyProfile {
 }
 
 
+function remove-ADGroupMemberxDomain ($userDN, $groupDN){
+    $userDomain = (((($userDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
+    $groupDomain = (((($groupDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
+    $User = [ADSI]("LDAP://$userDomain/" + $UserDN)
+    $Group = [ADSI]("LDAP://$GroupDomain/" + $groupDN)
+    try {        
+        $Group.Remove($User.ADsPath)
+        Write-Verbose "Successfully removed $userDN from $groupDN"
+    } catch {
+        write-error "Unable to remove $UserDN from $groupDN because $_"
+    }
+}
+
+
+function Add-ADGroupMemberxDomain ($userDN, $groupDN){
+    $userDomain = (((($userDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
+    $groupDomain = (((($groupDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
+    $User = [ADSI]("LDAP://$userDomain/" + $UserDN)
+    $Group = [ADSI]("LDAP://$GroupDomain/" + $groupDN)
+    try {        
+        $Group.Add($User.ADsPath)
+        Write-Verbose "Successfully removed $userDN from $groupDN"
+    } catch {
+        write-error "Unable to remove $UserDN from $groupDN because $_"
+    }
+}
+
 function Change-Password ($domain,$samaccountname,$oldPassword,$newpassword){
 ([adsi]"WinNT://$domain/$samaccountname,user").ChangePassword($oldPassword,$newpassword)
 }
 
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose)
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose){
 <#
 .DESCRIPTION
 Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
@@ -85,7 +112,7 @@ Version 1.2 updated to add referral chasing
 Version 1.3 updated to add some additional UAC filters
 
 #>
-{
+
     $useraccountControls = @{
     "UAC-SCRIPT"="1"
     "UAC-Disabled"="2"
@@ -872,6 +899,7 @@ LDAP Search page size, default 1000
 #Write-HOst "get-adsite"
 
 
+
 function ForEach-Parallel {
 <#
 .Description
@@ -903,7 +931,8 @@ List of functions that should be available to the script block
                     [Parameter(Mandatory=$false)]$arguments,
                     [Parameter(Mandatory=$false)][string[]]$ImportFunctions,
                     [switch]$noProgress,
-                    [String]$ActivityName = "Multithreaded Foreach-Parallel"
+                    [String]$ActivityName = "Multithreaded Foreach-Parallel",
+                    $chunking = 1
                 )
                 BEGIN {
                     $iss = [system.management.automation.runspaces.initialsessionstate]::CreateDefault()
@@ -920,26 +949,74 @@ List of functions that should be available to the script block
                             Write-Error "Unable to import $funct, no definition available"
                         }
                     }
-                    $scriptblock = [scriptblock]::Create("param(`$_)`r`n" + $functionSet + $Scriptblock.ToString())
-                    Write-debug $scriptblock.tostring()               
+                    if ($chunking -eq 1) {$scriptblock = [scriptblock]::Create("param(`$_)`r`n" + $functionSet + $Scriptblock.ToString())}
+                    else{$scriptblock = [scriptblock]::Create("param(`$_)`r`n" + $functionSet + '$_ | foreach-object {' + $Scriptblock.ToString() + '}')}
+                    
+                    Write-debug $scriptblock.tostring()                    
+                    if ($chunking -gt 1) {
+                        $arrayBlock = @()
+                        $counter = 0
+                        $index = 0                       
+                    }               
                 }
                 PROCESS {
-                    Write-debug "Processing $InputObject"
-                    $powershell = [powershell]::Create().addscript($scriptblock).addargument($InputObject);
+                    if ($chunking -gt 1) {
+                        $arrayBlock += $InputObject
+                        $counter++
+                        if ($counter -eq $chunking){
+                            $counter = 0
+                            $index++
+                            Write-debug "Processing chunk number $index of $chunking objects" 
+                             $powershell = [powershell]::Create().addscript($scriptblock).addargument($arrayBlock);
 
-                    #import declared arguments
-                    foreach ($Arg in $arguments) {
-                        $powershell = $powershell.AddArgument($arg);
-                    }                   
-                    $powershell.runspacepool=$pool
-                    $threads+= @{
-                        instance = $powershell
-                        handle = $powershell.begininvoke()
+                            #import declared arguments
+                            foreach ($Arg in $arguments) {
+                                $powershell = $powershell.AddArgument($arg);
+                            }                   
+                            $powershell.runspacepool=$pool
+                            $threads+= @{
+                                instance = $powershell
+                                handle = $powershell.begininvoke()
+                            }
+                            if(!$noprogress){write-progress -Activity $ACtivityname -Status "Creating Threads [Threads Created:$($threads.count)]" -PercentComplete -1}
+                            $totalThreads = $threads.count
+                            $arrayBlock = @()                       
+                        }                                               
+                    } else {
+                        Write-debug "Processing $InputObject"
+                        $powershell = [powershell]::Create().addscript($scriptblock).addargument($InputObject);
+
+                        #import declared arguments
+                        foreach ($Arg in $arguments) {
+                            $powershell = $powershell.AddArgument($arg);
+                        }                   
+                        $powershell.runspacepool=$pool
+                        $threads+= @{
+                            instance = $powershell
+                            handle = $powershell.begininvoke()
+                        }
+                        if(!$noprogress){write-progress -Activity $ACtivityname -Status "Creating Threads [Threads Created:$($threads.count)]" -PercentComplete -1}
+                        $totalThreads = $threads.count
                     }
-                    if(!$noprogress){write-progress -Activity $ACtivityname -Status "Creating Threads [Threads Created:$($threads.count)]" -PercentComplete -1}
-                    $totalThreads = $threads.count
                 }
                 END {
+                    if ($chunking -gt 1 -and $arrayBlock) {
+                        $index++
+                        Write-debug "Processing chunk number $index of $chunking objects" 
+                            $powershell = [powershell]::Create().addscript($scriptblock).addargument($arrayBlock);
+
+                        #import declared arguments
+                        foreach ($Arg in $arguments) {
+                            $powershell = $powershell.AddArgument($arg);
+                        }                   
+                        $powershell.runspacepool=$pool
+                        $threads+= @{
+                            instance = $powershell
+                            handle = $powershell.begininvoke()
+                        }
+                        if(!$noprogress){write-progress -Activity $ACtivityname -Status "Creating Threads [Threads Created:$($threads.count)]" -PercentComplete -1}
+                        $totalThreads = $threads.count                                                 
+                    }
                     $notdone = $true
                     $threadsClosed = 0
                     while ($notdone -and $totalThreads -gt 0) {
@@ -964,6 +1041,7 @@ List of functions that should be available to the script block
                     }
                 }
             }
+
 
 New-Alias %p ForEach-Parallel
 #Write-HOst Foreach-Parallel Alias:%p
@@ -1165,8 +1243,13 @@ LDAP Search page size, default 1000
                 $SubnetObject | add-member -name $property -value $site.properties.$property -MemberType NoteProperty
             }
         }
-        $subnetObject | add-member -name Site -value ([ADSI]("LDAP:/$Server/$($SubnetObject.siteObject)")).cn[0] -MemberType NoteProperty
-        write-output $SubnetObject
+        try {
+            $sitename = $null
+            if ($SubnetObject.siteObject){$SiteName = ([ADSI]("LDAP:/$Server/$($SubnetObject.siteObject)")).cn[0]}
+        } catch {
+            Write-Warning "$($subnetObject.name) is not assigned to a valid site object"
+        }
+        $subnetObject | add-member -name Site -value $sitename  -MemberType NoteProperty -PassThru        
     }
 }
 
@@ -1851,6 +1934,49 @@ function get-ADNestedMembership
         }
     }
 }
+
+
+function Get-IPAddressNetwork ($ip,$subnet=23){
+    $bitmask = 0
+    if (!((1..32) -contains $subnet)){
+        
+        #Assume subnet in 255.255.255.0 format
+        switch ($subnet -split '\.'){
+           255{$bitmask+=8};254{$bitmask+=7};252{$bitmask+=6};248{$bitmask+=5};240{$bitmask+=4};224{$bitmask+=3};64{$bitmask+=1};0{}
+           default{write-error "Invalid Subnet definition $Subnet is not in the form of a bitmask (eg 24) or a subnet (eg 255.255.0.0)";return;}
+        }
+    } else {
+        $bitmask = $subnet
+    }
+    Write-verbose "Using bitmask of $bitmask for ip of $IP to calculate subnet"
+    #determine what subnet an IP belongs to given a bitmask eg 16,24
+    $networkMask = [convert]::tostring(4294967295 -bxor ([math]::pow(2,(32 - $bitmask)) -1),2)
+    $count = 0
+    ($ip -split "\." | foreach-object {
+        $_ -band [convert]::toInt32($networkmask.tostring().substring($count,8),2)               
+        $count += 8;
+    }) -join "."
+}
+
+function Get-HostSite {
+[CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][Alias("IpAddress","Host","Address")]$ComputerName)
+
+    if ($computername -match '^(\d{1,3}\.){3}\d{1,3}$'){        
+        $IPAddresses = @($ComputerName)
+    } else {
+        $IPAddresses = [SYSTEM.net.dns]::GetHostAddresses($ComputerName) | ?{$_.addressfamily -eq 'InterNetwork'} | select -expand IPAddressToString
+    }
+    foreach ($IP in $IPAddresses){
+        $site = nltest /DSADDRESSTOSITE:$ip /dsgetsite 2>$null
+        switch -regex ($site){
+            '(?<Ip>(?:\d{1,3}\.){3}\d{1,3})\s+(?<SiteName>[^ ]+)\s+(?<SiteSubnet>(?:\d{1,3}\.){3}\d{1,3}/\d+)'{new-object psobject -Property ($matches)}
+        }
+    }
+}
+
+
+new-alias Get-IPSite Get-HostSite
 
 function get-ADNestedMembershipWithParent
 {   

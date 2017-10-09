@@ -347,9 +347,13 @@ You can&rsquo;t verify your domain using the GUI when you create the Domain usin
 
   <p>
   A collection of regex&rsquo;s that I always find myself looking up.
-#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?)&gt;','&lt;cow&gt;' -replace '&lt;/([^/]+?)&gt;','&lt;/cow&gt;' #&lt;cow&gt;MyHeading&lt;/cow&gt; #negative lookbehind ($DistinguishedName -split '(?&lt;!\\),')[1..100] -join ','  
+#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Matching without returning the match with (?:matching) &quot;Subnet:10.1.1.0/24&quot; -match 'Subnet:(?&lt;SiteSubnet&gt;(?:\d{1,3}\.){3}\d{1,3}/\d+)' #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?
   </p>
 
+  
+  <footer>
+    <a href="/post/regex-cheat-sheet/">Read more<i class="fa fa-angle-double-right fa-fw"></i></a>
+  </footer>
   
 </article>
 
