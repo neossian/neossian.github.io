@@ -284,6 +284,16 @@ Version 1.3 updated to add some additional UAC filters
     }
 }
 
+function get-netstatData(){
+	$result = netstat -anob
+	$data = @()
+	switch -regex ($result){
+		'(?<Protocol>TCP|UDP)\s+(?<LocalIP>\d+\.\d+\.\d+\.\d+|\*):(?<LocalPort>\d+|\*)\s+(?<RemoteIP>\d+\.\d+\.\d+\.\d+|\*):(?<RemotePort>\d+|\*)\s+(?<State>\w+|\s)\s+(?<ProcessID>\d+)'{
+		   $data += new-object psobject -Property $matches
+		}
+	}
+	return $data | select Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,ProcessID
+}
 
 
 
@@ -1828,7 +1838,7 @@ function get-ADNestedMembership
            $Identity) 
     PROCESS     {
         foreach ($userIdentity in $identity) {
-            $ADuser = get-aduser $userIdentity -Properties memberof,distinguishedname,primaryGroup
+            $ADuser = get-adobject $userIdentity -Properties memberof,distinguishedname,primaryGroup
             write-output (new-object psobject -property @{distinguishedname=$aduser.distinguishedname;'NestedMemberOf'=(@(enumerateMemberof $ADuser)+(enumerateMemberof (get-adgroup $AdUser.primaryGroup -properties memberof)))})
         }
     }
@@ -1969,6 +1979,7 @@ function Get-HostSite {
     }
     foreach ($IP in $IPAddresses){
         $site = nltest /DSADDRESSTOSITE:$ip /dsgetsite 2>$null
+        Write-Verbose ($site -join "`n`r")
         switch -regex ($site){
             '(?<Ip>(?:\d{1,3}\.){3}\d{1,3})\s+(?<SiteName>[^ ]+)\s+(?<SiteSubnet>(?:\d{1,3}\.){3}\d{1,3}/\d+)'{new-object psobject -Property ($matches)}
         }

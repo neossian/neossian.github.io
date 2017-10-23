@@ -331,7 +331,7 @@ raiseRIDPoool
       <pubDate>Wed, 17 May 2017 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/powershell-oneliners/</guid>
-      <description>&lt;p&gt;Just a list of useful oneliners for powershell server and AD management
+      <description>&lt;p&gt;Just a list of useful oneliners for powershell server and AD management. Obviously some are not actually oneliners, but hey they&amp;rsquo;re quick!
 &lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Retrieve the PDC AD Object using ADSI
@@ -376,6 +376,14 @@ get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedO
 #find deleted computer user
 get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq &#39;SmithJ&#39;} -properties *
 
+#Get the Active Directory object of the current computer
+[ADSI]&amp;quot;LDAP://&amp;lt;SID=$((new-object System.Security.Principal.NTAccount(&amp;quot;$(&amp;amp;hostname)`$&amp;quot;)).Translate( [System.Security.Principal.SecurityIdentifier] ).toString())&amp;gt;&amp;quot;
+
+#list the AD Groups of the current computer
+([ADSI]&amp;quot;LDAP://&amp;lt;SID=$((new-object System.Security.Principal.NTAccount(&amp;quot;$(&amp;amp;hostname)`$&amp;quot;)).Translate( [System.Security.Principal.SecurityIdentifier] ).toString())&amp;gt;&amp;quot;).properties.memberof
+
+#Get a random SCOM server
+get-adobject -ldapfilter &#39;(&amp;amp;(objectclass=ServiceConnectionPoint)(serviceBindinginformation=*))&#39; -searchbase &amp;quot;cn=operationsmanager,$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot; -properties serviceBindinginformation,ServiceClassName,ServiceDNSName | Get-Random
 &lt;/code&gt;&lt;/pre&gt;</description>
     </item>
     

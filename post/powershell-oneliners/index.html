@@ -240,7 +240,7 @@
 
 </div>
 
-	  <p>Just a list of useful oneliners for powershell server and AD management
+	  <p>Just a list of useful oneliners for powershell server and AD management. Obviously some are not actually oneliners, but hey they&rsquo;re quick!
 </p>
 
 <pre><code class="language-powershell">#Retrieve the PDC AD Object using ADSI
@@ -285,6 +285,14 @@ get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedO
 #find deleted computer user
 get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq 'SmithJ'} -properties *
 
+#Get the Active Directory object of the current computer
+[ADSI]&quot;LDAP://&lt;SID=$((new-object System.Security.Principal.NTAccount(&quot;$(&amp;hostname)`$&quot;)).Translate( [System.Security.Principal.SecurityIdentifier] ).toString())&gt;&quot;
+
+#list the AD Groups of the current computer
+([ADSI]&quot;LDAP://&lt;SID=$((new-object System.Security.Principal.NTAccount(&quot;$(&amp;hostname)`$&quot;)).Translate( [System.Security.Principal.SecurityIdentifier] ).toString())&gt;&quot;).properties.memberof
+
+#Get a random SCOM server
+get-adobject -ldapfilter '(&amp;(objectclass=ServiceConnectionPoint)(serviceBindinginformation=*))' -searchbase &quot;cn=operationsmanager,$(([adsi]&quot;LDAP://rootdse&quot;).defaultNamingContext)&quot; -properties serviceBindinginformation,ServiceClassName,ServiceDNSName | Get-Random
 </code></pre>
 
 	  
