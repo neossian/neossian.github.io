@@ -1,4 +1,4 @@
-$ProfileVersion = "1.34"
+$ProfileVersion = "1.37"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -27,6 +27,27 @@ function TryCopyProfile {
     } catch {Write-Error "Profile Update failed because $_"}
     finally{
          $wc.Dispose()
+    }
+}
+
+function Get-ADGroupMemberxDomain 
+{
+    [CmdletBinding()]
+    Param(  [parameter(ValueFromPipelineByPropertyName)][alias("distinguishedName")]$groupDN, [switch]$recursive, $listSoFar, $recurseLevel=0)
+    
+    $groupDomain = (((($groupDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
+    $Group = [ADSI]("LDAP://$GroupDomain/" + $groupDN)
+    $memberlist = $Group.member
+    if ($memberlist){
+        if($recursive){ Write-Verbose "Recursion Level $recurseLevel - under $groupDN"}
+        $memberlist
+    }
+    if ($recursive) {
+        foreach ($member in $memberlist){
+            if ($listSoFar -notcontains $member){
+                Get-adgroupMemberxDomain $member -recursive ([array]$listsofar + $memberlist) ($recurseLevel+1)
+            }   
+        }
     }
 }
 
@@ -62,7 +83,7 @@ function Change-Password ($domain,$samaccountname,$oldPassword,$newpassword){
 ([adsi]"WinNT://$domain/$samaccountname,user").ChangePassword($oldPassword,$newpassword)
 }
 
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose){
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose,[switch]$includeDeletedObjects){
 <#
 .DESCRIPTION
 Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
@@ -218,7 +239,10 @@ Version 1.3 updated to add some additional UAC filters
     $ADSearcher.Sizelimit = $sizeLimit
     $adsearcher.ReferralChasing = [DirectoryServices.ReferralChasingOption]::All    
     $properties | %{$ADSearcher.PropertiesToLoad.Add($_) | out-null}   
-    
+    if ($includeDeletedObjects){
+        $control = New-Object System.DirectoryServices.Protocols.ShowDeletedControl
+        $adsearcher.cont
+    }
     #perform the search and process the objects
     foreach ($LDAPResult in $ADSearcher.Findall()){
         $LDAPObject = new-object psobject
@@ -1254,6 +1278,7 @@ LDAP Search page size, default 1000
             }
         }
         try {
+            $ErrorActionPreference = "Stop"
             $sitename = $null
             if ($SubnetObject.siteObject){$SiteName = ([ADSI]("LDAP:/$Server/$($SubnetObject.siteObject)")).cn[0]}
         } catch {
@@ -1620,7 +1645,8 @@ function Check-ADFSFederationForAllDomains {
         if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
             Write-host $_.Name "Token Signing and Next Token Signing Certificates Match" -ForegroundColor Green      
          } else {
-            Write-host $_.Name "Token Signing and/or Next Token Signing Certificates DO NOT Match" -ForegroundColor REd    
+            Write-host $_.Name "Token Signing and/or Next Token Signing Certificates DO NOT Match" -ForegroundColor REd            
+            $Setup | ft Source,@{l='TokenSigningCertificate';e={$_.TokenSigningCertificate.thumbprint}},@{l='NextTokenSigningCertificate';e={$_.NextTokenSigningCertificate.thumbprint}} -auto            
          }
       } 
 }
@@ -2027,6 +2053,253 @@ function get-LdapTokenGroups {
         }
     }
 }
+
+#http://blogs.msdn.com/b/virtual_pc_guy/archive/2010/09/23/a-self-elevating-powershell-script.aspx
+function Invoke-AdminPrivilege
+{
+# Get the ID and security principal of the current user account
+$myWindowsID = [System.Security.Principal.WindowsIdentity]::GetCurrent();
+$myWindowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($myWindowsID);
+
+# Get the security principal for the administrator role
+$adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator;
+
+    # Check to see if we are currently running as an administrator
+    if ($myWindowsPrincipal.IsInRole($adminRole))
+    {
+        # We are running as an administrator, so change the title and background colour to indicate this
+        $Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + "(Elevated)";
+        $Host.UI.RawUI.BackgroundColor = "DarkBlue";
+        Clear-Host;
+    }
+    else {
+        # We are not running as an administrator, so relaunch as administrator
+
+        # Create a new process object that starts PowerShell
+        $newProcess = New-Object System.Diagnostics.ProcessStartInfo "PowerShell";
+
+        # Specify the current script path and name as a parameter with added scope and support for scripts with spaces in it's path
+        $newProcess.Arguments = "-noexit & '" + $script:MyInvocation.MyCommand.Path + "'"
+
+        # Indicate that the process should be elevated
+        $newProcess.Verb = "runas";
+
+        # Start the new process
+        [System.Diagnostics.Process]::Start($newProcess);
+
+        # Exit from the current, unelevated, process
+        if ((read-host "Would you like to exit Y/N") -like "Y") {Exit};
+    }
+}
+
+Function get-HTTPSSlcertBinding {
+<#
+.DESCRIPTION
+    Wrapper command for "netsh http show sslcert" that returns object data
+.EXAMPLE
+    get-HTTPsSSLcertBinding
+#>
+    [cmdletbinding()]Param()
+    $getSSLCertsCommand = "netsh http show sslcert"
+    Write-Verbose "Executing '$getSSLCertsCommand' to retrieve SSL cert bindings"
+    $BindingsAsText = Invoke-Expression $getSSLCertsCommand
+    $bindings = @()
+    $thisbinding = $null
+    switch -Regex ($BindingsAsText) {
+        '--------------------|SSL'{}
+        '^$' {if ($thisbinding){$bindings+=$thisbinding;} $thisBinding = New-Object psobject -Property @{};}
+        '^(?<Name>[\w\s]+:?[\w]+)\s+:\s(?<Value>.*)$|^(?<Name>Hostname:port\s+):\s(?<Value>.*)$' {
+            $thisBinding | Add-Member -MemberType NoteProperty -Name $matches.name.trim() -Value $matches.value.trim() -Force            
+        }
+        '^(?<Name>[\w\s]+:[\w]+)\s+:\s(?<Value>.*)$' {
+            $thisBinding | Add-Member -MemberType NoteProperty -Name "Name" -Value $matches.value.trim() -Force            
+        }
+    }
+    $bindings | ?{$_.name}
+}
+function add-HttpsSLCertBinding ([Parameter(Mandatory=$true)]$name="0.0.0.0:443",
+                                [Parameter(Mandatory=$true)]$CertificateHash,
+                                [Parameter(Mandatory=$true)]$ApplicationID,
+                                $CertificateStoreName="MY",
+                                $VerifyClientCertRev="Enable",
+                                $VerifyRevocationUsingCachedOnly="Disable",
+                                $UsageCheck="Enable",
+                                $RevocationFreshnessTime="0",
+                                $URLRetrievalTimeout="0",
+                                $CTLIdentifier="(null)",
+                                $CTLStoreName="(null)",
+                                $DSMapper="Disable",
+                                $NegotiateClientCert="Disable")
+{
+    <#
+    .DESCRIPTION
+        Wrapper command for "netsh http add sslcert"
+
+    .PARAMETER Name
+        The Name of the binding to add - if it looks like an IP we will add an ipport binding, if it looks like a hostname we will add a hostnameport binding
+    #>
+    $nameTag = if($name -match '^(\d{1,3}\.){3}\d{1,3}:\d+$') {
+        'ipport'
+    } elseif ($name -match '^[\w\.]+:\d+$'){
+        'hostnameport'
+    } else {
+        throw "Failed to create Binding '$name', name must be of the format 'IPAddress:Port' or 'Hostname:port'"
+        return;
+    }
+	
+    $bindingDetails = @{
+		appid=$ApplicationID;
+		certhash=$CertificateHash;
+        certstorename=$CertificateStoreName;
+        verifyclientcertrevocation=$VerifyClientCertRev;
+        verifyrevocationwithcachedclientcertonly=$VerifyRevocationUsingCachedOnly;
+        usagecheck=$UsageCheck;
+        revocationfreshnesstime=$RevocationFreshnessTime;
+        urlretrievaltimeout=$URLRetrievalTimeout;
+        sslctlidentifier=$CTLIdentifier;
+        sslctlstorename=$CTLStoreName;
+        dsmapperusage=$DSMapper
+        clientcertnegotiation=$NegotiateClientCert
+    }
+
+
+	$bindingDetails.clone().getenumerator() |where-object {$_.name -match '^verify|^dsmapper|^clientcert|usagecheck'}| %{
+		$parameter = $_
+		switch -regex ($parameter.value)
+		{
+			'^en'{$bindingDetails.$($parameter.name) = 'enable'}
+			'^dis'{$bindingDetails.$($parameter.name) = 'disable'}
+			default {throw "$($parameter.name) must be one of 'enable' or 'disable' do not set this parameter to use the default value."}
+		}
+	}
+	
+	#Create the new Binding
+    $bindingCreatingString = "netsh http add sslcert --% $nametag=$name"
+	
+	$bindingDetails.getenumerator() |%{
+		if ($_.value -ne "(null)" -and  $_.value -ne "0"){
+			$bindingCreatingString += " $($_.name)=$($_.value)"
+		}
+	}
+	
+    Write-Verbose "Executing '$bindingCreatingString'"
+    $CreateResult = Invoke-Expression $bindingCreatingString
+    $CreateResult = $Createresult -join ''
+
+    
+    if ($createResult -notmatch 'SSL Certificate successfully added'){
+        throw "Unable to update '$name'; failed to create the binding, the error was $createResult."
+        return;
+    }
+    get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
+
+}
+
+
+Function update-HTTPSSlcertBinding {
+    
+     [cmdletbinding()]Param($name,$RevocationFreshnessTime,$DSMapperUsage,$CtlIdentifier,$CertificateStoreName,$ApplicationID,$VerifyRevocationUsingCachedClientCertificateOnly,$NegotiateClientCertificate,$URLRetrievalTimeout,$CtlStoreName,$CertificateHash,$UsageCheck,$VerifyClientCertificateRevocation)
+    $bindingToUpdate = get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
+    if (!$bindingToUpdate){
+        throw "No binding named '$name' could be found on the local machine"     
+        return;
+    }
+    $bindingToUpdate | fl *    
+    $nameToTag = @{
+    'Certificate Hash'='certhash'   ;
+    'Application ID'='appid' ;                
+    'Certificate Store Name'='certstorename' ;        
+    'Verify Client Certificate Revocation'='verifyclientcertrevocation'  ;
+    'Verify Revocation Using Cached Client Certificate Only'='verifyrevocationwithcachedclientcertonly' ;
+     'Usage Check'='usagecheck';
+    'Revocation Freshness Time'= 'revocationfreshnesstime';
+    'URL Retrieval Timeout'=  'urlretrievaltimeout';
+    'Ctl Identifier'='sslctlidentifier' ;
+    'Ctl Store Name'='sslctlstorename' ;
+    'DS Mapper Usage'='dsmapperusage' ;
+    'Negotiate Client Certificate'='clientcertnegotiation'
+    }
+    $ParamToName = @{}
+    $nametoTag.keys | %{
+        $ParamToName.add(($_ -replace ' ',''),$_)
+    }
+   
+    $valueTranslater = @{
+    'Enabled'='enable';
+    'Disabled'='disable'
+    }
+
+    $nametag = $bindingToUpdate | Get-Member -MemberType NoteProperty | ?{$_.name -match ':'} |%{$_.name -replace ':',''}
+    
+    #update the object values to the entry that will be recreated
+    foreach ($argument in $PSBoundParameters.GetEnumerator()){
+        $($ParamToName.$($argument.key))
+        if ($($ParamToName.$($argument.key))){
+            $bindingToUpdate.$($ParamToName.$($argument.key)) = $argument.value
+        }
+    }
+        
+    #delete the existing binding
+    $NetSHDeleteCommand = "netsh http delete sslcert $nametag=$name"
+    Write-verbose "Executing '$NetSHDeleteCommand'"
+    $DeleteResult = Invoke-Expression $NetSHDeleteCommand
+    $DeleteREsult = $DeleteResult -join ''
+    if ($DeleteResult -notmatch 'SSL Certificate successfully deleted'){
+        throw "Unable to update '$name'; failed to delete the binding, the error was $DeleteResult"
+        return;
+    }
+
+    #Create the new Binding
+    $bindingCreatingString = "netsh http add sslcert --% $nametag=$name"
+
+    $bindingToUpdate | gm | select -expand Name | %{        
+        if ($nameToTag.ContainsKey($_) -and $bindingToUpdate.$_ -ne "(null)" -and  $bindingToUpdate.$_ -ne "0"){
+            $tag = $nameToTag[$_]
+            $value = if ($valueTranslater.ContainsKey($bindingToUpdate.$_)){$valueTranslater[$bindingToUpdate.$_]} else {$bindingToUpdate.$_}
+            $bindingCreatingString += " $tag=$value"
+        }
+    }
+    Write-Verbose "Executing '$bindingCreatingString'"
+    $CreateResult = Invoke-Expression $bindingCreatingString
+    $CreateResult = $Createresult -join ''
+    
+    if ($createResult -notmatch 'SSL Certificate successfully added'){
+        throw "Unable to update '$name'; failed to create the binding, the error was $createResult."
+		return;
+    }
+    get-HTTPSSlcertBinding | ?{$_.name -eq $Name}
+}
+
+
+function find-DisabledInheritance {
+  [CmdletBinding()] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$DistinguishedName,[switch]$SkipBaseLevel)
+   Begin{
+        $results = @()
+        $startNum = 0
+        if ($SkipBaseLevel) {$startNum = 1}
+   }
+   process { 
+        $DistinguishedName | ForEach-Object{
+            $DN = $_ -split ','
+            $domParts = $_ -split ",DC="
+            $Domain = ($_ -split ",DC=" | select -skip 1) -join "."    
+            for ($i=$startNum;$I-lt ($DN.count -$domparts.count);$i++){
+                $thisDN = $DN[$i..($DN.count)] -join ","               
+                Write-verbose $thisdn
+                $acl = ([adsi]"LDAP://$Domain/$thisDN").psbase.objectsecurity
+                if ($acl.AreAccessRulesProtected){
+                    $results += $thisDN
+                    break;
+                }
+            }
+        }
+    }
+    end {
+        $results | select -unique
+    }
+}
+
 
 new-alias gssl Retrieve-ServerCertFromSocket
 #Write-HOst gssl Retrieve-ServerCertFromSocket
