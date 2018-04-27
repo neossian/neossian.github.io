@@ -1,4 +1,4 @@
-$ProfileVersion = "1.37"
+$ProfileVersion = "1.38"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -316,7 +316,7 @@ function get-netstatData(){
 		   $data += new-object psobject -Property $matches
 		}
 	}
-	return $data | select Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,ProcessID
+	return $data | select Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,ProcessID,State
 }
 
 
