@@ -1,4 +1,4 @@
-$ProfileVersion = "1.38"
+$ProfileVersion = "1.42"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -167,7 +167,7 @@ Version 1.3 updated to add some additional UAC filters
 
     
     if($O365Find){
-        $ldapfilter += "(|(userprincipalname=$o365Find)(proxyaddresses=SMTP:$O365Find)(mail=$O365Find)(proxyaddresses=SIP:$O365Find)(msrtcsip-primaryuseraddress=SIP:$O365Find))"
+        $ldapfilter += "(|(userprincipalname=$o365Find)(proxyaddresses=SMTP:$O365Find)(mail=$O365Find)(msrtcsip-primaryuseraddress=sip:$O365Find)(proxyaddresses=SIP:$O365Find)(msrtcsip-primaryuseraddress=SIP:$O365Find))"
         $GC = $true;
     }
 
@@ -241,7 +241,7 @@ Version 1.3 updated to add some additional UAC filters
     $properties | %{$ADSearcher.PropertiesToLoad.Add($_) | out-null}   
     if ($includeDeletedObjects){
         $control = New-Object System.DirectoryServices.Protocols.ShowDeletedControl
-        $adsearcher.cont
+        $adsearcher.controls = $control
     }
     #perform the search and process the objects
     foreach ($LDAPResult in $ADSearcher.Findall()){
@@ -319,6 +319,9 @@ function get-netstatData(){
 	return $data | select Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,ProcessID,State
 }
 
+function Refresh-ComputerGroupMembership {
+    klist -li 0x3e7 purge
+}
 
 
 function Import-SVCLog {
@@ -2196,6 +2199,99 @@ function add-HttpsSLCertBinding ([Parameter(Mandatory=$true)]$name="0.0.0.0:443"
 }
 
 
+function set-ldapdata {
+  [CmdletBinding(
+     SupportsShouldProcess=$true,
+    ConfirmImpact="High"
+  )] Param(
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$DistinguishedName,$RenameObject, [parameter(Mandatory=$False,Position=0,ValueFromRemainingArguments=$True)][Object[]]$Arglist,[string[]]$Clear=@())
+
+    Begin{
+        $RenameObjectPlaceHolder = "#RenameADObjectFromParam#"
+        $ArgumentList = @{}
+         for ($i=0;$i -lt $Arglist.count;$i+=2){
+            $name = $Arglist[$i] -replace '^-',''
+            $value = $Arglist[$i+1]            
+            if ($value -eq $null){
+               
+            } elseif ($Value.getType().tostring() -notmatch 'System.Management.Automation.ScriptBlock|System.String'){
+                $value = [string[]]$value
+            }
+            $argumentlist.add($name,$value)
+            
+         }
+         if ($RenameObject){
+            if ($ArgumentList.count -ne 0){ 
+                Write-Warning "Cannot rename and perform attribute updates simultaneously, only the attribute updates will be processed"
+            } else {
+                $ArgumentLIst.add($RenameObjectPlaceHolder,$RenameObject)
+            }
+         }
+         
+    }
+    process { 
+        foreach ($entry in $DistinguishedName){
+            try{
+                $updatelist = "Updating $entry "
+                $SetInfoRequired = $false
+                $thisObject =[ADSI]"LDAP://$entry"                
+                foreach ($update in $ArgumentLIst.GetEnumerator()){        
+                    $result =$null
+                    if ($update.value -ne $null) {        
+                        switch -regex ($update.value.gettype().tostring()){
+                            'System.String'{
+                                $result = $update.value
+                                break;
+                            }
+                            'System.Management.Automation.ScriptBlock'{
+                                $result = $thisObject | ForEach-Object $update.value                            
+                            }
+                        }
+                    }
+                    if (($result -eq $null -or $result -eq "" -or $update.value -eq $null) -and $update.Name -ne $RenameObjectPlaceHolder){
+                        $thisObject.putex(1,$update.name,0)
+                        $updatelist += " " + $update.name + ":'" + $result + "'"       
+                        $SetInfoRequired = $true
+                    } else {
+                        switch ($update.name){
+                            "#RenameADObjectFromParam#"{
+                                $CurrentNameParts = (($entry -replace '\\,','---commahere---') -split ',') | ForEach-Object {$_ -replace '---commahere---','\,'}
+                                $ParentOU = $CurrentNameParts[1..100] -join ','                                
+                                $Prefix = $CurrentNameParts[0] -replace '([^=]+=).+','$1'
+                                if ($result -notmatch "^$([regex]::Escape($prefix))"){$result = $prefix + $result}
+                                if ($result -match '[^\\],'){
+                                    Write-Error "Renaming '$Entry' to '$result' would result in a naming violation - escape all , with \ eg 'Smith\, John'"                                    
+                                } else {
+                                    $ParentOUObj =[adsi]"LDAP://$ParentOU"
+                                    if ($pscmdlet.ShouldProcess("Rename object $Entry to new name $result")){
+                                        $ParentOUObj.moveHere("LDAP://$entry", $result)
+                                    }
+                                }
+                                break;   
+                            }                        
+                            default {
+                                $SetInfoRequired = $true
+                                $thisObject.put($update.name,$result)
+                                $updatelist += " " + $update.name + ":'" + $result + "'"                            
+                            }
+                        }
+                    }
+                }
+                if ($SetInfoRequired){
+                     if ($pscmdlet.ShouldProcess($updatelist)){
+                        $thisObject.setinfo()
+                     }
+                }
+            } catch {
+                Write-Warning "Failed to update $entry, because $_"
+            }
+        }
+    }
+    end {
+       
+    }
+}
+
 Function update-HTTPSSlcertBinding {
     
      [cmdletbinding()]Param($name,$RevocationFreshnessTime,$DSMapperUsage,$CtlIdentifier,$CertificateStoreName,$ApplicationID,$VerifyRevocationUsingCachedClientCertificateOnly,$NegotiateClientCertificate,$URLRetrievalTimeout,$CtlStoreName,$CertificateHash,$UsageCheck,$VerifyClientCertificateRevocation)
@@ -2303,6 +2399,25 @@ function find-DisabledInheritance {
 
 new-alias gssl Retrieve-ServerCertFromSocket
 #Write-HOst gssl Retrieve-ServerCertFromSocket
+
+
+function ConvertTo-Base64 {
+    Process {
+        foreach ($arg in $args){
+            [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($arg))
+        }
+    }
+
+    
+}
+
+function ConvertFrom-Base64 {
+    process {
+        foreach ($arg in $args) {
+            [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($arg))
+        }
+    }
+}
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
