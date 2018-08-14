@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/fr/tags/antis%C3%A8che/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Antisèche on WRISH</title>
+    <link>http://www.wrish.com/fr/tags/antis%C3%A8che/</link>
+    <description>Recent content in Antisèche on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. Droits réservés.</copyright>
-    <atom:link href="http://www.wrish.com/fr/tags/antis%C3%A8che/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 18 Nov 2016 11:42:35 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/fr/tags/antis%C3%A8che/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Powershell Regex antisèche</title>
@@ -14,25 +17,8 @@
       <pubDate>Fri, 18 Nov 2016 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/fr/post/regex-cheat-sheet/</guid>
-      <description>&lt;p&gt;Une collection de le regex qui je recherche souvent.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Trouve le groupe avec un nom
-&#39;LesColourDesVache Brun&#39; -match &#39;(?&amp;lt;Attribut&amp;gt;\w+) (?&amp;lt;Valeur&amp;gt;\w+)&#39; | out-null
-$matches.Attribut
-$matches.Valeur
-#LesColourDesVache
-#Brun
-
-#Remplacer pour reformater un string
-&amp;quot;J&#39;ai un grande problem&amp;quot; -replace &#39;.* (g[^ ]+).*&#39;,&amp;quot;C&#39;est pas trop `$1&amp;quot;
-#C&#39;est pas trop grande
-
-#appariement paresseux (pour previnir appariement exessif) utilise un ? apres la + ou *
-&amp;quot;&amp;lt;h1&amp;gt;MyHeading&amp;lt;/h1&amp;gt;&amp;quot; -replace &#39;&amp;lt;([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;cow&amp;gt;&#39; -replace  &#39;&amp;lt;/([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;/cow&amp;gt;&#39;
-#&amp;lt;cow&amp;gt;MyHeading&amp;lt;/cow&amp;gt;
-
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>Une collection de le regex qui je recherche souvent.
+#Trouve le groupe avec un nom &#39;LesColourDesVache Brun&#39; -match &#39;(?&amp;lt;Attribut&amp;gt;\w+) (?&amp;lt;Valeur&amp;gt;\w+)&#39; | out-null $matches.Attribut $matches.Valeur #LesColourDesVache #Brun #Remplacer pour reformater un string &amp;quot;J&#39;ai un grande problem&amp;quot; -replace &#39;.* (g[^ ]+).*&#39;,&amp;quot;C&#39;est pas trop `$1&amp;quot; #C&#39;est pas trop grande #appariement paresseux (pour previnir appariement exessif) utilise un ? apres la + ou * &amp;quot;&amp;lt;h1&amp;gt;MyHeading&amp;lt;/h1&amp;gt;&amp;quot; -replace &#39;&amp;lt;([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;cow&amp;gt;&#39; -replace &#39;&amp;lt;/([^/]+?)&amp;gt;&#39;,&#39;&amp;lt;/cow&amp;gt;&#39; #&amp;lt;cow&amp;gt;MyHeading&amp;lt;/cow&amp;gt;  </description>
     </item>
     
   </channel>

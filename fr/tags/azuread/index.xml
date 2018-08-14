@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/fr/tags/azuread/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Azuread on WRISH</title>
+    <link>http://www.wrish.com/fr/tags/azuread/</link>
+    <description>Recent content in Azuread on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. Droits réservés.</copyright>
-    <atom:link href="http://www.wrish.com/fr/tags/azuread/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 08 Dec 2016 20:53:49 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/fr/tags/azuread/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Azure AD Connect - C&#39;est impossible de récupérer l&#39;état de connexion unique</title>
@@ -14,11 +17,8 @@
       <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
       
       <guid>http://www.wrish.com/fr/post/cannot-retrieve-single-sign-on-status-aadconnect/</guid>
-      <description>&lt;p&gt;Si vous êtes arrivé ici, vous êtes très malchanceux. Vous avez téléchargé la version AADConnect &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-aadconnect-version-history#113700&#34;&gt;1.1.370.0&lt;/a&gt; avec son problème connait.
-Vous n&amp;rsquo;avez pas le port 9090 ouvrir à l&amp;rsquo;extérieur, donc vous avez reçu une erreur non documentée &lt;code&gt;Cannot retrieve single sign on status. Learn more&lt;/code&gt; - &amp;laquo;impossible de récupérer l&amp;rsquo;état de connexion unique - apprendre plus&amp;raquo;.&lt;/p&gt;
-
-&lt;p&gt;Ne craignez pas, allez &lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=47594&#34;&gt;Téléchargé la dernier version&lt;/a&gt;.&lt;/p&gt;
-</description>
+      <description>Si vous êtes arrivé ici, vous êtes très malchanceux. Vous avez téléchargé la version AADConnect 1.1.370.0 avec son problème connait. Vous n&amp;rsquo;avez pas le port 9090 ouvrir à l&amp;rsquo;extérieur, donc vous avez reçu une erreur non documentée Cannot retrieve single sign on status. Learn more - &amp;laquo;impossible de récupérer l&amp;rsquo;état de connexion unique - apprendre plus&amp;raquo;.
+Ne craignez pas, allez Téléchargé la dernier version.</description>
     </item>
     
     <item>
@@ -27,30 +27,9 @@ Vous n&amp;rsquo;avez pas le port 9090 ouvrir à l&amp;rsquo;extérieur, donc vo
       <pubDate>Wed, 23 Nov 2016 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/fr/post/unable-to-verify-azure-domain/</guid>
-      <description>&lt;p&gt;Après vous avez ajouter un domaine à Azure AD (ou Office 365) par Powershell pendant que vous êtes connecté à votre ADFS comme ceci:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;New-MsolDomain -Name domaintest.wrish.com -Authentication Federated
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Lorsque vous ajoutez ton enregistrement de vérification et essayer de vérifier le domaine par l&amp;rsquo;interface graphique, ce possible d&amp;rsquo;avoir un erreur comme ceci:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/unable-to-verify-azure-domain.png&#34; alt=&#34;Impossible de vérifier le nom de domaine. Assurez-vous d&#39;avoir ajouté l&#39;enregistrement ci-dessus au bureau d&#39;enregistrement &#39;contoso.com&#39; et réessayez dans un moment.&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;C&amp;rsquo;est pas possible de vérifier le domaine par l&amp;rsquo;interface graphique après avoir créé le domaine à l&amp;rsquo;aide de powershell. Au lieu, c&amp;rsquo;est necessaire de confirmer le domaine à l&amp;rsquo;aide de powershell et donner tout les information de federation:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;IssuerURI&lt;/li&gt;
-&lt;li&gt;ActiveLogOnUri&lt;/li&gt;
-&lt;li&gt;LogOffUri&lt;/li&gt;
-&lt;li&gt;PassiveLogOnUri&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Les valeurs ne sont pas importantes, donc passer quelque chose, ensuit utilisez &lt;code&gt;Update-MsolFederatedDomain&lt;/code&gt; de mis à jour de les valeurs automatiquement de ton ADFS.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Confirm-MsolDomain -domainname domaintest.wrish.com -IssuerUri http://whatever/ -ActiveLogOnUri https://whatever/ -LogOffUri https://whatever/ -PassiveLogOnUri https://whatever/
-Update-MsolFederatedDomain -DomainName domaintest.wrish.com -SupportMultipleDomain $true
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>Après vous avez ajouter un domaine à Azure AD (ou Office 365) par Powershell pendant que vous êtes connecté à votre ADFS comme ceci:
+New-MsolDomain -Name domaintest.wrish.com -Authentication Federated  Lorsque vous ajoutez ton enregistrement de vérification et essayer de vérifier le domaine par l&amp;rsquo;interface graphique, ce possible d&amp;rsquo;avoir un erreur comme ceci:
+C&amp;rsquo;est pas possible de vérifier le domaine par l&amp;rsquo;interface graphique après avoir créé le domaine à l&amp;rsquo;aide de powershell.</description>
     </item>
     
   </channel>

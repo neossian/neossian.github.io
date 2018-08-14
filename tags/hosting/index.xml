@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/tags/hosting/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Hosting on WRISH</title>
+    <link>http://www.wrish.com/tags/hosting/</link>
+    <description>Recent content in Hosting on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <atom:link href="http://www.wrish.com/tags/hosting/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 29 Dec 2016 17:47:35 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/tags/hosting/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Hosting for free with GitHub Pages using Windows (with custom domain)</title>
@@ -14,90 +16,9 @@
       <pubDate>Thu, 29 Dec 2016 17:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/straightforward-guide-to-hosting-for-free-with-github-pages-on-windows/</guid>
-      <description>
-
-&lt;p&gt;I am unashamedly cheap. Here is how to host your personal website for no cost on github pages running on a windows platform.&lt;/p&gt;
-
-&lt;h2 id=&#34;install-a-git-client&#34;&gt;Install a GIT client&lt;/h2&gt;
-
-&lt;p&gt;There are lots - I chose the one that came up first in a Google search and haven&amp;rsquo;t tried any others.
-Download &lt;a href=&#34;https://git-scm.com/download/win&#34;&gt;Git For Windows&lt;/a&gt;
-Run &lt;em&gt;Git-2.xx.x-64-bit.exe&lt;/em&gt; that you just downloaded and install setting the following options&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Use Git from the Windows Command Prompt (default)&lt;/li&gt;
-&lt;li&gt;Checkout as-is, commit as-is (not default)&lt;/li&gt;
-&lt;li&gt;Everything else default&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Choosing the second item just means you will see less verbose output if you are using a Windows only environment.&lt;/p&gt;
-
-&lt;h2 id=&#34;sign-up-for-a-github-account&#34;&gt;Sign up for a GitHub account&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Go here &lt;a href=&#34;https://github.com/&#34;&gt;https://github.com/&lt;/a&gt; and follow the bouncing ball to create your account, mine is &lt;em&gt;wrish&lt;/em&gt; wherever I use &lt;em&gt;wrish&lt;/em&gt; replace it with your chosen name.&lt;/li&gt;
-&lt;li&gt;Choose the free option (obviously).&lt;/li&gt;
-&lt;li&gt;Verify your email address&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;create-your-website-repository&#34;&gt;Create your website repository&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Click &lt;em&gt;Start a Project&lt;/em&gt; to create a new repository&lt;/li&gt;
-&lt;li&gt;Enter the repository name as &lt;em&gt;wrish&lt;/em&gt;.github.io &amp;#8592; replace &lt;em&gt;wrish&lt;/em&gt; with your username&lt;/li&gt;
-&lt;li&gt;Click &lt;em&gt;Create Repository&lt;/em&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;upload-your-first-bits-and-pieces&#34;&gt;Upload your first bits and pieces&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;On your Windows workstation with Git installed, open a command prompt&lt;br /&gt;&lt;/li&gt;
-&lt;li&gt;Create your base folder&lt;br&gt;
-&lt;code&gt;md c:\website\www.wrish.com&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;cd c:\website\www.wrish.com&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Add a &lt;code&gt;robots.txt&lt;/code&gt; file (allow search engines to scan) and a &lt;code&gt;CNAME&lt;/code&gt; file (replace www.wrish.com with your custom domain)&lt;br&gt;
-&lt;code&gt;echo www.wrish.com &amp;gt; CNAME&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;echo User-agent: * &amp;gt; robots.txt&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;echo Disallow: &amp;gt;&amp;gt; robots.txt&lt;/code&gt;&lt;br&gt;&lt;/li&gt;
-&lt;li&gt;Here is where you copy your &lt;code&gt;index.html&lt;/code&gt; and other files into &lt;code&gt;c:\website\www.wrish.com&lt;/code&gt; or just create a placeholder index.html&lt;br&gt;
-&lt;code&gt;echo Hello World &amp;gt; index.html&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Init a Git database in the current folder (note if you get an error here, Git4Windows isn&amp;rsquo;t installed/working)&lt;br&gt;
-&lt;code&gt;git init&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git config --global credential.helper wincred&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git config user.name wrish&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Add your first commit (replace &lt;em&gt;wrish&lt;/em&gt; with your username)&lt;br&gt;
-&lt;code&gt;git add index.html CNAME robots.txt&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git commit -m &amp;quot;first commit&amp;quot;&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git remote add origin https://github.com/wrish/wrish.github.io.git&lt;/code&gt;&lt;br&gt;
-&lt;code&gt;git push -u origin master&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;At this point you will be prompted for your Git username and password and git should be notified that a new &lt;em&gt;branch&lt;/em&gt; called &lt;em&gt;master&lt;/em&gt; was created.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/github-success.png&#34; alt=&#34;Branch master set up to track remote branch master from origin&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;You can also browse to your website &lt;a href=&#34;https://wrish.github.io&#34;&gt;https://wrish.github.io&lt;/a&gt; and you should see Hello World or your content.&lt;/p&gt;
-
-&lt;h2 id=&#34;create-a-cname-to-make-your-website-work&#34;&gt;Create a CNAME to make your website work&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;If you don&amp;rsquo;t already have a custom domain, you will need to purchase one&lt;/li&gt;
-&lt;li&gt;Log into your DNS provider and create a CNAME records (alias) pointing to your Github Website (Don&amp;rsquo;t use a wildcard alias)&lt;br&gt;
-&lt;code&gt;WWW CNAME wrish.github.io&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Test it out! &lt;a href=&#34;http://www.wrish.com&#34;&gt;http://www.wrish.com&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Ok, so now you have a website, but you need to update it. It involves a few commands that, frankly, I don&amp;rsquo;t understand, so just create a batch file &lt;code&gt;Publish.bat&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;cd c:\website\www.wrish.com 
-git add * 
-git commit -m &amp;quot;Scripted Publish %date%&amp;quot; 
-git push origin master 
-pause 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now all it takes is a double click and anything you add to &lt;code&gt;c:\website\www.wrish.com&lt;/code&gt; will be uploaded.&lt;/p&gt;
-</description>
+      <description>I am unashamedly cheap. Here is how to host your personal website for no cost on github pages running on a windows platform.
+Install a GIT client There are lots - I chose the one that came up first in a Google search and haven&amp;rsquo;t tried any others. Download Git For Windows Run Git-2.xx.x-64-bit.exe that you just downloaded and install setting the following options
+ Use Git from the Windows Command Prompt (default) Checkout as-is, commit as-is (not default) Everything else default  Choosing the second item just means you will see less verbose output if you are using a Windows only environment.</description>
     </item>
     
   </channel>

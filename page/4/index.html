@@ -5,7 +5,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
-  <meta name="generator" content="Hugo 0.17" />
+  <meta name="generator" content="Hugo 0.46" />
 
   <title>WRISH</title>
 
@@ -73,12 +73,6 @@
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
-      
-        </li>
-      
-      
-        <li class="pure-menu-item">
           <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
       
         </li>
@@ -92,6 +86,12 @@
       
         <li class="pure-menu-item">
           <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
       
         </li>
       
@@ -191,10 +191,20 @@
 </div>
 
   
+<div>
+  <div class="pure-menu-center">
+    <p>
+				
+			Language:<a href="http://www.wrish.com/fr/">fr</a> 		
+			</p>
+				
+  </div>
+</div>
+
   
   <div>
   <div class="small-print">
-    <small>&copy; 2016. All rights reserved.</small>
+    <small></small>
   </div>
   <div class="small-print">
     <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
@@ -347,7 +357,7 @@ You can&rsquo;t verify your domain using the GUI when you create the Domain usin
 
   <p>
   A collection of regex&rsquo;s that I always find myself looking up.
-#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Matching without returning the match with (?:matching) &quot;Subnet:10.1.1.0/24&quot; -match 'Subnet:(?&lt;SiteSubnet&gt;(?:\d{1,3}\.){3}\d{1,3}/\d+)' #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?
+#Match while tagging match groups 'CowColour Brown' -match '(?&lt;Attribute&gt;\w+) (?&lt;Value&gt;\w+)' | out-null $matches.Attribute $matches.Value #cowColour #Brown #Matching groups - your $matches object will have properties containing the valid matches &quot;Subnet:10.1.1.0/24&quot; -match 'Subnet:(?&lt;SiteSubnet&gt;(?:\d{1,3}\.){3}\d{1,3}/\d+)' #Replace to reformat a string 'This is a wild test' -replace '.*(w[^ ]+).*','Not so $1' #Not so wild #Lazy matching (to prevent over-matching) use a ? after the + or * &quot;&lt;h1&gt;MyHeading&lt;/h1&gt;&quot; -replace '&lt;([^/]+?
   </p>
 
   

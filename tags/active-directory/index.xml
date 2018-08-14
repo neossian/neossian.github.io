@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/tags/active-directory/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Active Directory on WRISH</title>
+    <link>http://www.wrish.com/tags/active-directory/</link>
+    <description>Recent content in Active Directory on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <atom:link href="http://www.wrish.com/tags/active-directory/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 02 Aug 2017 02:47:35 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/tags/active-directory/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Isolate a DC - Part 10: Reset KrbTGT password twice</title>
@@ -14,44 +16,9 @@
       <pubDate>Wed, 02 Aug 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/</guid>
-      <description>
-
-&lt;p&gt;This is Part 10 of a series on Active Directory Forest recovery; a new password for your domain.&lt;/p&gt;
-
-&lt;h2 id=&#34;rest-krbtgt-password-twice&#34;&gt;Rest KrbTGT password twice&lt;/h2&gt;
-
-&lt;p&gt;And finally, just in case someone still has a ticket lying around waiting to be used on your restored domain, sort that right out and update your KrbTGT password.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-KrbtgtPasswordTwice{
-[CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = &#39;High&#39;)]param()
-    $targetPassword = (ConvertTo-SecureString &amp;quot;!7Dm$(get-random -minimum 10000000000000000 -maximum 1000000000000000000)$(get-random -minimum 10000000000000000 -maximum 1000000000000000000)#*&amp;amp;&amp;quot; -AsPlainText -Force)
-     Write-Warning &amp;quot;Resetting the KRBTGT password twice without allowing replication of the update may result in Domain Controllers that cannot replicate if they have temporarily lost connectivity. Proceed with caution.&amp;quot;
-     if ($pscmdlet.ShouldProcess(((Get-ADUser krbtgt).DistinguishedName))){
-        Set-ADAccountPassword -Identity (Get-ADUser krbtgt).DistinguishedName -Reset -NewPassword $targetPassword
-        Set-ADAccountPassword -Identity (Get-ADUser krbtgt).DistinguishedName -Reset -NewPassword $targetPassword
-    }
-}
-
-Reset-KrbtgtPasswordTwice
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 10 of a series on Active Directory Forest recovery; a new password for your domain.
+Rest KrbTGT password twice And finally, just in case someone still has a ticket lying around waiting to be used on your restored domain, sort that right out and update your KrbTGT password.
+function Reset-KrbtgtPasswordTwice{ [CmdletBinding( SupportsShouldProcess = $true, ConfirmImpact = &#39;High&#39;)]param() $targetPassword = (ConvertTo-SecureString &amp;quot;!7Dm$(get-random -minimum 10000000000000000 -maximum 1000000000000000000)$(get-random -minimum 10000000000000000 -maximum 1000000000000000000)#*&amp;amp;&amp;quot; -AsPlainText -Force) Write-Warning &amp;quot;Resetting the KRBTGT password twice without allowing replication of the update may result in Domain Controllers that cannot replicate if they have temporarily lost connectivity.</description>
     </item>
     
     <item>
@@ -60,47 +27,8 @@ Reset-KrbtgtPasswordTwice
       <pubDate>Wed, 12 Jul 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/</guid>
-      <description>
-
-&lt;p&gt;This is Part 9 of a series on Active Directory Forest recovery; trust no-one, or at least no peer domains.&lt;/p&gt;
-
-&lt;h2 id=&#34;reset-intraforest-trust-passwords&#34;&gt;Reset Intraforest trust passwords&lt;/h2&gt;
-
-&lt;p&gt;To avoid accidentally permitting interforest authentication with a Domain Controller that hasn&amp;rsquo;t been restored yet we need to reset the Intra-Forest trust passwords to a common value on both sides. This way the restored domains will all talk with the same hash. Update the trust shared secret to something actually secret before running this command.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-IntraForestTrustPasswords{
-    [CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = &#39;High&#39;)]param([parameter(Mandatory=$true)]
-    [String[]]$trustSharedSecret)
-    $trusts = get-adtrust -filter {intraforest -eq $true}
-    $localdomain = [system.directoryservices.activedirectory.domain]::GetCurrentDomain()
-    Write-Warning &amp;quot;Resetting the Intra-frest Trust passwords will break the Intraforest trusts, the same password must be used to reset the password on the other side to restore trust connectivity&amp;quot;
-    $trusts.name | %{
-        if ($pscmdlet.ShouldProcess($_)){
-            $localdomain.UpdateLocalSideOfTrustRelationship($_,$trustSharedSecret) 
-        }   
-    } 
-}
-
-Reset-IntraForestTrustPasswords -trustSharedSecret &amp;quot;OhWhatASecretySecretThisIs!Somuchsecret&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 9 of a series on Active Directory Forest recovery; trust no-one, or at least no peer domains.
+Reset Intraforest trust passwords To avoid accidentally permitting interforest authentication with a Domain Controller that hasn&amp;rsquo;t been restored yet we need to reset the Intra-Forest trust passwords to a common value on both sides. This way the restored domains will all talk with the same hash. Update the trust shared secret to something actually secret before running this command.</description>
     </item>
     
     <item>
@@ -109,75 +37,8 @@ Reset-IntraForestTrustPasswords -trustSharedSecret &amp;quot;OhWhatASecretySecre
       <pubDate>Tue, 20 Jun 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs/</guid>
-      <description>
-
-&lt;p&gt;This is Part 8 of a series on Active Directory Forest recovery; make your DC lonely.&lt;/p&gt;
-
-&lt;h2 id=&#34;metadata-cleanup-all-other-dcs&#34;&gt;Metadata Cleanup all other DCs&lt;/h2&gt;
-
-&lt;p&gt;Its not recovered until all the DCs are alive, but first, you have to kill them off with Metadata cleanup. Unfortunately the powershell commands won&amp;rsquo;t just delete a Domain Controller for you. So its up to NTDSUTIL automation to do the work again. You will need to run these in the Console host, not the PowerShell ISE.&lt;/p&gt;
-
-&lt;p&gt;In this step we also purge DNS records created by those DCs and try to eliminate as many lingering bits of fluff as possible.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function MetadataCleanupAllOtherDCsInCurrentDomain{
- [CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = &#39;High&#39;)]param()
-    $domainObj = get-addomain
-    $domain = $domainObj.dnsroot  
-    $domaindn = $domainObj.distinguishedName 
-    Write-Warning &amp;quot;Metadata will be removed for all domain controllers except $(&amp;amp;hostname) in $domain, performing this activity in a production environment will be catastrophic.&amp;quot;
-    if ($pscmdlet.ShouldProcess($domain.name)){ 
-        get-addomaincontroller -filter * | ?{$_.hostname -notmatch $(&amp;amp;hostname)} |  %{  
-            $domains = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot;  q q q
-            $DomainNum = &amp;quot;FailedToFindDomain&amp;quot;; switch -regex ($domains){ &amp;quot;^(\d+) - $domaindn&amp;quot;{$DomainNum = $matches[1];break; }  }             
-            $sites =  ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; q q q  
-            $sername = $_.name  
-            $sitename = $_.site  
-            $sitenum = &amp;quot;FailedTofindSite&amp;quot;; switch -regex ($sites){    &amp;quot;^(\d+) - .+$sitename&amp;quot;{$sitenum = $matches[1];break; }  }  
-            $servers = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; &amp;quot;sel site $sitenum&amp;quot; &amp;quot;list ser for dom in site&amp;quot; q q q  
-            $servnum = &amp;quot;FailedToFindServer&amp;quot;; switch -regex ($servers){&amp;quot;^(\d+).+$sername&amp;quot;{ $servnum = $matches[1];break; }  }   
-            write-verbose &amp;quot;Executing cleanup metadata $sername from $sitename : ntdsutil `&amp;quot;metadata cleanup`&amp;quot; `&amp;quot;con`&amp;quot; `&amp;quot;con to dom $domain`&amp;quot; q `&amp;quot;sel op ta`&amp;quot; `&amp;quot;list do`&amp;quot; `&amp;quot;select do $DomainNum`&amp;quot; `&amp;quot;list sites`&amp;quot; `&amp;quot;sel site $sitenum`&amp;quot; `&amp;quot;list ser for dom in site`&amp;quot; `&amp;quot;sel ser $servnum`&amp;quot; q `&amp;quot;rem sel server`&amp;quot; q q&amp;quot;  
-            $result = ntdsutil &amp;quot;metadata cleanup&amp;quot; &amp;quot;con&amp;quot; &amp;quot;con to dom $domain&amp;quot; q &amp;quot;sel op ta&amp;quot; &amp;quot;list do&amp;quot; &amp;quot;select do $DomainNum&amp;quot; &amp;quot;list sites&amp;quot; &amp;quot;sel site $sitenum&amp;quot; &amp;quot;list ser for dom in site&amp;quot; &amp;quot;sel ser $servnum&amp;quot; q &amp;quot;rem sel server&amp;quot; q q
-            if ($result -match &amp;quot;removed from server&amp;quot;) {  
-                Write-verbose ($_.name + &amp;quot; Metadata cleanup complete&amp;quot;)
-            }  
-        }  
-        Write-Verbose &amp;quot;Removing all SRV records, Domain A,AAAA and NS records&amp;quot;      
-        $DNSDOmain = $domain
-        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -Node &#39;@&#39; -RRType A | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
-        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;@&#39; -RRType AAAA | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
-        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;@&#39; -RRType NS | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
-        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;_kpasswd._udp&#39; -RRType SRV | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
-        Get-DnsServerResourceRecord -ZoneName $DNSDOmain -node &#39;_kpasswd._tcp&#39; -RRType SRV | Remove-DnsServerResourceRecord -ZoneName $DNSDOmain -force
-        try {$MSDCSRecords = Get-DnsServerResourceRecord -ZoneName _msdcs.$DNSDOmain -RRType SRV; $DNSDomain = &amp;quot;_msdcs.$DNSDOmain&amp;quot; } 
-        catch {$MSDCSRecords = Get-DnsServerResourceRecord -ZoneName $DNSDOmain -RRType SRV | ?{$_.hostname -match &#39;_msdcs&#39;}}
-        $MSDCSRecords | ?{$_.hostname -match &#39;^_(kerberos|ldap)&#39;} | remove-dnsserverresourcerecord -zonename $DnsDOmain -force
-        #Restart DNS and netlogon to recreate the records for this Domain Controller
-        Write-Verbose &amp;quot;Restarting DNS and Netlogon to recreate domain records from this server&amp;quot;   
-        restart-service dns
-        restart-service netlogon
-    }
-}
-
-MetadataCleanupAllOtherDCsInCurrentDomain
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 8 of a series on Active Directory Forest recovery; make your DC lonely.
+Metadata Cleanup all other DCs Its not recovered until all the DCs are alive, but first, you have to kill them off with Metadata cleanup. Unfortunately the powershell commands won&amp;rsquo;t just delete a Domain Controller for you. So its up to NTDSUTIL automation to do the work again. You will need to run these in the Console host, not the PowerShell ISE.</description>
     </item>
     
     <item>
@@ -186,51 +47,8 @@ MetadataCleanupAllOtherDCsInCurrentDomain
       <pubDate>Mon, 12 Jun 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles/</guid>
-      <description>
-
-&lt;p&gt;This is Part 7 of a series on Active Directory Forest recovery; you need to have your FSMOs under control.&lt;/p&gt;
-
-&lt;h2 id=&#34;seize-all-fsmo-roles&#34;&gt;Seize all FSMO roles&lt;/h2&gt;
-
-&lt;p&gt;The roles you seize will depend on if you are in a parent or child domain, the script below leverages NTDSUTIL to seize all roles for a forest root domain, and the Infrastructure Master, PDC and RID Master for Child domains. It also updates the FSMO owner attribute on your Application partitions (usually just Forest DNS zones and Domain DNS Zones)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function seize-AllFSMORoles{
-    $domain = get-addomain
-    $forest = get-adforest
-    $DC = get-addomaincontroller
-    $grouplist = [System.Security.Principal.WindowsIdentity]::GetCurrent().Groups.value
-    if ($Domain.dnsroot -eq $forest.rootdomain) {
-        if (!($grouplist -match &#39;-518$&#39;) -or !($grouplist -match &#39;-519$&#39;) -or !($grouplist -match &#39;-512$&#39;)) {Write-Warning &amp;quot;You must have Domain, Schema and Enterprise Admin roles to proceed - no changes will be made&amp;quot;;return;}
-        Write-verbose &amp;quot;Using NTDSUtil to sieze all forest FSMO roles&amp;quot;
-        ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $($domain.dnsroot)&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q  
-        Write-Warning &amp;quot;PDC role has been moved - be sure to update NTP configuration of local server&amp;quot;      
-    } else {
-        if (!($grouplist -match &#39;-512$&#39;)) {Write-Warning &amp;quot;You must have Domain Admin to proceed - no changes will be made&amp;quot;;return;}
-        Write-verbose &amp;quot;Using NTDSUtil to sieze all child domain FSMO roles&amp;quot;
-        ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom  $($domain.dnsroot)&amp;quot; q  &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei PDC&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
-    }
-    Write-verbose &amp;quot;updating RoleOwner for application partitions&amp;quot;       
-    $forest.applicationpartitions | ?{$_ -match &amp;quot;^dc=[^,]+,$([regex]::escape($domain.distinguishedname))`$&amp;quot;} | %{ set-adobject $_ -replace @{fSMORoleOwner=($DC.NTDSSettingsObjectDN)}}
-}
-
-seize-AllFSMORoles
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 7 of a series on Active Directory Forest recovery; you need to have your FSMOs under control.
+Seize all FSMO roles The roles you seize will depend on if you are in a parent or child domain, the script below leverages NTDSUTIL to seize all roles for a forest root domain, and the Infrastructure Master, PDC and RID Master for Child domains. It also updates the FSMO owner attribute on your Application partitions (usually just Forest DNS zones and Domain DNS Zones)</description>
     </item>
     
     <item>
@@ -239,46 +57,8 @@ seize-AllFSMORoles
       <pubDate>Thu, 08 Jun 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/</guid>
-      <description>
-
-&lt;p&gt;This is Part 6 of a series on Active Directory Forest recovery, in today&amp;rsquo;s exciting adventure we raise your RID pools by 100k and invalidate the current RID pool.&lt;/p&gt;
-
-&lt;h2 id=&#34;raise-rid-pools-allocation&#34;&gt;Raise RID Pools Allocation&lt;/h2&gt;
-
-&lt;p&gt;Resource Identifiers are handed out whenever you create objects you can assign security to, if you are knee deep in restoration of your forest, you&amp;rsquo;ll want to make sure you don&amp;rsquo;t accidentally grant access to something unexpectedly by re-using a list SID.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function raiseRIDPool($amount=100000){
-    $domain = get-addomain
-    $currentRidPool = get-adobject &amp;quot;CN=RID Manager$,CN=System,$($domain.DistinguishedName)&amp;quot; -properties rIDAvailablePool | select -expand rIDAvailablePool
-    Write-verbose &amp;quot;RidPool is currently $currentRidPool will be raised to $($currentRidPool + $amount)&amp;quot;
-    set-adobject &amp;quot;CN=RID Manager$,CN=System,$($domain.DistinguishedName)&amp;quot; -replace @{ridavailablePool=($currentRidPool + $amount)}
-    $Domain = New-Object System.DirectoryServices.DirectoryEntry
-    $DomainSid = $Domain.objectSid
-    $RootDSE = New-Object System.DirectoryServices.DirectoryEntry(&amp;quot;LDAP://RootDSE&amp;quot;)
-    $RootDSE.UsePropertyCache = $false
-    Write-Verbose &amp;quot;Invalidating the rid pool for the current domain $($domain.name)&amp;quot;
-    $RootDSE.Put(&amp;quot;invalidateRidPool&amp;quot;, $DomainSid.Value)
-    $RootDSE.SetInfo() 
-}
-
-raiseRIDPoool
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 6 of a series on Active Directory Forest recovery, in today&amp;rsquo;s exciting adventure we raise your RID pools by 100k and invalidate the current RID pool.
+Raise RID Pools Allocation Resource Identifiers are handed out whenever you create objects you can assign security to, if you are knee deep in restoration of your forest, you&amp;rsquo;ll want to make sure you don&amp;rsquo;t accidentally grant access to something unexpectedly by re-using a list SID.</description>
     </item>
     
     <item>
@@ -287,47 +67,8 @@ raiseRIDPoool
       <pubDate>Wed, 10 May 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog/</guid>
-      <description>
-
-&lt;p&gt;This is Part 5 of a series on Active Directory Forest recovery which requires brining up restored DCs in their own network; bring them up with good manners and we all benefit.&lt;/p&gt;
-
-&lt;h2 id=&#34;disable-global-catalog&#34;&gt;Disable Global Catalog&lt;/h2&gt;
-
-&lt;p&gt;Now this step is strictly for Multi-Domain Forest recoveries. If your domains replicate cross domain boundaries, they&amp;rsquo;ll start complaining about their USNs and nobody wants that. If you&amp;rsquo;ve got yourself a nice simple single Domain environment, don&amp;rsquo;t sweat it and move on your Global Catalog can merrily sing into the night air without anybody noticing.&lt;/p&gt;
-
-&lt;p&gt;I mentioned in &lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt; that only the Administrator could login with the Global Catalog missing, that isn&amp;rsquo;t strictly true. This function will disable the GC on the local server, but also configure &lt;code&gt;IgnoreGCFailures&lt;/code&gt; which conveniently allows anyone to login without a GC! Hurrah for workarounds, just be aware that your login will not include any Universal Group SIDS (because they are in the Global Catalog) which means that &lt;insert wooping siren sounds&gt; there is a possible vulnerability for bypassing Deny permissions set on Universal Groups.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Disable-GC {
-    [CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = &#39;High&#39;)]param()
-    if ($pscmdlet.ShouldProcess($(&amp;amp;hostname))){
-        Write-verbose &amp;quot;Disabling Global Catalog on local server&amp;quot;    
-        repadmin.exe /options $(&amp;amp;hostname) –IS_GC 
-        Write-Verbose &amp;quot;Setting IgnoreGCFailures so that normal user accounts can login without GC&amp;quot;
-        Write-Warning &amp;quot;With IgnoreGCFailures enabled, permissions granted using Universal Groups including deny permissions will not be honoured&amp;quot;
-        set-itemproperty -path &amp;quot;HKLM:SYSTEM\CurrentControlSet\Control\Lsa&amp;quot; -Name IgnoreGCFailures -Value 1 
-    }
-}
-
-Disable-GC
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 5 of a series on Active Directory Forest recovery which requires brining up restored DCs in their own network; bring them up with good manners and we all benefit.
+Disable Global Catalog Now this step is strictly for Multi-Domain Forest recoveries. If your domains replicate cross domain boundaries, they&amp;rsquo;ll start complaining about their USNs and nobody wants that. If you&amp;rsquo;ve got yourself a nice simple single Domain environment, don&amp;rsquo;t sweat it and move on your Global Catalog can merrily sing into the night air without anybody noticing.</description>
     </item>
     
     <item>
@@ -336,39 +77,8 @@ Disable-GC
       <pubDate>Sat, 29 Apr 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password/</guid>
-      <description>
-
-&lt;p&gt;This is Part 4 of a multi part blog post on Domain Recovery and DC Isolation with the aid of Powershell in todays installment we learn that Directory Services Restore Mode (DSRM) is not actually needed to perform a full forest recovery.&lt;/p&gt;
-
-&lt;h2 id=&#34;reset-dsrm-password&#34;&gt;Reset DSRM Password&lt;/h2&gt;
-
-&lt;p&gt;Another typically unnecessary step is getting your hands on your DSRM password - if you don&amp;rsquo;t already have it. DSRM password is only used in DSRM mode, which you don&amp;rsquo;t need for this fun exercise, but why not have it just in case!&lt;/p&gt;
-
-&lt;p&gt;Now this step is not really Powershell, and not really automated, if you wanted to do the later you could probably create an account, set its password, and then sync the password to the DSRM Administrator account, but I wasn&amp;rsquo;t feeling that energetic this morning. So just type your password a couple of times and be done with it.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-DSRMPassword (){
-    Write-verbose &amp;quot;Calling NTDSUtil to reset the DSRM password on the local server&amp;quot;
-    ntdsutil &amp;quot;set DSRM Password&amp;quot; &amp;quot;Reset Password on Server NULL&amp;quot; q q
-}
-
-Reset-DSRMPassword
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 4 of a multi part blog post on Domain Recovery and DC Isolation with the aid of Powershell in todays installment we learn that Directory Services Restore Mode (DSRM) is not actually needed to perform a full forest recovery.
+Reset DSRM Password Another typically unnecessary step is getting your hands on your DSRM password - if you don&amp;rsquo;t already have it. DSRM password is only used in DSRM mode, which you don&amp;rsquo;t need for this fun exercise, but why not have it just in case!</description>
     </item>
     
     <item>
@@ -377,53 +87,8 @@ Reset-DSRMPassword
       <pubDate>Sun, 23 Apr 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account/</guid>
-      <description>
-
-&lt;p&gt;This is Part 3 of a multi part blog post automating AD Forest Recovery, take your forest to rehab, sit it down and force it not to have any AD corruption.&lt;/p&gt;
-
-&lt;h2 id=&#34;activate-administrator-account&#34;&gt;Activate Administrator Account&lt;/h2&gt;
-
-&lt;p&gt;Now I am not one for a false sense of security, but people building environments that I support are. That is why, more often than not, the Administrator account is renamed, the password is divided in 2 and stored at different ends of the earth, one under the 6 watchful eyes of Cerberus the other stuffed in a filing cabinet lost to the ages. Of course, one day you will need to promote a DC, or do a Schema change and so you have people with Domain Admin accounts. However, the Administrator account is the only one that can login if you don&amp;rsquo;t have a Global Catalog available&amp;hellip; so&amp;hellip; just in case, lets make all that skullduggery moot by ressurecting that Administrator account.&lt;/p&gt;
-
-&lt;p&gt;This script will devine your Admin account Samaccountname with nothing but two sticks and a well known SID. Ensure it is enabled, and set its password to something easy to remember that is conveniently printed to the screen.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Activate-AdminAccount{
-    [CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = &#39;High&#39;)]
-    param($PlainTextPassword)
-        
-    #Identify and enable the Admin account (note that password will be reset)
-    $domainObj = get-addomain 
-    $AdminAccount = ([ADSI]&amp;quot;LDAP://&amp;lt;SID=$($domainObj.Domainsid)-500&amp;gt;&amp;quot;).distinguishedname[0]
-    Write-Verbose &amp;quot;AD Admin account located $AdminAccount&amp;quot;    
-    get-aduser $AdminAccount -properties Samaccountname  |fl Samaccountname,@{l=&#39;Password&#39;;e={$PlainTextPassword}}     
-    if ($pscmdlet.ShouldProcess($adminAccount)){
-        Write-verbose &amp;quot;Activating $AdminAccount and resetting password to $plainTextPassword&amp;quot;
-        $password = (ConvertTo-SecureString -AsPlainText $plainTextPassword -Force) 
-        set-adaccountpassword -Identity &amp;quot;$($domainObj.Domainsid)-500&amp;quot; -reset -newpassword $password
-        set-aduser $AdminAccount -Enabled $true
-    }    
-} 
-
-Activate-AdminAccount -plainTextPassword &amp;quot;ThisIsTheMostC0mplexPasswordICou1dThinkOf&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 3 of a multi part blog post automating AD Forest Recovery, take your forest to rehab, sit it down and force it not to have any AD corruption.
+Activate Administrator Account Now I am not one for a false sense of security, but people building environments that I support are. That is why, more often than not, the Administrator account is renamed, the password is divided in 2 and stored at different ends of the earth, one under the 6 watchful eyes of Cerberus the other stuffed in a filing cabinet lost to the ages.</description>
     </item>
     
     <item>
@@ -432,38 +97,8 @@ Activate-AdminAccount -plainTextPassword &amp;quot;ThisIsTheMostC0mplexPasswordI
       <pubDate>Sat, 15 Apr 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate/</guid>
-      <description>
-
-&lt;p&gt;This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.&lt;/p&gt;
-
-&lt;h2 id=&#34;reset-your-dfsr-sysvol-state&#34;&gt;Reset your DFSR SYSVol State&lt;/h2&gt;
-
-&lt;p&gt;A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your
-domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a &lt;em&gt;synced&lt;/em&gt; state. Not by threatening to put it to bed early, but instead by tweaking its &lt;code&gt;msDFSR-Options&lt;/code&gt; on its &lt;code&gt;SYSVol Subscription&lt;/code&gt; object.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function Reset-SYSVOLSyncState{
-    set-adobject &amp;quot;cn=sysvol Subscription,cn=domain system volume,cn=dfsr-LocalSettings,$((get-adcomputer $(&amp;amp;hostname)).distinguishedname)&amp;quot; -Replace @{&#39;msDFSR-Options&#39;=1}
-    restart-service DFSR
-}
-
-Reset-SYSVOLSyncState
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>This is Part 2 of a multi part blog post covering the steps to Isolate a Domain Controller - if not emotionally, then logically.
+Reset your DFSR SYSVol State A DC booting into it&amp;rsquo;s own little world wont become healthy until SYSVOL has completed a sync with a partner in its domain, now this step is optional if your domain is temporary, but if you ever want to promote a new DC, or have a beautiful clear DCDIAG, then you&amp;rsquo;ll need to force SYSVOL into a synced state.</description>
     </item>
     
     <item>
@@ -472,56 +107,7 @@ Reset-SYSVOLSyncState
       <pubDate>Wed, 05 Apr 2017 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/isolate-dc-pt1-configure-the-network/</guid>
-      <description>
-
-&lt;p&gt;Dragging a single Domain Controller by its nostril into an isolated network can be time consuming. For testing or disaster recovery, the steps are the same, and while well documented almost everywhere, there don&amp;rsquo;t seem to be any quick and dirty tools to do the steps for you. That is why I wrote this series of powershell functions that can be applied to a DC you have restored in your Virtual environment to get your test Forest up and running quickly.&lt;/p&gt;
-
-&lt;p&gt;Note that all these functions are design to work in Windows 2012 R2 or higher, and while they&amp;rsquo;ve been tested, they are designed to do serious damage to your test environment and should never be used in production.&lt;/p&gt;
-
-&lt;h2 id=&#34;configure-the-network&#34;&gt;Configure the Network&lt;/h2&gt;
-
-&lt;p&gt;Configure the network card of your restored Domain Controller such that it points only to itself for DNS. Your Domain Controller needs to be able to locate itself when it is starting up to become healthy. So DNS and the network stack need to be operational. Make sure your Network is not connected externally. Having multiple DCs communicating on the same Name/IP Address/Domain Enviornment is unhealthy for your long term career prospects.&lt;/p&gt;
-
-&lt;p&gt;You&amp;rsquo;ll need to know your desired IP and subnet mask.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function ConfigureDCNetwork {
-    [CmdletBinding(
-    SupportsShouldProcess = $true,
-    ConfirmImpact = &#39;High&#39;)]    
-    param([parameter(mandatory=$true,
-    HelpMessage=&amp;quot;Enter the IP Address this server will use&amp;quot;)][ValidatePattern(&#39;\b(?:\d{1,3}\.){3}\d{1,3}\b&#39;)][string]$IPAddress,
-    [parameter(mandatory=$true,HelpMessage=&amp;quot;Enter the number of bits in the subnet mask eg 24 = 255.255.255.0&amp;quot;)][ValidateRange(2,30)]$CIDRSubnet,
-    [parameter(mandatory=$true,HelpMessage=&amp;quot;Enter the default gateway IP address&amp;quot;)][ValidatePattern(&#39;\b(?:\d{1,3}\.){3}\d{1,3}\b&#39;)][string]$DefaultGateway)
-    Write-Warning &amp;quot;Changing the IP address may result in lost network connectivity - ensure you have console access to this host&amp;quot;
-    if ($pscmdlet.ShouldProcess($(&amp;amp;hostname))){  
-        $netadapter = Get-NetAdapter | select -first 1
-        Write-verbose &amp;quot;Disabling DHCP on first interface&amp;quot;
-        $netadapter | Set-NetIPInterface -DHCP Disabled
-        Write-verbose &amp;quot;Configuring Network Address and default gateway&amp;quot;
-        $netadapter | New-NetIPAddress -AddressFamily IPv4 -IPAddress $IPAddress -PrefixLength $CIDRSubnet -Type Unicast -DefaultGateway $DefaultGateway
-        Write-Verbose &amp;quot;Pointing Domain Controller at self for DNS&amp;quot;
-        Set-DnsClientServerAddress -InterfaceAlias $netadapter.Name -ServerAddresses $IPAddress  
-    }
-}
-#                 IP Address  Prefix Default Gateway
-ConfigureDCNetwork 192.168.1.10 24 192.168.1.1
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;All the other parts of this series are available here&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt1-configure-the-network&#34;&gt;Part 1: Configure the Network&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt2-reset-sysvol-syncstate&#34;&gt;Part 2: Reset SYSVOL Sync State&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt3-activate-administrator-account&#34;&gt;Part 3: Activate Administrator Account&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt4-reset-dsrm-password&#34;&gt;Part 4: Reset DSRM Password&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt5-disable-global-catalog&#34;&gt;Part 5: Disable Global Catalog&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt6-raise-rid-pool/&#34;&gt;Part 6: Raise RID Pools&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt7-seize-fsmo-roles&#34;&gt;Part 7: Seize all FSMO roles&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt8-metadata-cleanup-all-other-dcs&#34;&gt;Part 8: Metadata cleanup all other DCs&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt9-reset-intraforest-trust-passwords/&#34;&gt;Part 9: Reset Intra-Forest trust passwords&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.wrish.com/post/isolate-dc-pt10-reset-krbtgt-password-twice/&#34;&gt;Part 10: Reset KrbTGT password twice&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
+      <description>Dragging a single Domain Controller by its nostril into an isolated network can be time consuming. For testing or disaster recovery, the steps are the same, and while well documented almost everywhere, there don&amp;rsquo;t seem to be any quick and dirty tools to do the steps for you. That is why I wrote this series of powershell functions that can be applied to a DC you have restored in your Virtual environment to get your test Forest up and running quickly.</description>
     </item>
     
   </channel>

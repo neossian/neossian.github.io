@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/tags/activedirectory/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Activedirectory on WRISH</title>
+    <link>http://www.wrish.com/tags/activedirectory/</link>
+    <description>Recent content in Activedirectory on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <atom:link href="http://www.wrish.com/tags/activedirectory/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 17 May 2017 11:42:35 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/tags/activedirectory/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>PowerShell Oneliners</title>
@@ -15,59 +17,7 @@
       
       <guid>http://www.wrish.com/post/powershell-oneliners/</guid>
       <description>&lt;p&gt;Just a list of useful oneliners for powershell server and AD management. Obviously some are not actually oneliners, but hey they&amp;rsquo;re quick!
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Retrieve the PDC AD Object using ADSI
-$PDC = [adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent 
-
-#PDC name to the clipboard
-([adsi]([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot;).fsmoroleowner)&amp;quot;).parent ).dnshostname | clip
-
-#List all PDCs in the forest (Requires ActiveDirectory powershell module)
-get-adforest | select -expand domains | %{Resolve-DnsName &amp;quot;_ldap._tcp.pdc._msdcs.$_&amp;quot; -Type SRV} | ?{$_.querytype -eq &#39;A&#39;} | select name,Address
-
-#On the PDC - check to see if SDPropogation is in progress (if numbers are greater than 0 it is in progress)
-get-counter -counter &#39;\directoryservices(ntds)\ds security descriptor propagator runtime queue&#39;,&#39;\directoryservices(ntds)\ds security descriptor propagations events&#39;
-
-#Quickly list dnshostname of all DCs in the forest
-(New-Object adsisearcher([adsi]&amp;quot;LDAP://$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).configurationNamingContext)&amp;quot;,&amp;quot;(objectClass=nTDSDSA)&amp;quot;)).findall() | %{($_.properties.distinguishedname[0] -replace &#39;cn=NTDS Settings,&#39;,&#39;&#39;)} | %{[adsi]&amp;quot;LDAP://$_&amp;quot;} | select -expand dnshostname
-
-#get the last executed command to the clipboard
-(get-history)[-1].commandline | clip
-
-#Get the last boot time to a date/time object
-wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?&amp;lt;month&amp;gt;\d\d)(?&amp;lt;day&amp;gt;\d\d)&#39;} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day)} 
-(get-wmiobject Win32_OperatingSystem -Property lastbootuptime).lastbootuptime 
-
-#get the last boot time to the clipboard
-wmic os get lastbootuptime | ?{$_ -match &#39;^(?&amp;lt;year&amp;gt;\d\d\d\d)(?&amp;lt;month&amp;gt;\d\d)(?&amp;lt;day&amp;gt;\d\d)&#39;} | %{ (get-date -year $matches.year -month $matches.month -day $matches.day).tostring()} | clip
-
-#Create a scheduled task to restart the server in x hours 
-$hours = 1
-schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $((get-date).addhours($hours).tostring(&#39;HH:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $((get-date).addhours($hours).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace(&#39;M+&#39;, &#39;MM&#39;).replace(&#39;d+&#39;, &#39;dd&#39;)))
-
-#Create a scheduled task to restart at a specific date and time
-$date = get-date -hour 21 -minute 30 -day 20
-schtasks /Create /RU &amp;quot;NT AUTHORITY\SYSTEM&amp;quot; /SC ONCE /st $(($date).tostring(&#39;HH:mm&#39;)) /TN My-ScheduledRestart /RL HIGHEST /TR &amp;quot;%windir%\system32\Shutdown.exe /r /t 10&amp;quot; /SD $(($date).tostring($([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortDatePattern).replace(&#39;M+&#39;, &#39;MM&#39;).replace(&#39;d+&#39;, &#39;dd&#39;)))
-
-#Seize all roles
-ntdsutil &amp;quot;roles&amp;quot; con &amp;quot;con to dom $((get-addomain).name)&amp;quot; q &amp;quot;Sei PDC&amp;quot; &amp;quot;Sei Inf ma&amp;quot; &amp;quot;sei sch ma&amp;quot; &amp;quot;sei na ma&amp;quot; &amp;quot;sei rid ma&amp;quot; q q
-
-#find deleted computer objects
-get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq &#39;MyServer$&#39;} -properties *
-
-#find deleted computer user
-get-adobject -SearchBase (get-addomain).deletedobjectscontainer -IncludeDeletedObjects -filter {samaccountname -eq &#39;SmithJ&#39;} -properties *
-
-#Get the Active Directory object of the current computer
-[ADSI]&amp;quot;LDAP://&amp;lt;SID=$((new-object System.Security.Principal.NTAccount(&amp;quot;$(&amp;amp;hostname)`$&amp;quot;)).Translate( [System.Security.Principal.SecurityIdentifier] ).toString())&amp;gt;&amp;quot;
-
-#list the AD Groups of the current computer
-([ADSI]&amp;quot;LDAP://&amp;lt;SID=$((new-object System.Security.Principal.NTAccount(&amp;quot;$(&amp;amp;hostname)`$&amp;quot;)).Translate( [System.Security.Principal.SecurityIdentifier] ).toString())&amp;gt;&amp;quot;).properties.memberof
-
-#Get a random SCOM server
-get-adobject -ldapfilter &#39;(&amp;amp;(objectclass=ServiceConnectionPoint)(serviceBindinginformation=*))&#39; -searchbase &amp;quot;cn=operationsmanager,$(([adsi]&amp;quot;LDAP://rootdse&amp;quot;).defaultNamingContext)&amp;quot; -properties serviceBindinginformation,ServiceClassName,ServiceDNSName | Get-Random
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -77,43 +27,7 @@ get-adobject -ldapfilter &#39;(&amp;amp;(objectclass=ServiceConnectionPoint)(ser
       
       <guid>http://www.wrish.com/post/convert-between-immutableid-and-ad-object/</guid>
       <description>&lt;p&gt;Two quick scripts to convert between ImmutableIDs and AD Objects with pipeline capability.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;
-function get-ImmutableIDfromADObject
-{
-    [CmdletBinding()] Param(
-        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ADObject) 
-   process{ 
-        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid}
-        [system.convert]::ToBase64String($ADObject.objectguid.tobytearray())
-    }
-}
-
-function get-ADObjectFromImmutableID{
-      [CmdletBinding()] Param(
-        [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)][string]$ImmutableID)
-   process { get-adobject  ([guid]([system.convert]::FromBase64String($ImmutableID)))}
-}
-
-&amp;lt;#
-get-aduser shane.wright | get-ImmutableIDfromADObject
-6WuADX7LfUa8DVAQGxuZcA==
-
-get-aduser shane.wright | get-ImmutableIDfromADObject | get-ADObjectFromImmutableID
-
-DistinguishedName                          Name         ObjectClass ObjectGUID                          
------------------                          ----         ----------- ----------                          
-CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
-
-
-get-ADObjectFromImmutableID 6WuADX7LfUa8DVAQGxuZcA==
-DistinguishedName                          Name         ObjectClass ObjectGUID                          
------------------                          ----         ----------- ----------                          
-CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7e-467d-bc0d-50101b1b9970
-#&amp;gt;
-
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -122,68 +36,9 @@ CN=Shane Wright,OU=Staff,DC=contoso,DC=com Shane Wright user        0d806be9-cb7
       <pubDate>Mon, 19 Dec 2016 19:54:49 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/list-all-nested-memberships/</guid>
-      <description>
-
-&lt;p&gt;Download the script &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-nested-group-e9ce3687&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Auditing user access is hard, usually you audit from resource out - eg, finding all Domain Admins, or finding all users with full acecss to &lt;em&gt;SecretShare$&lt;/em&gt; share on &lt;em&gt;SecretServer01&lt;/em&gt;. But occasionally want to audit from user out.. this is hard.. even impossible (if you have a very big environment). Lets talk about the first step &lt;em&gt;Enumerating Nested Groups&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id=&#34;token-groups&#34;&gt;Token Groups&lt;/h2&gt;
-
-&lt;p&gt;Each user has a constructed attribute called &lt;a href=&#34;https://msdn.microsoft.com/en-us/library/ms680275(v=vs.85).aspx&#34;&gt;&lt;code&gt;tokengroups&lt;/code&gt;&lt;/a&gt; that returns a list of all transitive group memberships. You can query &lt;a href=&#34;https://msdn.microsoft.com/en-us/library/ms680275(v=vs.85).aspx&#34;&gt;&lt;code&gt;tokengroups&lt;/code&gt;&lt;/a&gt; using &lt;code&gt;get-adobject&lt;/code&gt; like this&amp;hellip;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt;$userDN = &#39;CN=Tom,OU=sales,DC=wrish,DC=com&#39;
-get-adobject -SearchBase $userDN -SearchScope Base -Properties TokenGroups  -filter *
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&amp;hellip; but there are a couple of problems, you get back SIDs and only SIDs, that means no &lt;em&gt;Distribution Only&lt;/em&gt; groups and you have to manually convert them into objects or DNs if you want useful visual reporting. You can do that pretty easily (but slowly) like this&amp;hellip;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function get-TokenGroups ($objectDN) {
-    $ADObject = get-adobject -SearchBase $objectDN -SearchScope Base -Properties TokenGroups  -filter *
-    foreach ($Sid in $ADObject.tokengroups){
-        ([ADSI]&amp;quot;LDAP://&amp;lt;SID=$SID&amp;gt;&amp;quot;).distinguishedname
-    }       
-}
-get-TokenGroups  &#39;CN=Tom,OU=sales,DC=wrish,DC=com&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&amp;hellip; also, some groups are missing in a multi-domain environment - &lt;em&gt;Domain Local&lt;/em&gt; groups in remote domains. &lt;em&gt;Domain Local&lt;/em&gt; group memberships aren&amp;rsquo;t replicated to the &lt;em&gt;Global Catalog&lt;/em&gt;, so the GC doesn&amp;rsquo;t add them to the tokengroups value when queried.&lt;/p&gt;
-
-&lt;h2 id=&#34;memberof-evaluation&#34;&gt;MemberOf Evaluation&lt;/h2&gt;
-
-&lt;p&gt;Each user has a &lt;code&gt;MemberOf&lt;/code&gt; attribute which you can query recursively to get at all those juicy remote domain groups. There are plenty of examples of these scripts available they usually commit the various sins of PowerShelling like &lt;a href=&#34;https://gallery.technet.microsoft.com/Export-nested-groups-of-36e761f1&#34;&gt;exporting to csv&lt;/a&gt; or &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-nested-group-15f725f2&#34;&gt;not generating objects at all&lt;/a&gt; or a &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-ADUserNestedGroupMember-d39bb04d&#34;&gt;particularly good one that even outputs some nice verbose info&amp;hellip; but breaks when group memberships traverse domains&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;They are also all incredibly complicated, sigh.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function EnumerateMemberOf($Object, $ResultSoFar=@())
-{ 
-#Helper function to walk $object&#39;s memberof attribute and list out all group memberships    
-    if ($object.memberof){
-        $Results =  @();        
-        foreach ($group in $Object.memberof){
-            #prevent nesting loops trapping by checking to make sure the group hasn&#39;t been searched already
-            if ($ResultSoFar -notcontains $Group) {
-                #Bind directly to the group with ADSI - this will automatically follow referrals and work with 
-                #multi domain forests
-                $TempGroup = [ADSI]&amp;quot;LDAP://$Group&amp;quot; ;
-                $ResultSoFar += $Group.ToString();
-                #Enumerate the next level of memberof
-                $Results += EnumerateMemberOf $TempGroup $ResultSoFar ;
-                $Results += $Group;
-            }            
-         }
-        return $Results
-    } 
-}
-
-function get-ADNestedMembership ($Identity) 
-    $ADuser = get-aduser $Identity -Properties memberof,distinguishedname,primaryGroup
-    write-output (new-object psobject -property @{distinguishedname=$aduser.distinguishedname;&#39;NestedMemberOf&#39;=(@(enumerateMemberof $ADuser)+(enumerateMemberof (get-adgroup $AdUser.primaryGroup -properties memberof)))})
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;For the advanced functions (with pipline goodness) you&amp;rsquo;ll need to download it &lt;a href=&#34;https://gallery.technet.microsoft.com/Get-nested-group-e9ce3687&#34;&gt;https://gallery.technet.microsoft.com/Get-nested-group-e9ce3687&lt;/a&gt;.&lt;/p&gt;
-</description>
+      <description>Download the script here
+Auditing user access is hard, usually you audit from resource out - eg, finding all Domain Admins, or finding all users with full acecss to SecretShare$ share on SecretServer01. But occasionally want to audit from user out.. this is hard.. even impossible (if you have a very big environment). Lets talk about the first step Enumerating Nested Groups.
+Token Groups Each user has a constructed attribute called tokengroups that returns a list of all transitive group memberships.</description>
     </item>
     
     <item>
@@ -194,22 +49,7 @@ function get-ADNestedMembership ($Identity)
       <guid>http://www.wrish.com/post/clone-ou-structure-to-new-domain/</guid>
       <description>&lt;p&gt;A quick, semi-powershell way to clone an OU structure from a source domain to a destination domain is to use the &lt;code&gt;ldifde&lt;/code&gt; tool and then just modify the output.
 
-To generate the Output file &lt;code&gt;Oustructure-cleaned.ldif&lt;/code&gt; we use ldifde to export all OUs and then remove the domain name (this is not necessary but helps later).&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Domain = get-addomain
-ldifde -f OUStructure.ldif -d $($domain.Distinguishedname) -c `&amp;quot;$($domain.Distinguishedname)`&amp;quot; `&amp;quot;DC=X`&amp;quot; --% -r &amp;quot;(objectclass=organizationalUnit)&amp;quot; -l &amp;quot;ou,description,objectclass,displayName,displayNamePrintable,msCOM-UserPartitionSetLink,x121Address,uPNSuffixes,co,telexNumber,teletexTerminalIdentifier,telephoneNumber,street,st,seeAlso,searchGuide,registeredAddress,preferredDeliveryMethod,postalCode,postalAddress,postOfficeBox,physicalDeliveryOfficeName,managedBy,thumbnailLogo,l,internationalISDNNumber,facsimileTelephoneNumber,destinationIndicator,desktopProfile,defaultGroup,countryCode,c,businessCategory&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;You can replace any organisation specific information (if you want your test environment to look like a different organisation)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;get-content OUStructure.ldif | %{$_ -replace &#39;Contoso&#39;,&#39;TailSpin Toys&#39;} | Out-file Oustructure-reOrg.ldif
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now we copy the ldif file to the target server and execute the commands to load the OU structure&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Domain = get-addomain
-ldifde -i -v -k -f OUStructure.ldif  -c `&amp;quot;DC=X`&amp;quot; `&amp;quot;$($domain.Distinguishedname)`&amp;quot;
-&lt;/code&gt;&lt;/pre&gt;</description>
+To generate the Output file &lt;code&gt;Oustructure-cleaned.ldif&lt;/code&gt; we use ldifde to export all OUs and then remove the domain name (this is not necessary but helps later).&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -218,25 +58,9 @@ ldifde -i -v -k -f OUStructure.ldif  -c `&amp;quot;DC=X`&amp;quot; `&amp;quot;$(
       <pubDate>Mon, 05 Dec 2016 23:30:10 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/remotely-retrieve-ssl-certificates/</guid>
-      <description>&lt;p&gt;When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1&#34;&gt;Download Retrieve-ServerCertFromSocket.ps1&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn&amp;rsquo;t
-work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn&amp;rsquo;t match your connectivity
-method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.&lt;/p&gt;
-
-&lt;p&gt;In the past I have often used openssl with the s_client and showcerts options
-&lt;code&gt;openssl s_client -showcerts -host www.wrish.com -port 443&lt;/code&gt;
-then you have to copy and paste the output into a file to view the file or review the settings. This requires another piece of software, and remembering the parameters. If only there was a quick and dirty powershell way?!&lt;/p&gt;
-
-&lt;p&gt;To build this script I started looking around for what was already available. I found this one &lt;a href=&#34;https://iamoffthebus.wordpress.com/2014/02/04/powershell-to-get-remote-websites-ssl-certificate-expiration/&#34;&gt;Powershell to get remote website&amp;rsquo;s SSL certificate expiration&lt;/a&gt; but knew it wouldn&amp;rsquo;t work
-for me because it relies on &lt;code&gt;Net.HttpWebRequest&lt;/code&gt; which means no LDAPs or other protocols. I had to look lower on the network stack and found &lt;code&gt;System.Net.Sockets.tcpclient&lt;/code&gt; and &lt;code&gt;System.Net.Security.SslStream&lt;/code&gt; which allow you to directly establish an SSL stream, perfect!&lt;/p&gt;
-
-&lt;p&gt;To build out the script I make use of &lt;code&gt;try {} catch {} finally {}&lt;/code&gt; by putting the cleanup commands in the finally block (good practice for all network scripting) you can avoid memory leaks and leaving open unwanted sockets.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Retreieve-ServerCertFromSoc-baf52fb1&#34;&gt;Download Retrieve-ServerCertFromSocket.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
+      <description>When replacing certificates on servers it is nice to be able to verify that the certificate has been updated after you have done the change.
+Download Retrieve-ServerCertFromSocket.ps1
+With websites this tends to be very easy - enter the address in Internet Explorer and doubleclick the padlock to view the certificate. This doesn&amp;rsquo;t work in lots of situations though - no IE available in the environment, when you are trying to use a particular SNI header that doesn&amp;rsquo;t match your connectivity method on your client machine, or when you want to get a secure LDAP certificate - port 636 or 3269 from a Domain Controller.</description>
     </item>
     
     <item>
@@ -245,34 +69,8 @@ for me because it relies on &lt;code&gt;Net.HttpWebRequest&lt;/code&gt; which me
       <pubDate>Fri, 02 Dec 2016 23:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/post/decode-legacy-exchange-dn-from-ndr/</guid>
-      <description>&lt;p&gt;Occasionally in Exchange you will accidentally or intentionally recreate a user, or delete some values from their object - this will impact the LegacyExchangeDN value. I have seen this happen where mailuser objects were removed from Office 365, the user objects were cloud only and the LegacyExchangeDN was gone forever.&lt;/p&gt;
-
-&lt;p&gt;Contrary to its name, the LegacyExchangeDN value is critical to maintaining active conversations within your organisation. When a user&amp;rsquo;s legacyExchagneDN is lost, collegues replying to conversations with that user will get an NDR. When they create a new email the email will work.&lt;/p&gt;
-
-&lt;p&gt;You can extract the old LegacyExchangeDN from the NDR by finding the string that looks like this &lt;code&gt;IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com&lt;/code&gt; and use the function below to convert it back to an X500 attribute which you add to the &lt;code&gt;proxyaddresses&lt;/code&gt; attribute of the user.&lt;/p&gt;
-
-&lt;p&gt;Here is the function:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function decode-NDRX500Address ($DN){
-    #Generate a list of replacements to be done
-    $replacements = @{&#39;^IMCEAEX-&#39;=&#39;&#39;;&#39;_&#39;=&#39;/&#39;;&#39;@.+$&#39;=&#39;&#39;}
-    (0..127) | %{$replacements.&amp;quot;\+$(&#39;{0:x}&#39; -f $_)&amp;quot; = &amp;quot;$([char]$_)&amp;quot;}
-    #Add X500 to the start
-    $replacements.&amp;quot;^&amp;quot; = &amp;quot;X500:&amp;quot;
-    #Perform the replacements
-    $replacements.GetEnumerator() | %{
-        $dn = $dn -replace $_.key,$_.Value
-    }
-    $DN
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Here is how you can use it:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$ValueFromNDR = &#39;IMCEAEX-_O=ExchangeLabs_ou=Exchange+20Administrative+20Group+20+28FYDIBOHF23SPDLT+29_cn=Recipients_cn=wrish+2Eonmicrosoft+2Ecom-53453-Jones+2C+20Martial+20+28dfs9vk29@wrish.com&#39;
-decode-NDRX500Address $ValueFromNDR
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>Occasionally in Exchange you will accidentally or intentionally recreate a user, or delete some values from their object - this will impact the LegacyExchangeDN value. I have seen this happen where mailuser objects were removed from Office 365, the user objects were cloud only and the LegacyExchangeDN was gone forever.
+Contrary to its name, the LegacyExchangeDN value is critical to maintaining active conversations within your organisation. When a user&amp;rsquo;s legacyExchagneDN is lost, collegues replying to conversations with that user will get an NDR.</description>
     </item>
     
     <item>
@@ -281,103 +79,9 @@ decode-NDRX500Address $ValueFromNDR
       <pubDate>Fri, 25 Nov 2016 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/track-skype-lync-schema-change/</guid>
-      <description>&lt;p&gt;When I perform schema changes in very large forests it is nice to be able to track the
-status of the change as it replicates throughout the forest. I wanted to create a script that
-would quickly tell me what the current schema was on over 100 DCs.&lt;/p&gt;
-
-&lt;p&gt;If you don&amp;rsquo;t want to see how it was done you can just &lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Starting with some scripts that I have built before &lt;code&gt;foreach-parallel&lt;/code&gt; to do parallel
-processing, &lt;code&gt;get-forestDomainControlles&lt;/code&gt; to get a list of all DCs in the forest
-and &lt;code&gt;get-LdapData&lt;/code&gt; to do direct ldap lookups quickly. &lt;code&gt;get-LdapData&lt;/code&gt; is necessary
-because it will take too long to import the AD module into each thread of the parallel processor.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;Import-module ActiveDirectory          
-function get-ForestDomainControllers () {...}
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$pageSize=1000,$Properties=&amp;quot;*&amp;quot;,$sizeLimit=0,[switch]$verbose,$o365FilterAddress){...}
-function ForEach-Parallel () {...}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;First we need to get all the DCs into an array, this can take a long time for large domains. We will only get the list if $DCs is empty -
-this way we can run this script multiple times but only do this step once.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($DCs -eq $null) {$DCs = get-ForestDomainControllers}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Next we locate the schema partition - likewise we only want to do this once. The &lt;code&gt;PartitionsContainer&lt;/code&gt; value on the AD forest object has a value like &lt;code&gt;DC=Partitions,CN=Configuration,DC=Domain,DC=com&lt;/code&gt;.
-We will use &lt;code&gt;-replace&lt;/code&gt; to replace the partitions value with &lt;code&gt;cn=schema&lt;/code&gt; to get the schema partition.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;if ($SchemaPartiton -eq $null) {$SchemaPartition = (get-adforest).partitionscontainer -replace &#39;CN=Partitions&#39;,&#39;CN=Schema&#39;}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;To get the Lync Schema version we need the rangeUpper value of the ms-RTC-SIP-SchemaVersion object in the schema partition. To do that, we will use &lt;code&gt;get-ldapdata&lt;/code&gt; with the &lt;code&gt;searchroot&lt;/code&gt; specified as the Lync schema object. In this code &lt;code&gt;$_&lt;/code&gt; represents the server being worked on in the pipeline when we do foreach.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;$Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartion&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;ForEach-Parallel&lt;/code&gt; makes use of worker threads for parallelism, so we need to import the functions into the thread and also any values we want to pass. To get the &lt;code&gt;$SchemaPartition&lt;/code&gt; value into the thread, we pass it using the &lt;code&gt;-Arguments&lt;/code&gt; parameter and then the first
-line of the executed code includes &lt;code&gt;$SchemaPartition=$args[0]&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;Depending on the value, we want to return text that tells us what the version is, for this we use a switch statement&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;switch ($value) {
-	&#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
-	&#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
-	&#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
-	&#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
-	&#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
-	default: {$value = &amp;quot;Unknown schema value or no value [$value]&amp;quot;}
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Then we export the value to an object so that it looks like a nice table and we can manipulate it if we want.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The function that does the work looks like this. The &lt;code&gt;foreach-parallel&lt;/code&gt; command ends with &lt;code&gt;-ImportFunctions&lt;/code&gt; to import the &lt;code&gt;get-ldapdata&lt;/code&gt; into scope of each thread.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;function track-LyncSchema {
-    $DCs.hostname |  %p{
-        $SchemaPartition= $args[0]
-        $Value = get-ldapdata  -searchRoot &amp;quot;CN=ms-RTC-SIP-SchemaVersion,$SchemaPartition&amp;quot; -properties rangeupper -server $_ | select -expand rangeupper
-        switch ($value) {
-            &#39;1006&#39; {$value = &amp;quot;LCS 2005 [$value]&amp;quot;}
-            &#39;1007&#39; {$value = &amp;quot;OCS 2007 R1 [$value]&amp;quot;}
-            &#39;1008&#39; {$value = &amp;quot;OCS 2007 R2 [$value]&amp;quot;}
-            &#39;1100&#39; {$value = &amp;quot;Lync Server 2010 [$value]&amp;quot;}
-            &#39;1150&#39; {$value = &amp;quot;Skype for Business 2015 [$value]&amp;quot;}
-            default {$value = &amp;quot;Unknown [$value]&amp;quot;}
-        }
-
-        new-object psobject -Property @{server=$_;LyncSchemaVersion=$value}
-    } -ImportFunctions get-ldapData -arguments $schemaPartition
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;We call the script from the commandline to get a list of all the servers and the schema version.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-LyncSchema.ps1
-server                        LyncSchemaVersion
-------                        -----------------
-TestDC100.wrish.com           Skype for Business 2015 [1...
-TestDC101.wrish.com           Skype for Business 2015 [1...
-TestDC213.wrish.com           Skype for Business 2015 [1...
-TestDC12.wrish.com            Skype for Business 2015 [1...
-...
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Because we built the script to output objets, we can easily see how many are left to replicate.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-Powershell&#34;&gt;. .\track-lyncschema.ps1 | group LyncSchemaVersion
-Count Name                       Group
------ ----                       -----
-  202 Skype for Business 2010... {@{server=Test..
-   20 Lync Server 2010 [1100]    {@{server=Test..
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gallery.technet.microsoft.com/Track-Skype-and-Lync-c8151bca&#34;&gt;Download Track-LyncSchema.ps1&lt;/a&gt;&lt;/p&gt;
-</description>
+      <description>When I perform schema changes in very large forests it is nice to be able to track the status of the change as it replicates throughout the forest. I wanted to create a script that would quickly tell me what the current schema was on over 100 DCs.
+If you don&amp;rsquo;t want to see how it was done you can just Download Track-LyncSchema.ps1
+Starting with some scripts that I have built before foreach-parallel to do parallel processing, get-forestDomainControlles to get a list of all DCs in the forest and get-LdapData to do direct ldap lookups quickly.</description>
     </item>
     
   </channel>

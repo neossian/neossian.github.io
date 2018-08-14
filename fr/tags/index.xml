@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on WRISH</title>
+    <link>http://www.wrish.com/fr/tags/</link>
+    <description>Recent content in Tags on WRISH</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; 2016. Droits réservés.</copyright>
+    <lastBuildDate>Thu, 08 Dec 2016 20:53:49 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/fr/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Aadconnect</title>
+      <link>http://www.wrish.com/fr/tags/aadconnect/</link>
+      <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/aadconnect/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Activedirectory</title>
+      <link>http://www.wrish.com/fr/tags/activedirectory/</link>
+      <pubDate>Fri, 16 Dec 2016 23:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/activedirectory/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Antisèche</title>
+      <link>http://www.wrish.com/fr/tags/antis%C3%A8che/</link>
+      <pubDate>Fri, 18 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/antis%C3%A8che/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Azuread</title>
+      <link>http://www.wrish.com/fr/tags/azuread/</link>
+      <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/azuread/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Azureiaas</title>
+      <link>http://www.wrish.com/fr/tags/azureiaas/</link>
+      <pubDate>Mon, 31 Mar 2014 02:47:35 +0000</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/azureiaas/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Powershell</title>
+      <link>http://www.wrish.com/fr/tags/powershell/</link>
+      <pubDate>Thu, 19 Jan 2017 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/powershell/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Skypeforbusiness</title>
+      <link>http://www.wrish.com/fr/tags/skypeforbusiness/</link>
+      <pubDate>Fri, 25 Nov 2016 11:42:35 -0500</pubDate>
+      
+      <guid>http://www.wrish.com/fr/tags/skypeforbusiness/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

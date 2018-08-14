@@ -5,7 +5,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
-  <meta name="generator" content="Hugo 0.17" />
+  <meta name="generator" content="Hugo 0.46" />
 
   <title>ADFS Rapid restore tool errors &middot; WRISH</title>
 
@@ -71,12 +71,6 @@
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
-      
-        </li>
-      
-      
-        <li class="pure-menu-item">
           <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
       
         </li>
@@ -90,6 +84,12 @@
       
         <li class="pure-menu-item">
           <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
       
         </li>
       
@@ -188,7 +188,7 @@
   
   <div>
   <div class="small-print">
-    <small>&copy; 2016. All rights reserved.</small>
+    <small></small>
   </div>
   <div class="small-print">
     <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
@@ -244,23 +244,25 @@
  import-module : The specified module 'ADFSRapidRecreationTool.dll' was not loaded because no valid module file was found in any module directory.
 </code></pre>
 
-<p>Supply the full path to the dll to import it
-<code>Import-module 'C:\Program Files (x86)\ADFS Rapid Recreation Tool\ADFSRapidRecreationTool.dll'</code></p>
+<p>Supply the full path to the dll to import it</p>
 
-<p><code>Backup-ADFS : Failed to connect to the database associated with ADFS</code>
-You do not have permissions to the ADFS database, if you are using a SQL database make sure your account has access to the database, if WID, make sure you are running as administrator.</p>
+<pre><code class="language-Import-module">
+``` Backup-ADFS : Failed to connect to the database associated with ADFS ```
+You do not have permissions to the ADFS database, if you are using a SQL database make sure your account has access to the database, if WID, make sure you are running as administrator.
 
-<p><code>Restore-ADFS : Failed to Decrypt the file</code>
+``` Restore-ADFS : Failed to Decrypt the file```
 You have additional files in the backup directory that were not created (and encrypted by the tool). The files themselves will be copied to a temporary working folder
-<code>C:\Users\&lt;user&gt;\AppData\Local\ADFSRapidRecreationTool\tempFolder</code> which will prevent you from using Restore-ADFS if even if you try again with a folder without the problematic files. Delete this directory and remove all files except the following from your backup folder.</p>
+``` C:\Users\&lt;user&gt;\AppData\Local\ADFSRapidRecreationTool\tempFolder``` which will prevent you from using Restore-ADFS if even if you try again with a folder without the problematic files. Delete this directory and remove all files except the following from your backup folder.
 
-<pre><code>config.xml
+</code></pre>
+
+<p>config.xml
 db.xml
 installParams.xml
 metadata.xml
-SSLCert-&lt;THUMBPRINT&gt;.pfx
+SSLCert-<THUMBPRINT>.pfx
 dkm.ldif
-</code></pre>
+```</p>
 
 <p><code>Restore-ADFS : Wrong password given to decrypt the backup</code>
 The password you have provided for ADFS backup decryption is incorrect, check the password and try again.</p>

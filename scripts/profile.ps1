@@ -2,11 +2,11 @@ $ProfileVersion = "1.42"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
- md (split-path $profile.CurrentUserAllHosts) | out-null
+ md (split-path $profile.CurrentUserAllHosts) -ea 0 | out-null
  notepad $profile.currentUserallhosts
  . $profile.currentuserallhosts
 
-md (split-path $profile.CurrentUserAllHosts) | out-null
+md (split-path $profile.CurrentUserAllHosts) -ea 0 | out-null
  invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
   . $profile.currentuserallhosts
 #>

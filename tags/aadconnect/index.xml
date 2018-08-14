@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/tags/aadconnect/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Aadconnect on WRISH</title>
+    <link>http://www.wrish.com/tags/aadconnect/</link>
+    <description>Recent content in Aadconnect on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <atom:link href="http://www.wrish.com/tags/aadconnect/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 08 Dec 2016 20:53:49 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/tags/aadconnect/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Azure AD Connect - Cannot Retrieve Single Sign On Status</title>
@@ -14,11 +16,8 @@
       <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/</guid>
-      <description>&lt;p&gt;If you landed here, then you are very unlucky. You downloaded AADConnect version &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-aadconnect-version-history#113700&#34;&gt;1.1.370.0&lt;/a&gt; with it&amp;rsquo;s known issue.
-You don&amp;rsquo;t have port 9090 open externally, so you don&amp;rsquo;t get an undocumented error &lt;code&gt;Cannot retrieve single sign on status. Learn more&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;But do not fear. Just go and &lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=47594&#34;&gt;download the latest version&lt;/a&gt;.&lt;/p&gt;
-</description>
+      <description>If you landed here, then you are very unlucky. You downloaded AADConnect version 1.1.370.0 with it&amp;rsquo;s known issue. You don&amp;rsquo;t have port 9090 open externally, so you don&amp;rsquo;t get an undocumented error Cannot retrieve single sign on status. Learn more.
+But do not fear. Just go and download the latest version.</description>
     </item>
     
   </channel>

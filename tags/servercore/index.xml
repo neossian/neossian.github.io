@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/tags/servercore/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Servercore on WRISH</title>
+    <link>http://www.wrish.com/tags/servercore/</link>
+    <description>Recent content in Servercore on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <atom:link href="http://www.wrish.com/tags/servercore/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 18 Nov 2016 11:42:35 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/tags/servercore/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Do it with the command line</title>
@@ -14,19 +16,8 @@
       <pubDate>Fri, 18 Nov 2016 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/do-it-with-a-command-line/</guid>
-      <description>&lt;p&gt;You&amp;rsquo;ve built a Windows server without the GUI (Server Core only). You&amp;rsquo;re thinking, I use the command line all the time, this will be easy. It won&amp;rsquo;t. This cheat sheet has a few useful bits and pieces on how to configure it.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;#Force Windows Updates
-(New-Object -ComObject Microsoft.Update.AutoUpdate).DetectNow()
-
-#Dump the network interface config (to edit it)
-  netsh interface dump &amp;gt; netcfg.dat 
-#edit the config
-   notepad netcfg.dat
-#Restore the interface config
-   netsh exec netcfg.dat 
-&lt;/code&gt;&lt;/pre&gt;
-</description>
+      <description>You&amp;rsquo;ve built a Windows server without the GUI (Server Core only). You&amp;rsquo;re thinking, I use the command line all the time, this will be easy. It won&amp;rsquo;t. This cheat sheet has a few useful bits and pieces on how to configure it.
+#Force Windows Updates (New-Object -ComObject Microsoft.Update.AutoUpdate).DetectNow() #Dump the network interface config (to edit it) netsh interface dump &amp;gt; netcfg.dat #edit the config notepad netcfg.dat #Restore the interface config netsh exec netcfg.</description>
     </item>
     
   </channel>

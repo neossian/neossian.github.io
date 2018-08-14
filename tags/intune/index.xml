@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/tags/intune/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Intune on WRISH</title>
+    <link>http://www.wrish.com/tags/intune/</link>
+    <description>Recent content in Intune on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; 2016. All rights reserved.</copyright>
-    <atom:link href="http://www.wrish.com/tags/intune/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 18 Apr 2017 23:47:35 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/tags/intune/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>import-svclog to import SVCLOG files</title>
@@ -17,31 +19,7 @@
       <description>&lt;p&gt;The Intune connectors dump all their useful information to .svclog files. You can read these files wtih svcTraceViewer.exe which you can get by installing the Windows Communication Foundation SDK.&lt;/p&gt;
 
 &lt;p&gt;Don&amp;rsquo;t want to download the SDK just to get one tool? Do not fear - they are just XML. Here is an imperfect script for reading svclog files.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;function Import-SVCLog {
- [cmdletbinding()]
-    Param (
-        [parameter(ValueFromPipeline=$True)]
-        [string[]]$FileName
-    )    
-    Process {
-       ([xml](&amp;quot;&amp;lt;LogRoot&amp;gt;&amp;quot; + (get-content $fileName) + &amp;quot;&amp;lt;/LogRoot&amp;gt;&amp;quot; )).LogRoot.e2etraceevent | %{            
-            $_ | select @{l=&#39;EventID&#39;;e={$_.system.EventID}},@{l=&#39;Type&#39;;e={$_.system.Type}},@{l=&#39;TimeCreated&#39;;e={$_.system.TimeCreated.SystemTime}},@{l=&#39;Source&#39;;e={$_.system.Source.Name}},@{l=&#39;Correlation&#39;;e={$_.system.Correlation.activityID}},@{l=&#39;Computer&#39;;e={$_.system.Computer}},@{l=&#39;Info&#39;;e={$_.ApplicationData}}                       
-       }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Copy the script into your powershell context and then use it like this (for the Exchange connector)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;cd &amp;quot;C:\ProgramData\Microsoft\Windows Intune Exchange Connector\Logs&amp;quot;
-dir | import-svclog | out-gridView
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;You will get a neat graphical interface to sort and view the event data.&lt;/p&gt;
-
-&lt;p&gt;Note that the path to most of the log files for the PKI connector is &lt;code&gt;C:\Program Files\Microsoft Intune\NDESConnectorSvc\Logs\Logs&lt;/code&gt;.&lt;/p&gt;</description>
+&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -51,39 +29,7 @@ dir | import-svclog | out-gridView
       
       <guid>http://www.wrish.com/post/android-fiddler-hyperv-solution/</guid>
       <description>&lt;p&gt;I&amp;rsquo;ve been doing some work with Microsoft Intune - specifically around Conditional Access, Azure AD and Intune. There are plenty of guides online for getting a Fiddler trace of HTTPS traffic between Android and a back end, but they all require you to have your Windows Laptop on the same network as your Android device. In a modern corporate network architecture that isn&amp;rsquo;t easy. The Microsoft support team, my customer network, and my conracting company network were all locked down preventing this setup.
-&lt;/p&gt;
-
-&lt;h2 id=&#34;option-1-go-home&#34;&gt;Option 1 - Go Home&lt;/h2&gt;
-
-&lt;p&gt;Drag the device home and setup fiddler in a few minutes, but if you need to troubleshoot at work, that can be a pain.&lt;/p&gt;
-
-&lt;h2 id=&#34;option-2-android-sdk-emulator&#34;&gt;Option 2 - Android SDK/Emulator&lt;/h2&gt;
-
-&lt;p&gt;This will work - as long as you aren&amp;rsquo;t running Hyper-V on your work machine already - you are? Oh.. well try option 3.&lt;/p&gt;
-
-&lt;h2 id=&#34;option-3-microsoft-android-emulator-android-sdk&#34;&gt;Option 3 - Microsoft Android Emulator + Android SDK&lt;/h2&gt;
-
-&lt;p&gt;Intune company portal APk
-&lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=49140&#34;&gt;https://www.microsoft.com/en-us/download/details.aspx?id=49140&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Download the Microsoft android emulator
-&lt;a href=&#34;https://www.visualstudio.com/vs/msft-android-emulator/&#34;&gt;https://www.visualstudio.com/vs/msft-android-emulator/&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Download Android studio
-&lt;a href=&#34;https://developer.android.com/studio/index.html&#34;&gt;https://developer.android.com/studio/index.html&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Download fiddler
-&lt;a href=&#34;https://www.telerik.com/download/fiddler&#34;&gt;https://www.telerik.com/download/fiddler&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Download each of the tools and install them&lt;/li&gt;
-&lt;li&gt;Setup fiddler to allow remote connections&lt;/li&gt;
-&lt;li&gt;Configure the proxy in the Android device by press + holdon the network&lt;/li&gt;
-&lt;li&gt;Install the Intune Company portal by drag+Drop (if you need it)&lt;/li&gt;
-&lt;li&gt;Browse to the loopback connection in the Android browser &lt;a href=&#34;http://ipv4.fiddler:8888&#34;&gt;http://ipv4.fiddler:8888&lt;/a&gt; (default)&lt;/li&gt;
-&lt;li&gt;Install the root certificate&lt;/li&gt;
-&lt;li&gt;Start troubleshooting&lt;/li&gt;
-&lt;/ul&gt;</description>
+&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -92,147 +38,8 @@ dir | import-svclog | out-gridView
       <pubDate>Fri, 10 Mar 2017 11:42:35 -0500</pubDate>
       
       <guid>http://www.wrish.com/post/assign-ems-licenses-with-dynamic-groups/</guid>
-      <description>&lt;p&gt;Azure conditional access provides flexible control over access to Office 365 resources and services based on location/user group membership/device etc. If you set up conditional access rules, any user who doesn&amp;rsquo;t have an Azure AD Premium license will not be affected by them - access is permitted by default!&lt;/p&gt;
-
-&lt;p&gt;How to work around this without manually assigning licenses to every user or using a &lt;a href=&#34;http://www.wrish.com/post/assign-ems-licenses/&#34;&gt;dodgy script&lt;/a&gt;? Azure AD has a capability called &lt;em&gt;Dynamic Groups&lt;/em&gt;. With &lt;em&gt;Dynamic Groups&lt;/em&gt; you can create a group with membership based on a query.&lt;/p&gt;
-
-&lt;p&gt;This query will result in a group that contains all users with Exchange, Sharepoint, Office or S4B enabled.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(user.assignedPlans -any ((assignedPlan.service -match &amp;quot;exchange|SharePoint|Microsoft(CommunicationsOnline|Office)&amp;quot;) -and (assignedPlan.capabilityStatus -eq &amp;quot;Enabled&amp;quot;)))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Then you simply &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-licensing-group-assignment-azure-portal&#34;&gt;assign EMS licenses&lt;/a&gt; to the dynamic group. Now, when a user is activated for Exchange etc, they immediately get an EMS license and Conditional Access applies. The user will inherit the license until they are no longer a member of the group&lt;/p&gt;
-
-&lt;p&gt;Read more about creating &lt;em&gt;Dynamic Groups&lt;/em&gt; here &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-groups-dynamic-membership-azure-portal&#34;&gt;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-groups-dynamic-membership-azure-portal&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;During testing in a small environment I found that the license membership changed within 5 minutes.&lt;/p&gt;
-
-&lt;p&gt;Possible values for &lt;em&gt;assignedPlan.service&lt;/em&gt;&lt;/p&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;Value&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;Service Friendly Name&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;ProcessSimple&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Flow for Office365&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;PowerAppsService&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;PowerApps for Office 365&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;TeamspaceAPI&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Teams&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;ProjectWorkManagement&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Planner&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Sway&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Sway&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;YammerEnterprise&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Yammer&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MicrosoftOffice&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Office 365 ProPlus&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MicrosoftCommunicationsOnline&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Skype for Business Online&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;SharePoint&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;SharePoint Online&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;exchange&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Exchange Online&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Deskless&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Staff Hub&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;RMSOnline&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Azure Information Protection Plan &lt;br /&gt;Azure Rights Management&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;MultiFactorService&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Azure Multi-Factor Authentication&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;AADPremiumService&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Azure Active Directory Premium&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;SCO&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Intune A Direct&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Adallom&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Cloud App Security&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;VolumeLicensing&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;Microsoft Business Center&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;Possible values for &lt;em&gt;assignedPlan.capabilityStatus&lt;/em&gt;&lt;/p&gt;
-
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th align=&#34;left&#34;&gt;Value&lt;/th&gt;
-&lt;th align=&#34;left&#34;&gt;Meaning&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Deleted&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;License has been removed&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Enabled&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;License is active&lt;/td&gt;
-&lt;/tr&gt;
-
-&lt;tr&gt;
-&lt;td align=&#34;left&#34;&gt;Suspended&lt;/td&gt;
-&lt;td align=&#34;left&#34;&gt;License has been removed (applies to EMS licenses)&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-</description>
+      <description>Azure conditional access provides flexible control over access to Office 365 resources and services based on location/user group membership/device etc. If you set up conditional access rules, any user who doesn&amp;rsquo;t have an Azure AD Premium license will not be affected by them - access is permitted by default!
+How to work around this without manually assigning licenses to every user or using a dodgy script? Azure AD has a capability called Dynamic Groups.</description>
     </item>
     
     <item>
@@ -242,29 +49,7 @@ dir | import-svclog | out-gridView
       
       <guid>http://www.wrish.com/post/assign-ems-licenses/</guid>
       <description>&lt;p&gt;Azure conditional access provides amazingly flexible control over access to Office 365 resources and services based on location/user group membership/device etc. Leveraging it to block access generally requires EMS (Enterprise Mobility + Security) licenses for all users. This short script will assign EMS licenses to all users in your tenant who are licensed but do not have EMS yet.
-&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-powershell&#34;&gt;$VerbosePreference = &amp;quot;Continue&amp;quot;
-$SKU = get-msolaccountSKU | ?{$_.accountskuid -match &#39;:EMS$&#39;} | select -expand AccountSKUID
-if ($SKU) {
-    $LicensingFailures = @{}
-   $allUsersThatNeedEMS = get-msoluser -all | ?{$_.islicensed -and !($_.licenses | ?{$_.accountskuid -eq $SKU})}
-   $allusersThatNeedEMS | %{
-        $u = $_;
-        try{ 
-            Set-MsolUserLicense -UserPrincipalName $u.userprincipalname -AddLicenses $SKU -ErrorAction Stop
-            Write-verbose &amp;quot;Successfully added $SKU to $($u.userprincipalname)&amp;quot; 
-        } catch {
-            Write-Error &amp;quot;Failed to add $SKU to $($u.userprincipalname) because: $_&amp;quot;
-            $LicensingFailures.&amp;quot;$($u.userprincipalname)&amp;quot; = $_
-        }
-    }
-    Write-host &amp;quot;The following failures occurred&amp;quot;
-    $LicensingFailures
-} else {
-    Write-host &amp;quot;No EMS license SKU found&amp;quot;
-}
-&lt;/code&gt;&lt;/pre&gt;</description>
+&lt;/p&gt;</description>
     </item>
     
   </channel>

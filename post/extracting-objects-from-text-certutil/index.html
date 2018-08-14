@@ -5,7 +5,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
-  <meta name="generator" content="Hugo 0.17" />
+  <meta name="generator" content="Hugo 0.46" />
 
   <title>Extracting objects from commands that output text &middot; WRISH</title>
 
@@ -71,12 +71,6 @@
       
       
         <li class="pure-menu-item">
-          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
-      
-        </li>
-      
-      
-        <li class="pure-menu-item">
           <a class="pure-menu-link" href="http://www.wrish.com/post/"><i class='fa fa-list fa-fw'></i>All Articles</a>
       
         </li>
@@ -90,6 +84,12 @@
       
         <li class="pure-menu-item">
           <a class="pure-menu-link" href="http://www.wrish.com/tags/powershell/"><i class='fa fa-terminal fa-fw'></i>Powershell</a>
+      
+        </li>
+      
+      
+        <li class="pure-menu-item">
+          <a class="pure-menu-link" href="http://www.wrish.com/"><i class='fa fa-home fa-fw'></i>Home</a>
       
         </li>
       
@@ -188,7 +188,7 @@
   
   <div>
   <div class="small-print">
-    <small>&copy; 2016. All rights reserved.</small>
+    <small></small>
   </div>
   <div class="small-print">
     <small>Built with&nbsp;<a href="https://gohugo.io/" target="_blank">Hugo</a></small>
@@ -269,15 +269,14 @@ CertUtil: -dump command completed successfully.
 
 <h2 id="step-2-design-your-regex">Step 2 - Design your regex</h2>
 
-<p>The output of <code>certutil -dump</code> has two key sections <code>Entry 0:</code> which defines an object delimiter. And <code>Country/region:    `US'</code> which is the general format of our name value pairs.
-<code>'^Entry \d+:</code> is the first regex we will use. <code>^</code> represents the start of the line and <code>\d+</code> represents &ldquo;one or more digits&rdquo; the rest is just direct character matching.
-<code>&quot;  (?&lt;variable&gt;[\w\s]+):\s+``(?&lt;value&gt;.*)'&quot;</code> is the second regex. <code>?&lt;varible&gt;</code> puts the matched value into a property for use <code>[\w\s]+</code> matches any number of letter or whitepace characters and <code>.*</code> is zero or more of any character. Note that the string part of this line starts with a backtick, to include a backtick you need to escape it so `` represents only one backtick.</p>
+<p>The output of <code>certutil -dump</code> has two key sections <code>Entry 0:</code> which defines an object delimiter. And <code>Country/region:    `US'</code> which is the general format of our name value pairs.</p>
 
-<h2 id="step-3-parse-your-result">Step 3 - Parse your result</h2>
+<pre><code class="language-'^Entry">```&quot;  (?&lt;variable&gt;[\w\s]+):\s+``(?&lt;value&gt;.*)'&quot;``` is the second regex. ```?&lt;varible&gt;``` puts the matched value into a property for use ```[\w\s]+``` matches any number of letter or whitepace characters and ```.*``` is zero or more of any character. Note that the string part of this line starts with a backtick, to include a backtick you need to escape it so `` represents only one backtick.
 
-<p>This same technique was used to wrap dnscmd before it had native Powershell counterparts.</p>
-
-<pre><code class="language-PowerShell"> #Get the result in a variable
+## Step 3 - Parse your result ###
+This same technique was used to wrap dnscmd before it had native Powershell counterparts.
+``` PowerShell
+ #Get the result in a variable
  $result = certutil -dump
  #prepare an array for the objects
     $CAs = @()

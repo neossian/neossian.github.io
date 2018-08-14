@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/fr/tags/aadconnect/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Aadconnect on WRISH</title>
+    <link>http://www.wrish.com/fr/tags/aadconnect/</link>
+    <description>Recent content in Aadconnect on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. Droits réservés.</copyright>
-    <atom:link href="http://www.wrish.com/fr/tags/aadconnect/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 08 Dec 2016 20:53:49 -0500</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/fr/tags/aadconnect/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Azure AD Connect - C&#39;est impossible de récupérer l&#39;état de connexion unique</title>
@@ -14,11 +17,8 @@
       <pubDate>Thu, 08 Dec 2016 20:53:49 -0500</pubDate>
       
       <guid>http://www.wrish.com/fr/post/cannot-retrieve-single-sign-on-status-aadconnect/</guid>
-      <description>&lt;p&gt;Si vous êtes arrivé ici, vous êtes très malchanceux. Vous avez téléchargé la version AADConnect &lt;a href=&#34;https://docs.microsoft.com/en-us/azure/active-directory/active-directory-aadconnect-version-history#113700&#34;&gt;1.1.370.0&lt;/a&gt; avec son problème connait.
-Vous n&amp;rsquo;avez pas le port 9090 ouvrir à l&amp;rsquo;extérieur, donc vous avez reçu une erreur non documentée &lt;code&gt;Cannot retrieve single sign on status. Learn more&lt;/code&gt; - &amp;laquo;impossible de récupérer l&amp;rsquo;état de connexion unique - apprendre plus&amp;raquo;.&lt;/p&gt;
-
-&lt;p&gt;Ne craignez pas, allez &lt;a href=&#34;https://www.microsoft.com/en-us/download/details.aspx?id=47594&#34;&gt;Téléchargé la dernier version&lt;/a&gt;.&lt;/p&gt;
-</description>
+      <description>Si vous êtes arrivé ici, vous êtes très malchanceux. Vous avez téléchargé la version AADConnect 1.1.370.0 avec son problème connait. Vous n&amp;rsquo;avez pas le port 9090 ouvrir à l&amp;rsquo;extérieur, donc vous avez reçu une erreur non documentée Cannot retrieve single sign on status. Learn more - &amp;laquo;impossible de récupérer l&amp;rsquo;état de connexion unique - apprendre plus&amp;raquo;.
+Ne craignez pas, allez Téléchargé la dernier version.</description>
     </item>
     
   </channel>

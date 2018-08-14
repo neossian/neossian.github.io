@@ -1,59 +1,320 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
-  <url>
-    <loc>http://www.wrish.com/fr/</loc>
-    <lastmod>2017-01-19T11:42:35-05:00</lastmod>
-  </url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
     <loc>http://www.wrish.com/fr/post/paste-me-an-array/</loc>
     <lastmod>2017-01-19T11:42:35-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/paste-me-an-array/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/paste-me-an-array/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/</loc>
     <lastmod>2016-12-16T23:47:35+00:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/clone-ou-structure-to-new-domain/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/clone-ou-structure-to-new-domain/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/cannot-retrieve-single-sign-on-status-aadconnect/</loc>
     <lastmod>2016-12-08T20:53:49-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/cannot-retrieve-single-sign-on-status-aadconnect/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/cannot-retrieve-single-sign-on-status-aadconnect/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/track-skype-lync-schema-change/</loc>
     <lastmod>2016-11-25T11:42:35-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/track-skype-lync-schema-change/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/track-skype-lync-schema-change/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/unable-to-verify-azure-domain/</loc>
     <lastmod>2016-11-23T11:42:35-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/unable-to-verify-azure-domain/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/unable-to-verify-azure-domain/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/regex-cheat-sheet/</loc>
     <lastmod>2016-11-18T11:42:35-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/regex-cheat-sheet/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/regex-cheat-sheet/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/about/</loc>
     <lastmod>2016-11-14T11:42:35-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/about/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/about/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/downloading-files-with-powershell/</loc>
     <lastmod>2014-03-31T02:47:35+00:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/downloading-files-with-powershell/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/downloading-files-with-powershell/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/oh-damn-side-by-side-comparison-in-powershell/</loc>
     <lastmod>2013-03-31T02:47:35+00:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/oh-damn-side-by-side-comparison-in-powershell/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/oh-damn-side-by-side-comparison-in-powershell/"
+                />
   </url>
   
   <url>
     <loc>http://www.wrish.com/fr/post/highlight-output/</loc>
     <lastmod>2012-12-20T11:42:35-05:00</lastmod>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/highlight-output/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/highlight-output/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/aadconnect/</loc>
+    <lastmod>2016-12-08T20:53:49-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/aadconnect/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/aadconnect/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/activedirectory/</loc>
+    <lastmod>2016-12-16T23:47:35+00:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/activedirectory/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/activedirectory/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/antis%C3%A8che/</loc>
+    <lastmod>2016-11-18T11:42:35-05:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/azuread/</loc>
+    <lastmod>2016-12-08T20:53:49-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/azuread/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/azuread/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/azureiaas/</loc>
+    <lastmod>2014-03-31T02:47:35+00:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/azureiaas/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/azureiaas/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/categories/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/categories/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/categories/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/post/</loc>
+    <lastmod>2017-01-19T11:42:35-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/post/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/post/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/powershell/</loc>
+    <lastmod>2017-01-19T11:42:35-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/powershell/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/powershell/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/skypeforbusiness/</loc>
+    <lastmod>2016-11-25T11:42:35-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/skypeforbusiness/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/skypeforbusiness/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/tags/</loc>
+    <lastmod>2016-12-08T20:53:49-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/tags/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/tags/"
+                />
+  </url>
+  
+  <url>
+    <loc>http://www.wrish.com/fr/</loc>
+    <lastmod>2017-01-19T11:42:35-05:00</lastmod>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="http://www.wrish.com/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="fr"
+                href="http://www.wrish.com/fr/"
+                />
   </url>
   
 </urlset>

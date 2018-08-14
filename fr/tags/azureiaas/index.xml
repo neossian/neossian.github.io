@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>WRISH</title>
-    <link>http://www.wrish.com/fr/tags/azureiaas/index.xml</link>
-    <description>Recent content on WRISH</description>
+    <title>Azureiaas on WRISH</title>
+    <link>http://www.wrish.com/fr/tags/azureiaas/</link>
+    <description>Recent content in Azureiaas on WRISH</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; 2016. Droits réservés.</copyright>
-    <atom:link href="http://www.wrish.com/fr/tags/azureiaas/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 31 Mar 2014 02:47:35 +0000</lastBuildDate>
+    
+	<atom:link href="http://www.wrish.com/fr/tags/azureiaas/index.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Télécharger les fichiers avec PowerShell</title>
@@ -14,27 +17,9 @@
       <pubDate>Mon, 31 Mar 2014 02:47:35 +0000</pubDate>
       
       <guid>http://www.wrish.com/fr/post/downloading-files-with-powershell/</guid>
-      <description>&lt;p&gt;Je construisais un laboratoire dans Azure aujourd&amp;rsquo;hui et je devais télécharger les binaires de Exchange pour étendre la schéma de mon environnement de teste AD.&lt;/p&gt;
-
-&lt;p&gt;Lorsque vous ouvrez IE et naviguer vers le site de téléchargement de Microsoft, vous devez ajouter une liste de 10 ou 15 domaines à tes sites confiance - certain d&amp;rsquo;entre eux est CDNs pour code de Javascript et l&amp;rsquo;autre ressources.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://www.wrish.com/post/images/if-you-trust-this-website.png&#34; alt=&#34;Content from the website listed below is being blcoked by the Internet Explorer Enhanced Security Configuration https://assets.onestore.ms&#34; /&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;https://cdn.optimizely.com
-https://c.s-microsoft.com
-https://query.prod.cms.rt.microsoft.com
-https://mem.gfx.ms
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;ensuite&amp;hellip; &lt;em&gt;Your current security settings do not allow this file to be downloaded&lt;/em&gt; soupir!&lt;/p&gt;
-
-&lt;p&gt;Je connais comment je peux réparer cette problème, mais, c&amp;rsquo;est beacoup de clic clac. Normalement je voudrais aller installer un autre navigateur qui n&amp;rsquo;est pas pesse par des années de mauvaises practiques de sécurité.. mais.. aujourd&amp;rsquo;hui j&amp;rsquo;ai décidé de trouver une méthode PowerShell.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-PowerShell&#34;&gt;Start-BitsTransfer -Source https://download.microsoft.com/download/7/4/9/74981C3B-0D3C-4068-8272-22358F78305F/Exchange2013-x64-cu13.exe -Destination d:\Exchange2013-x64-cu13.exe
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;C&amp;rsquo;est possible de trouver le URL sur mon ordinateur et copier le link à le serveur et voilà! Je peux inclure cette étape dans mon script de powershell aussi! Genial!&lt;/p&gt;
-</description>
+      <description>Je construisais un laboratoire dans Azure aujourd&amp;rsquo;hui et je devais télécharger les binaires de Exchange pour étendre la schéma de mon environnement de teste AD.
+Lorsque vous ouvrez IE et naviguer vers le site de téléchargement de Microsoft, vous devez ajouter une liste de 10 ou 15 domaines à tes sites confiance - certain d&amp;rsquo;entre eux est CDNs pour code de Javascript et l&amp;rsquo;autre ressources.
+https://cdn.optimizely.com https://c.s-microsoft.com https://query.prod.cms.rt.microsoft.com https://mem.gfx.ms  ensuite&amp;hellip; Your current security settings do not allow this file to be downloaded soupir!</description>
     </item>
     
   </channel>
