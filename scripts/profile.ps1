@@ -591,9 +591,9 @@ function connect-MSOL ($name, [switch]$new)
 {
 	Import-Module MSOnline
 	$O365Cred = Stored-Credential $name -new:$new
-	$O365Session = New-PSSession ‚ÄìConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
+	$O365Session = New-PSSession ñConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
 	Import-PSSession $O365Session -allowclobber
-	Connect-MsolService ‚ÄìCredential $O365Cred
+	Connect-MsolService ñCredential $O365Cred
 	$Global:O365Connected = $name
 
 }
@@ -753,7 +753,7 @@ Function Port-Ping {
         }
         else {
             write-host "Host: $ip " -NoNewline
-            if ($rslt.status.tostring() ‚Äìeq ‚ÄúSuccess‚Äù) {
+            if ($rslt.status.tostring() ñeq ìSuccessî) {
                 write-host "ICMP " -ForegroundColor Green -NoNewline
             } else
             {
@@ -762,7 +762,7 @@ Function Port-Ping {
             write-host " TCP " -NoNewline   
                 foreach ($port in $ports){
                     $socket = new-object System.Net.Sockets.TcpClient($ip, $port)
-                    if ($socket ‚Äìeq $null) {
+                    if ($socket ñeq $null) {
                         write-host "$port," -ForegroundColor Red -NoNewline
                     }
                     else {
@@ -1708,7 +1708,7 @@ function Check-ADFSFederationForAllDomains {
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        $SETUP = Get-MsolFederationProperty ‚ÄìDomainName $_.Name
+        $SETUP = Get-MsolFederationProperty ñDomainName $_.Name
         if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
             Write-host $_.Name "Token Signing and Next Token Signing Certificates Match" -ForegroundColor Green      
          } else {
@@ -1723,7 +1723,7 @@ Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        Update-MsolFederatedDomain ‚ÄìDomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
+        Update-MsolFederatedDomain ñDomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
        
       } 
 }
