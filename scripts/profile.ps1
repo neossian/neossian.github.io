@@ -1,4 +1,4 @@
-$ProfileVersion = "1.47"
+$ProfileVersion = "1.48"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -2506,4 +2506,4 @@ function getIPLocation ($IP){
 #if(!$MyInvocation.Scriptname) {TryCopyProfile}
 $ErrorActionPreference = 'Continue'
 
-cd $env:USERPROFILE\documents
+cd [Environment]::GetFolderPath("MyDocuments")
