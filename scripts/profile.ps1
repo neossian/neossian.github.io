@@ -1,4 +1,4 @@
-$ProfileVersion = "1.42"
+$ProfileVersion = "1.47"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -73,9 +73,9 @@ function Add-ADGroupMemberxDomain ($userDN, $groupDN){
     $Group = [ADSI]("LDAP://$GroupDomain/" + $groupDN)
     try {        
         $Group.Add($User.ADsPath)
-        Write-Verbose "Successfully removed $userDN from $groupDN"
+        Write-Verbose "Successfully added $userDN to $groupDN"
     } catch {
-        write-error "Unable to remove $UserDN from $groupDN because $_"
+        write-error "Unable to add $UserDN to $groupDN because $_"
     }
 }
 
@@ -83,7 +83,19 @@ function Change-Password ($domain,$samaccountname,$oldPassword,$newpassword){
 ([adsi]"WinNT://$domain/$samaccountname,user").ChangePassword($oldPassword,$newpassword)
 }
 
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose,[switch]$includeDeletedObjects){
+function Get-OctetStringFromGuid
+{
+    [CmdletBinding()]
+    param
+    (
+        [System.Guid]
+        $GuidToConvert
+    )
+    
+    return ("\" + ([System.String]::Join('\', ($GuidToConvert.ToByteArray() | ForEach-Object { $_.ToString('x2') }))));   
+}
+
+function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$objectGuid,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose,[switch]$includeDeletedObjects){
 <#
 .DESCRIPTION
 Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
@@ -226,6 +238,23 @@ Version 1.3 updated to add some additional UAC filters
         $false {$ldapfilter += "(!UserAccountControl:1.2.840.113556.1.4.803:=4194304)"}
     }
     
+    if ($objectGuid){
+        switch ($objectGuid.GetType().tostring()){
+            'System.Guid'{
+                break;        
+            }
+            'System.String'{
+                try {
+                    $objectGuid = ([guid]([system.convert]::FromBase64String($objectGuid)))
+                    break;
+                } catch {
+                    write-error 'objectGuid must be either base64 encoded string or system guid';return;
+                }                    
+            }
+            default:{write-error 'objectGuid must be either base64 encoded string or system guid';return;}
+        }
+        $ldapfilter +="(objectGuid=$(Get-OctetStringFromGuid $objectGuid))"
+    }
 
     $ldapfilter = "(&$ldapfilter)"
     Write-Verbose "Filter being used $ldapfilter"
@@ -280,7 +309,7 @@ Version 1.3 updated to add some additional UAC filters
                             $SidValue = [byte[]]($ldapresult.properties.$property[0])                                                   
                             $PropertyValue = New-Object System.Security.Principal.SecurityIdentifier($SIDValue,0)        
                     } 
-                     'badpasswordtime|lastlogontimestamp|lockouttime'{
+                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset'{
                         $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
                      }
                      'UserAccountControl'{                           
@@ -562,9 +591,9 @@ function connect-MSOL ($name, [switch]$new)
 {
 	Import-Module MSOnline
 	$O365Cred = Stored-Credential $name -new:$new
-	$O365Session = New-PSSession ñConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
+	$O365Session = New-PSSession ‚ÄìConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
 	Import-PSSession $O365Session -allowclobber
-	Connect-MsolService ñCredential $O365Cred
+	Connect-MsolService ‚ÄìCredential $O365Cred
 	$Global:O365Connected = $name
 
 }
@@ -573,7 +602,7 @@ new-alias cm connect-MSOL
 
  function prompt {
 
-	"$($Global:O365Connected) $(get-location)>"
+	"$((get-date).ToUniversalTime().tostring('u'))`r`n$($Global:O365Connected) $(get-location)>"
 
 }
 
@@ -724,7 +753,7 @@ Function Port-Ping {
         }
         else {
             write-host "Host: $ip " -NoNewline
-            if ($rslt.status.tostring() ñeq ìSuccessî) {
+            if ($rslt.status.tostring() ‚Äìeq ‚ÄúSuccess‚Äù) {
                 write-host "ICMP " -ForegroundColor Green -NoNewline
             } else
             {
@@ -733,7 +762,7 @@ Function Port-Ping {
             write-host " TCP " -NoNewline   
                 foreach ($port in $ports){
                     $socket = new-object System.Net.Sockets.TcpClient($ip, $port)
-                    if ($socket ñeq $null) {
+                    if ($socket ‚Äìeq $null) {
                         write-host "$port," -ForegroundColor Red -NoNewline
                     }
                     else {
@@ -1291,6 +1320,41 @@ LDAP Search page size, default 1000
     }
 }
 
+
+function join-objects ($left, $right, $index,$leftExclude=@(),$rightExclude=@()) {
+    $leftProcessed = $left | sort $index
+    $rightProcessed = $right | sort $index
+    $leftfields = $left | get-member -MemberType NoteProperty | select -expand Name | ?{$_ -notmatch $index -and $leftExclude -notcontains $_}
+    $rightfields = $right | get-member -MemberType NoteProperty | select -expand Name | ?{$_ -notmatch $index -and $rightExclude -notcontains $_}
+    $results = @();    
+    $rInd = 0;
+    foreach ($item in $leftProcessed) {
+        foreach ($field in $rightfields) {
+            $item | add-member -MemberType NoteProperty -Name $field -Value $null -force
+        }            
+        while ($rind -lt $rightProcessed.length -and $item.$index -lt $rightProcessed[$rInd].$index){
+            $rInd ++;
+        }
+        if ($rind -lt $rightProcessed.length) {
+            if ($item.$index -eq $rightProcessed[$rInd].$index)
+            {
+                foreach ($field in $rightfields) {
+                    $item.$field =  $rightProcessed[$rInd].$field
+                } 
+                $rind ++;
+            } else {
+                $NewEntry = $rightProcessed[$rind]
+                foreach ($field in $leftfields) {
+                    $NewEntry | add-member -MemberType NoteProperty -Name $field -Value $null  -force
+                }
+                $results += $newEntry
+                $rind ++;
+            }
+        }
+        $results +=$item
+    }
+write-output $results
+}
 #Write-HOst get-adsubnet
 
 function get-ADConfServer ($ServerName='*',$DN,$server,$LDAPFilter,$PageSize)
@@ -1644,7 +1708,7 @@ function Check-ADFSFederationForAllDomains {
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        $SETUP = Get-MsolFederationProperty ñDomainName $_.Name
+        $SETUP = Get-MsolFederationProperty ‚ÄìDomainName $_.Name
         if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
             Write-host $_.Name "Token Signing and Next Token Signing Certificates Match" -ForegroundColor Green      
          } else {
@@ -1659,7 +1723,7 @@ Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        Update-MsolFederatedDomain ñDomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
+        Update-MsolFederatedDomain ‚ÄìDomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
        
       } 
 }
@@ -1806,7 +1870,7 @@ function get-ImmutableIDfromADObject
     [CmdletBinding()] Param(
         [Parameter(Mandatory=$True,ValueFromPipeline=$True,ValueFromPipelinebyPropertyName=$True)]$ADObject) 
    process{ 
-        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid}
+        if (!$ADObject.objectguid){$ADObject = get-adobject $AdObject -properties objectGuid -server "$((get-addomaincontroller -discover -service GlobalCatalog).hostname):3268"}
         [system.convert]::ToBase64String($ADObject.objectguid.tobytearray())
     }
 }
@@ -2221,7 +2285,7 @@ function set-ldapdata {
             
          }
          if ($RenameObject){
-            if ($ArgumentList.count -ne 0){ 
+            if ($ArgumentList.count -ne 0 -or $clear){ 
                 Write-Warning "Cannot rename and perform attribute updates simultaneously, only the attribute updates will be processed"
             } else {
                 $ArgumentLIst.add($RenameObjectPlaceHolder,$RenameObject)
@@ -2276,6 +2340,11 @@ function set-ldapdata {
                             }
                         }
                     }
+                }
+                foreach ($attributeName in $clear){
+                    $thisObject.putex(1,$attributeName,0)
+                    $updatelist += " " + $attributeName + ":''"       
+                    $SetInfoRequired = $true
                 }
                 if ($SetInfoRequired){
                      if ($pscmdlet.ShouldProcess($updatelist)){
@@ -2418,6 +2487,19 @@ function ConvertFrom-Base64 {
         }
     }
 }
+
+$global:IPTolocation = @{}
+
+function getIPLocation ($IP){
+    if ($global:IPTOlocation.ContainsKey($ip)){
+        $global:IPTOlocation.$ip
+    } else {
+        $global:IPtoLocation.add($ip,(Invoke-WebRequest -UseBasicParsing -Uri "https://extreme-ip-lookup.com/json/$IP" | ConvertFrom-Json))
+       $global:IPTOlocation.$ip
+    }
+}
+
+
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
