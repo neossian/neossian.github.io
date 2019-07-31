@@ -1,4 +1,4 @@
-$ProfileVersion = "1.49"
+$ProfileVersion = "1.50"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -7,7 +7,7 @@ Write-output "Loading version $ProfileVersion"
  . $profile.currentuserallhosts
 
 md (split-path $profile.CurrentUserAllHosts) -ea 0 | out-null
- invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts
+ invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts 
   . $profile.currentuserallhosts
 #>
 
@@ -64,6 +64,7 @@ function remove-ADGroupMemberxDomain ($userDN, $groupDN){
         write-error "Unable to remove $UserDN from $groupDN because $_"
     }
 }
+
 
 
 function Add-ADGroupMemberxDomain ($userDN, $groupDN){
@@ -309,7 +310,7 @@ Version 1.3 updated to add some additional UAC filters
                             $SidValue = [byte[]]($ldapresult.properties.$property[0])                                                   
                             $PropertyValue = New-Object System.Security.Principal.SecurityIdentifier($SIDValue,0)        
                     } 
-                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset'{
+                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset|accountexpires'{
                         $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
                      }
                      'UserAccountControl'{                           
@@ -2478,6 +2479,10 @@ function ConvertTo-Base64 {
     }
 
     
+}
+
+function Clip-History {
+    get-history | select -expand commandline | clip
 }
 
 function ConvertFrom-Base64 {
