@@ -1,4 +1,4 @@
-$ProfileVersion = "1.50"
+$ProfileVersion = "1.56"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -310,8 +310,16 @@ Version 1.3 updated to add some additional UAC filters
                             $SidValue = [byte[]]($ldapresult.properties.$property[0])                                                   
                             $PropertyValue = New-Object System.Security.Principal.SecurityIdentifier($SIDValue,0)        
                     } 
-                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset|accountexpires'{
-                        $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
+                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset|accountexpires|^when'{
+                        try {
+                            if ($ldapresult.properties.$property[0] -ne 9223372036854775807) {
+                                $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
+                            } else {
+                                $PropertyValue = "never"
+                            }
+                        } catch {
+                            if (($LDAPResult.properties.$property | measure).count -le 1){$PropertyValue = $LDAPResult.properties.$property[0]} else {$PropertyValue = $LDAPResult.properties.$property}
+                        }
                      }
                      'UserAccountControl'{                           
                             $UACValue =   $LDAPResult.properties.$property[0]
@@ -2495,16 +2503,162 @@ function ConvertFrom-Base64 {
 
 $global:IPTolocation = @{}
 
-function getIPLocation ($IP){
-    if ($global:IPTOlocation.ContainsKey($ip)){
-        $global:IPTOlocation.$ip
-    } else {
-        $global:IPtoLocation.add($ip,(Invoke-WebRequest -UseBasicParsing -Uri "https://extreme-ip-lookup.com/json/$IP" | ConvertFrom-Json))
-       $global:IPTOlocation.$ip
-    }
+function get-IPLocation ($IP){
+    if ($IP) {
+        if ($global:IPTOlocation.ContainsKey($ip)){
+            $global:IPTOlocation.$ip
+        } else {
+           $global:IPtoLocation.add($ip,(Invoke-WebRequest -UseBasicParsing -Uri "https://extreme-ip-lookup.com/json/$IP" | ConvertFrom-Json))
+           $global:IPTOlocation.$ip
+        }
+     } else {
+        $data= (Invoke-WebRequest -UseBasicParsing -Uri "https://extreme-ip-lookup.com/json" | ConvertFrom-Json)
+        if (!$global:IPtoLocation.ContainsKey($data.query)){
+            $global:IPtoLocation.Add($data.query,$data)
+        }
+        $data
+        
+     }
 }
 
+function wait-ForEvent($eventID=4114,$ComputerName,$timeout=([timespan]::fromminutes(10))){
+  # Step 4 - Wait for Event
+  $Waitfor4114Event = {
+    $ComputerName = $args[0]
+    $timeout = (get-Date) + $args[1]
+    $eventID = $args[2]
+    
+while ((get-date) -lt ($timeout) -and $eventCount -lt 1){
+    $eventcount = get-winevent -filterxml @"
+    <QueryList>
+    <Query Id="0" Path="DFS Replication">
+      <Select Path="DFS Replication">*[System[(EventID=$eventID) and TimeCreated[timediff(@SystemTime) &lt;= 3600000]]]</Select>
+    </Query>
+  </QueryList>  
+"@ -MaxEvents 1 -ComputerName $computername -ErrorAction SilentlyContinue| Measure-Object | select -expand Count
+    if ($eventCount -lt 1){
+        start-sleep -seconds 10
+    }
 
+    } 
+    return $eventCount
+}
+
+    $Waitfor4114EventJob = start-job -ScriptBlock $Waitfor4114Event -ArgumentList $ComputerName,$timeout,$eventID
+    start-sleep -seconds 1
+    While ($Waitfor4114EventJob.state -eq 'Running'){
+        Write-Warning "Waiting for $eventID Event..."
+        start-sleep -seconds 30
+    }   
+    $Waitfor4114EventJob| receive-job
+    $Waitfor4114EventJob | remove-job -force
+}
+
+function Check-SYSVOLbacklog ($ComputerName='All'){
+    if ($ComputerName -eq 'ALL'){
+        $DCList = get-addomaincontroller -filter * | select -expand hostname
+    } else {
+        $DCList = $ComputerName
+    }
+    $MasterSource = (Get-ADDomain).PDCEmulator.tostring()
+    $DCList = $DCList |?{$MasterSource -notmatch $_}    
+    
+    $DCList | %p{
+        $computer = $_
+        $ReferenceServer = $args[0]
+        $result = "" | select ComputerName,BackLogCount,Status,Backlog
+        $result.ComputerName = $computer
+        try {
+            $REsultData = Get-DfsrBacklog -SourceComputerName $ReferenceServer -DestinationComputerName $computer -GroupName "Domain System Volume" -Verbose 4>&1 -ErrorAction Stop
+            $files = $resultData | select -skip 1
+            $result.backlog = $files
+            if ($resultdata[0].message -match 'no backlog for the replicated folder'){
+                $result.BacklogCount = 0
+                $result.status = 'No BackLog'
+            } else {
+                $result.BackLogCount = [int64]($resultdata[0].message -split ': ' | select -last 1)
+                $result.status = "Waiting"
+            }
+            $Syncing = $files | ?{$_.flags -eq 4} | measure | select -expand count        
+            if ($syncing -gt 0){
+                $result.status = "$syncing files syncing"
+            }
+        } catch {
+            $result.status = $_
+        }
+        $result
+    } -arguments $MasterSource
+}
+
+function INvoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([timespan]::fromhours(5)) ){
+    #https://support.microsoft.com/en-ca/help/2218556/how-to-force-an-authoritative-and-non-authoritative-synchronization-fo
+    <#
+    The Manual Method
+    Step1 -     In the ADSIEDIT.MSC tool modify the following distinguished name (DN) value and attribute on each of the domain controllers that you want to make non-authoritative:
+        CN=SYSVOL Subscription,CN=Domain System Volume,CN=DFSR-LocalSettings,CN=<the server name>,OU=Domain Controllers,DC=<domain>
+
+        msDFSR-Enabled=FALSE
+
+    Step2 -  Force Active Directory replication throughout the domain.
+        Run the following command from an elevated command prompt on the same servers that you set as non-authoritative:
+
+    Step 3 -   DFSRDIAG POLLAD
+
+    Step 4 -  You will see Event ID 4114 in the DFSR event log indicating SYSVOL is no longer being replicated.
+        On the same DN from Step 1, set:
+
+    Step 5 -  msDFSR-Enabled=TRUE
+        Force Active Directory replication throughout the domain.
+
+        Run the following command from an elevated command prompt on the same servers that you set as non-authoritative:
+        DFSRDIAG POLLAD
+
+    Step 6 -   You will see Event ID 4614 and 4604 in the DFSR event log indicating SYSVOL has been initialized. That domain controller has now done a “D2” of SYSVOL.
+
+    #>
+    try {
+        
+        if ($computername -match '^\.$|^localhost$'){
+            $system = (Get-WmiObject win32_computersystem)
+            $computername = $system.dnsHOstname,$system.Domain -join '.'    
+        }
+
+        $DC = get-addomainController $computername    
+        #Locate PDC
+
+        # check for backlog
+
+        # Step 1 - Disable DFSR Replication
+        Set-Adobject -identity "CN=SYSVOL Subscription,CN=Domain System Volume,CN=DFSR-LocalSettings,$($DC.ComputerObjectDN)" -replace @{'msDFSR-Enabled'=$false} -Server $computername
+        
+        # Step 2 - Force AD Replication
+        Write-Warning "Forcing Syncall on $ComputerName"
+        repadmin /syncall /APd $ComputerName
+
+        # Step 3 - Update config
+        Write-Warning "Forcing PollAD on $ComputerName"
+        dfsrdiag pollad /Member:$ComputerName
+        if ((wait-forevent -eventID 4114 -ComputerName $computername -timeout ([timespan]::fromminutes(2))) -ne 1){
+            throw "Timeout waiting for server to disable SYSVOL replication"
+        }
+    
+        # Step 5 - Enable Replication
+        Set-Adobject -identity "CN=SYSVOL Subscription,CN=Domain System Volume,CN=DFSR-LocalSettings,$($DC.ComputerObjectDN)" -replace @{'msDFSR-Enabled'=$true} -Server $computername
+
+        #Step 6 - Wait for Event
+        Write-Warning "Forcing PollAD on $ComputerName"
+        dfsrdiag pollad /Member:$ComputerName
+        if ((wait-forevent -eventID 4614 -ComputerName $computername -timeout ([timespan]::fromminutes(2))) -ne 1){
+            throw 'Timeout waiting for server to continue SYSVOL replication'
+        }
+
+        if ((wait-ForEvent -eventID 4604 -ComputerName $computername -timeout $timeout) -ne 1){            
+            throw 'Timeout waiting for server to finish SYSVOL replication'
+        }
+    } catch {
+        Write-Error "Failed to force Sysvol $_"
+    }
+}
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
