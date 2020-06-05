@@ -1,4 +1,4 @@
-$ProfileVersion = "1.56"
+$ProfileVersion = "1.62"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -30,6 +30,39 @@ function TryCopyProfile {
     }
 }
 
+function get-MemberofBigGroup ($GroupDN){
+     
+    $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
+    $groupDomain = (((($groupDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
+    $directorySearcher.SearchRoot = [ADSI]"LDAP://$groupDomain/$GroupDN"
+    $directorySearcher.Filter = '(objectClass=*)'
+    [void]$directorySearcher.PropertiesToLoad.Add('cn')
+    [void]$directorySearcher.PropertiesToLoad.Add('distinguishedname')
+    [void]$directorySearcher.PropertiesToLoad.Add('member')
+    $results = $directorySearcher.FindOne()
+
+    
+    if ($pageProperty = $results.Properties.PropertyNames.Where({$psitem -match '^member;range'}) -as [String]) {
+        $directoryEntry = $results.Properties.adspath -as [String]
+        $increment = $results.Properties.$pageProperty.count -as [Int]
+        $results.Properties.$pageProperty
+        $start = $increment
+        do {
+            $end = $start + $increment - 1            
+            $memberProperty = 'member;range={0}-{1}' -f $start,$end
+            Write-Verbose "Getting $memberProperty"
+            $memberPager = New-Object -TypeName System.DirectoryServices.DirectorySearcher -ArgumentList $directoryEntry,'(objectClass=*)',$memberProperty,'Base'
+            $pageResults = $memberPager.FindOne()
+            $pageProperty = $pageResults.Properties.PropertyNames.Where({$psitem -match '^member;range'}) -as [String]
+            $pageResults.Properties.$pageProperty
+            $start = $end + 1
+        } until ( $pageProperty -match '^member.*\*$' )
+    }
+    else {
+        $results.member
+    }
+}
+
 function Get-ADGroupMemberxDomain 
 {
     [CmdletBinding()]
@@ -38,6 +71,9 @@ function Get-ADGroupMemberxDomain
     $groupDomain = (((($groupDN -split ',')|?{$_ -match '^DC='}) -join ',') -replace ',DC=','.') -replace  'DC=',''
     $Group = [ADSI]("LDAP://$GroupDomain/" + $groupDN)
     $memberlist = $Group.member
+    if ($memberlist.count -eq 1500){
+        $memberlist = get-MemberofBigGroup -GroupDN $groupDN
+    }
     if ($memberlist){
         if($recursive){ Write-Verbose "Recursion Level $recurseLevel - under $groupDN"}
         $memberlist
@@ -96,7 +132,7 @@ function Get-OctetStringFromGuid
     return ("\" + ([System.String]::Join('\', ($GuidToConvert.ToByteArray() | ForEach-Object { $_.ToString('x2') }))));   
 }
 
-function get-ldapData ($ldapfilter,$searchRoot,$Server,[switch]$GC,$objectGuid,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose,[switch]$includeDeletedObjects){
+function get-ldapData ($ldapfilter,$searchRoot,$Server,$searchScope='subtree',[switch]$GC,$objectGuid,$Enabled,$passwordNotRequired,$CannotChangePassword,$PasswordNeverExpires,$TrustedForDelegation,$DontRequirePreauth,$O365Find,$pageSize=1000,$Properties="*",$sizeLimit=0,[switch]$verbose,[switch]$includeDeletedObjects){
 <#
 .DESCRIPTION
 Wrapper for the LDAP searcher that allows easy searching on any attribute using a parameter
@@ -266,6 +302,7 @@ Version 1.3 updated to add some additional UAC filters
     $AdSearcher.Searchroot = [ADSI]("$protocol/$Server/$Searchroot")
     Write-Verbose ("Searchroot: " + $ADSearcher.SearchRoot.path.tostring())
     $ADSearcher.PageSize = $pageSize
+    $adsearcher.searchscope = $searchscope
     $ADSearcher.Sizelimit = $sizeLimit
     $adsearcher.ReferralChasing = [DirectoryServices.ReferralChasingOption]::All    
     $properties | %{$ADSearcher.PropertiesToLoad.Add($_) | out-null}   
@@ -310,9 +347,12 @@ Version 1.3 updated to add some additional UAC filters
                             $SidValue = [byte[]]($ldapresult.properties.$property[0])                                                   
                             $PropertyValue = New-Object System.Security.Principal.SecurityIdentifier($SIDValue,0)        
                     } 
+                    'tokenGroups'{                                
+                          $PropertyValue =  $ldapresult.properties.$property | %{New-Object System.Security.Principal.SecurityIdentifier([byte[]]$_,0)  }                    
+                    } 
                      'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset|accountexpires|^when'{
                         try {
-                            if ($ldapresult.properties.$property[0] -ne 9223372036854775807) {
+                            if ($ldapresult.properties.$property[0] -ne 9223372036854775807 -and $ldapresult.properties.$property[0] -ne 0) {
                                 $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
                             } else {
                                 $PropertyValue = "never"
@@ -346,7 +386,7 @@ Version 1.3 updated to add some additional UAC filters
     }
 }
 
-function get-netstatData(){
+function get-netstatData([switch]$returnProcesses){
 	$result = netstat -anob
 	$data = @()
 	switch -regex ($result){
@@ -354,7 +394,12 @@ function get-netstatData(){
 		   $data += new-object psobject -Property $matches
 		}
 	}
-	return $data | select Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,ProcessID,State
+	return $data | select Protocol,LocalIP,LocalPort,RemoteIP,RemotePort,ProcessID,State,@{l='Process';e={
+        if ($returnProcesses -and $_.processID){
+            get-process -id $_.processID
+
+        }
+    }}
 }
 
 function Refresh-ComputerGroupMembership {
@@ -2091,6 +2136,37 @@ function Get-HostSite {
 
 new-alias Get-IPSite Get-HostSite
 
+function Expand-Object {
+ [cmdletbinding()] Param ([parameter(ValueFromPipeline)][psobject[]]$InputObject,
+   [string[]]$ExpansionPath, $memberTypes = @("Property","NoteProperty"),[switch]$preserveAllData )
+     Process{   
+        foreach ($ThisObj in $inputobject){
+            $proplist = $thisObj | gm |?{$memberTypes -contains $_.memberType} | select -expand Name
+            if ($ExpansionPath.length -eq 0){                
+                $thisObj | select $proplist
+            } else {
+                $AttrToExpand = $ExpansionPath[0]
+                if ($ThisObj.$AttrToExpand){                
+                    $results = $ThisObj.$attrToexpand | Expand-Object -ExpansionPath $ExpansionPath[1..100] -memberTypes $memberTypes -preserveAllData:$preserveAllData
+                    if ($preserveAllData){                        
+                       $resultProps = $results | gm |?{$memberTypes -contains $_.memberType} | select -expand Name
+                       $newProps = @()
+                       $returnproperties = $resultProps | %{$newProps += @{l="$attrToExpand$_";e=[scriptblock]::create("`$_.$_")}}
+                       $results = $results  | select $newProps                         
+                        
+                    }
+                    foreach ($prop in ($proplist |?{$_ -ne $attrToExpand})){
+                        $results | Add-Member -NotePropertyName $prop -NotePropertyValue $ThisObj.$prop -force
+                    }
+                    $results
+                } else {
+                    $ThisObj | select (([array]$proplist + $AttrToExpand) | sort -Unique)
+                }
+            }
+        }
+    }
+}
+
 function get-ADNestedMembershipWithParent
 {   
     [CmdletBinding()] Param(
@@ -2554,22 +2630,39 @@ while ((get-date) -lt ($timeout) -and $eventCount -lt 1){
     $Waitfor4114EventJob | remove-job -force
 }
 
-function Check-SYSVOLbacklog ($ComputerName='All'){
-    if ($ComputerName -eq 'ALL'){
-        $DCList = get-addomaincontroller -filter * | select -expand hostname
-    } else {
-        $DCList = $ComputerName
-    }
-    $MasterSource = (Get-ADDomain).PDCEmulator.tostring()
-    $DCList = $DCList |?{$MasterSource -notmatch $_}    
+function Check-SYSVOLbacklog ($ComputerName='*',$referenceServer){
+    $ComputerName = "*$ComputerName*" -replace '\*\*\*','*'
+    $DCList =  get-ForestDomainControllers -quickly | ?{$_ -like $ComputerName}     
     
-    $DCList | %p{
-        $computer = $_
-        $ReferenceServer = $args[0]
+    if ($null -eq $referenceServer){
+        $AllDomains = [System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest().domains
+        $PDCMap = @{}
+        foreach ($Domain in $AllDomains){
+            $PDCMap.add($Domain.name,$DOmain.pdcRoleOwner.name)
+        }
+        $setToProcess = $DCList | %{
+            $Domain = $_ -replace '^[^\.]+\.',''
+            $ReferenceServer = $PDCMap.$Domain
+            new-object psobject -Property @{DC=$_;Reference=$ReferenceServer}
+        }
+
+    } else {
+        $setToProcess = $DCList | %{ 
+            new-object psobject -Property @{DC=$_;Reference=$ReferenceServer}
+        }
+    }
+    $setToProcess | %p{       
+        $computer = $_.DC
+        $ReferenceServer = $_.reference
         $result = "" | select ComputerName,BackLogCount,Status,Backlog
         $result.ComputerName = $computer
+        if ($computer -eq $ReferenceServer){
+            $result.status = 'No Backlog against Self'
+            return $result
+        }
         try {
-            $REsultData = Get-DfsrBacklog -SourceComputerName $ReferenceServer -DestinationComputerName $computer -GroupName "Domain System Volume" -Verbose 4>&1 -ErrorAction Stop
+            
+            $REsultData = Get-DfsrBacklog -SourceComputerName $ReferenceServer -DestinationComputerName $computer -GroupName "Domain System Volume" -FolderName 'SYSVOL Share' -Verbose 4>&1 -ErrorAction Stop
             $files = $resultData | select -skip 1
             $result.backlog = $files
             if ($resultdata[0].message -match 'no backlog for the replicated folder'){
@@ -2584,13 +2677,25 @@ function Check-SYSVOLbacklog ($ComputerName='All'){
                 $result.status = "$syncing files syncing"
             }
         } catch {
-            $result.status = $_
+            $oldresult = dfsrdiag backlog /rgname:"Domain System Volume" /rfname:"SYSVOL Share" /smem:$referenceServer /rmem:$computer
+            if ($oldresult -match 'Operation Succeeded'){
+                if ($oldresult -match 'No Backlog'){
+                    $result.BackLogCount = 0
+                    $result.Status = "No BackLog"
+                } else {                    
+                    $result.BackLog = $oldResult
+                    $result.Status = 'Unknown'
+                    $result.backlogCount =[int64](($oldresult -match 'Backlog File Count: (?<filecount>\d+)')  -split ': ' | select -last 1)
+                }
+            } else {
+                $result.status = "Failed to execute GetDFSRBacklog- Error was $_; also failed to execute using dfsrdiag - result was: $oldresult"
+            }
         }
         $result
-    } -arguments $MasterSource
+    } 
 }
 
-function INvoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([timespan]::fromhours(5)) ){
+function Ivoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([timespan]::fromhours(5)) ){
     #https://support.microsoft.com/en-ca/help/2218556/how-to-force-an-authoritative-and-non-authoritative-synchronization-fo
     <#
     The Manual Method
@@ -2660,9 +2765,19 @@ function INvoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([
     }
 }
 
+function AutoType ($Type, $SecondsDelay=1,[switch]$DontGoLastApp){
+    if (!$DontGoLastApp){
+        [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
+    }
+    start-sleep -seconds $SecondsDelay
+    [System.Windows.Forms.SendKeys]::SendWait($Type)
+
+}
+
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
 
 #if(!$MyInvocation.Scriptname) {TryCopyProfile}
 $ErrorActionPreference = 'Continue'
 
 cd ([Environment]::GetFolderPath("MyDocuments"))
+
