@@ -1,4 +1,4 @@
-$ProfileVersion = "1.62"
+$ProfileVersion = "1.63"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -116,8 +116,25 @@ function Add-ADGroupMemberxDomain ($userDN, $groupDN){
     }
 }
 
-function Change-Password ($domain,$samaccountname,$oldPassword,$newpassword){
-([adsi]"WinNT://$domain/$samaccountname,user").ChangePassword($oldPassword,$newpassword)
+#https://superuser.com/questions/1196477/allow-users-to-change-expired-password-via-remote-desktop-connection
+function Change-Password {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string] $UserName,
+        [Parameter(Mandatory = $true)][string] $OldPassword,
+        [Parameter(Mandatory = $true)][string] $NewPassword,
+        [Parameter(Mandatory = $true)][alias('DC', 'Server', 'ComputerName')][string] $DomainController
+    )
+    $DllImport = @'
+[DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
+public static extern bool NetUserChangePassword(string domain, string username, string oldpassword, string newpassword);
+'@
+    $NetApi32 = Add-Type -MemberDefinition $DllImport -Name 'NetApi32' -Namespace 'Win32' -PassThru
+    if ($result = $NetApi32::NetUserChangePassword($DomainController, $UserName, $OldPassword, $NewPassword)) {
+        Write-Output -InputObject 'Password change failed. Please try again.'
+    } else {
+        Write-Output -InputObject 'Password change succeeded.'
+    }
 }
 
 function Get-OctetStringFromGuid
@@ -645,9 +662,9 @@ function connect-MSOL ($name, [switch]$new)
 {
 	Import-Module MSOnline
 	$O365Cred = Stored-Credential $name -new:$new
-	$O365Session = New-PSSession –ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
+	$O365Session = New-PSSession ï¿½ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
 	Import-PSSession $O365Session -allowclobber
-	Connect-MsolService –Credential $O365Cred
+	Connect-MsolService ï¿½Credential $O365Cred
 	$Global:O365Connected = $name
 
 }
@@ -807,7 +824,7 @@ Function Port-Ping {
         }
         else {
             write-host "Host: $ip " -NoNewline
-            if ($rslt.status.tostring() –eq “Success”) {
+            if ($rslt.status.tostring() ï¿½eq ï¿½Successï¿½) {
                 write-host "ICMP " -ForegroundColor Green -NoNewline
             } else
             {
@@ -816,7 +833,7 @@ Function Port-Ping {
             write-host " TCP " -NoNewline   
                 foreach ($port in $ports){
                     $socket = new-object System.Net.Sockets.TcpClient($ip, $port)
-                    if ($socket –eq $null) {
+                    if ($socket ï¿½eq $null) {
                         write-host "$port," -ForegroundColor Red -NoNewline
                     }
                     else {
@@ -1762,7 +1779,7 @@ function Check-ADFSFederationForAllDomains {
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        $SETUP = Get-MsolFederationProperty –DomainName $_.Name
+        $SETUP = Get-MsolFederationProperty ï¿½DomainName $_.Name
         if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
             Write-host $_.Name "Token Signing and Next Token Signing Certificates Match" -ForegroundColor Green      
          } else {
@@ -1777,7 +1794,7 @@ Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        Update-MsolFederatedDomain –DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
+        Update-MsolFederatedDomain ï¿½DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
        
       } 
 }
@@ -2718,7 +2735,7 @@ function Ivoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([t
         Run the following command from an elevated command prompt on the same servers that you set as non-authoritative:
         DFSRDIAG POLLAD
 
-    Step 6 -   You will see Event ID 4614 and 4604 in the DFSR event log indicating SYSVOL has been initialized. That domain controller has now done a “D2” of SYSVOL.
+    Step 6 -   You will see Event ID 4614 and 4604 in the DFSR event log indicating SYSVOL has been initialized. That domain controller has now done a ï¿½D2ï¿½ of SYSVOL.
 
     #>
     try {
