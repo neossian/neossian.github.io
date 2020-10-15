@@ -1,4 +1,4 @@
-$ProfileVersion = "1.63"
+$ProfileVersion = "1.65"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -662,9 +662,9 @@ function connect-MSOL ($name, [switch]$new)
 {
 	Import-Module MSOnline
 	$O365Cred = Stored-Credential $name -new:$new
-	$O365Session = New-PSSession �ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
+	$O365Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri https://ps.outlook.com/powershell -Credential $O365Cred -Authentication Basic -AllowRedirection
 	Import-PSSession $O365Session -allowclobber
-	Connect-MsolService �Credential $O365Cred
+	Connect-MsolService -Credential $O365Cred
 	$Global:O365Connected = $name
 
 }
@@ -813,41 +813,6 @@ http://www.wrish.com
 new-alias csbs Compare-SideBySide 
 #Write-HOst "Compare-SideBytSide Alias:csbs"
 
-Function Port-Ping {
-    param([Array]$hostlist,[Array]$ports = $(80,443,389,636,3268),[Int]$timeout = "50")
-    $ErrorActionPreference = "SilentlyContinue"
-    $ping = new-object System.Net.NetworkInformation.Ping
-    foreach ($ip in $hostlist) {
-        $rslt = $ping.send($ip,$timeout)
-        if (! $?){
-            Write-Host "Host: $ip - not found" -ForegroundColor Red
-        }
-        else {
-            write-host "Host: $ip " -NoNewline
-            if ($rslt.status.tostring() �eq �Success�) {
-                write-host "ICMP " -ForegroundColor Green -NoNewline
-            } else
-            {
-                write-host "ICMP " -ForegroundColor Red -NoNewline
-            }
-            write-host " TCP " -NoNewline   
-                foreach ($port in $ports){
-                    $socket = new-object System.Net.Sockets.TcpClient($ip, $port)
-                    if ($socket �eq $null) {
-                        write-host "$port," -ForegroundColor Red -NoNewline
-                    }
-                    else {
-                        write-host "$port,"-foregroundcolor Green -NoNewline
-                        $socket = $null
-                    }
-                }
-
-        }
-        Write-Host 
-    }    
-}
-
-#Write-HOst "Port-Ping"
 
 Function Test-Port ($DestinationHosts,$Ports,[switch]$noPing,$pingTimeout="2000",[switch]$ShowDestIP,[Switch]$Continuous,$waitTimeMilliseconds=300,$maxthreads = 100) { 
   
@@ -2782,12 +2747,25 @@ function Ivoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([t
     }
 }
 
-function AutoType ($Type, $SecondsDelay=1,[switch]$DontGoLastApp){
+function AutoType ($Type, $SecondsDelay=1,[switch]$DontGoLastApp,[switch]$clipboard){
     if (!$DontGoLastApp){
         [System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
     }
+    if ($clipboard) {
+        $Type += get-clipboard
+    }
+    $type = $type -join "`n"
     start-sleep -seconds $SecondsDelay
-    [System.Windows.Forms.SendKeys]::SendWait($Type)
+    
+    for ($i=0;$i-lt $type.length;$i++){
+        switch -regex ($type[$i])
+        {
+            '[%\{\}\(\)~\^\+]' {[System.Windows.Forms.SendKeys]::SendWait("{$($type[$i])}");break}
+            "`n" {[System.Windows.Forms.SendKeys]::SendWait("~");break}
+            default {[System.Windows.Forms.SendKeys]::SendWait(($type[$i]))}
+        }
+
+    }
 
 }
 
