@@ -367,7 +367,7 @@ Version 1.3 updated to add some additional UAC filters
                     'tokenGroups'{                                
                           $PropertyValue =  $ldapresult.properties.$property | %{New-Object System.Security.Principal.SecurityIdentifier([byte[]]$_,0)  }                    
                     } 
-                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset|accountexpires|^when'{
+                     'badpasswordtime|lastlogontimestamp|lockouttime|pwdlastset|accountexpires|^when|^lastlogon$'{
                         try {
                             if ($ldapresult.properties.$property[0] -ne 9223372036854775807 -and $ldapresult.properties.$property[0] -ne 0) {
                                 $PropertyValue =   [datetime]::fromfiletime($LDAPResult.properties.$property[0])
@@ -1744,7 +1744,7 @@ function Check-ADFSFederationForAllDomains {
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        $SETUP = Get-MsolFederationProperty �DomainName $_.Name
+        $SETUP = Get-MsolFederationProperty -DomainName $_.Name
         if ($setup[0].TokenSigningCertificate -eq $setup[1].TokenSigningCertificate -and $setup[0].NextTokenSigningCertificate -eq $setup[1].NextTokenSigningCertificate){
             Write-host $_.Name "Token Signing and Next Token Signing Certificates Match" -ForegroundColor Green      
          } else {
@@ -1759,7 +1759,7 @@ Function Update-ADFSFederationForAllDomains ($supportMultipleDomains){
     
     get-msoldomain | ?{$_.authentication -eq "Federated" -and !$_.rootDomain } | %{
         Write-host Processing $_.Name
-        Update-MsolFederatedDomain �DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
+        Update-MsolFederatedDomain -DomainName $_.Name -SupportMultipleDomain:$supportMultipleDomains
        
       } 
 }
@@ -2700,7 +2700,7 @@ function Ivoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([t
         Run the following command from an elevated command prompt on the same servers that you set as non-authoritative:
         DFSRDIAG POLLAD
 
-    Step 6 -   You will see Event ID 4614 and 4604 in the DFSR event log indicating SYSVOL has been initialized. That domain controller has now done a �D2� of SYSVOL.
+    Step 6 -   You will see Event ID 4614 and 4604 in the DFSR event log indicating SYSVOL has been initialized. That domain controller has now done a "D2" of SYSVOL.
 
     #>
     try {
