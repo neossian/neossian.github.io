@@ -1,4 +1,4 @@
-$ProfileVersion = "1.65"
+$ProfileVersion = "1.67"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -1032,6 +1032,9 @@ List of functions that should be available to the script block
                     [int]$MaxThreads=100,
                     [Parameter(Mandatory=$false)]$arguments,
                     [Parameter(Mandatory=$false)][string[]]$ImportFunctions,
+                    [Parameter(Mandatory=$false)][switch]$objectReturn,
+                    [Parameter(Mandatory=$false)][string]$ItemLabel="InputObject",
+                    [Parameter(Mandatory=$false)][string]$ResultLabel="Result",
                     [switch]$noProgress,
                     [String]$ActivityName = "Multithreaded Foreach-Parallel",
                     $chunking = 1
@@ -1051,6 +1054,10 @@ List of functions that should be available to the script block
                             Write-Error "Unable to import $funct, no definition available"
                         }
                     }
+                    if ($objectReturn){
+                        $scriptblock = [scriptblock]::Create("`$OutResult_ = `"`"| Select $ItemLabel,$ResultLabel,Error; `$OutResult_.$ItemLabel = `$_; `$OutResult_.$ResultLabel = try {$($Scriptblock.ToString())} catch{`$OutResult_.Error = `$_};`$OutResult_")
+                    }
+
                     if ($chunking -eq 1) {$scriptblock = [scriptblock]::Create("param(`$_)`r`n" + $functionSet + $Scriptblock.ToString())}
                     else{$scriptblock = [scriptblock]::Create("param(`$_)`r`n" + $functionSet + '$_ | foreach-object {' + $Scriptblock.ToString() + '}')}
                     
@@ -1858,7 +1865,7 @@ Function update-HTTPSSlcertBinding {
 
 #Write-HOst 'update-HTTPSSlcertBinding'
 
-function Connect-Exchange ($Server,$UserCredential=(stored-credential -message "Enter Exchange Credential" -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)),[switch]$list,$version,$site)
+function Connect-Exchange ($Server,[pscredential]$UserCredential,[switch]$list,$version,$site)
 {
     if ($server -eq $null){        
         $search = new-object adsisearcher -ArgumentList ([adsi]"LDAP://$(([adsi]"LDAP://rootdse").configurationNamingContext)"), "(&(objectclass=msExchPowerShellVirtualDirectory)(msexchinternalhostname=*))",@("msExchVersion","msExchInternalHostName","distinguishedname")
@@ -1882,12 +1889,21 @@ function Connect-Exchange ($Server,$UserCredential=(stored-credential -message "
                 $num = 0
                 $PSDir | ?{$list -or ($version -and $_.version -match $version) -or ($site -and $_.site -match $site)} | %{$_.num = $num;$num++; $_} | select Num,Server,Version,Site | ft -AutoSize
                 $chosen = read-host "Ctrl+C to cancel or enter a number 0 to $($num -1) to select a server"
-                $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos -Credential $UserCredential
+                if ($usercredential){
+                    $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos -Credential $UserCredential
+                } else{
+                    $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos
+                }
             }
 
         } else {
             foreach ($vdir in $PSDir){
-                $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos -Credential $UserCredential
+                if ($usercredential) {
+                    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos -Credential $UserCredential
+                } else {
+                    $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos
+                }
+
                 if ($session) {break;}
             }
         }
@@ -2677,7 +2693,7 @@ function Check-SYSVOLbacklog ($ComputerName='*',$referenceServer){
     } 
 }
 
-function Ivoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([timespan]::fromhours(5)) ){
+function Invoke-NonAuthoritativeSysvolRestore ($computername = '.',$timeout = ([timespan]::fromhours(5)) ){
     #https://support.microsoft.com/en-ca/help/2218556/how-to-force-an-authoritative-and-non-authoritative-synchronization-fo
     <#
     The Manual Method
@@ -2775,4 +2791,3 @@ function AutoType ($Type, $SecondsDelay=1,[switch]$DontGoLastApp,[switch]$clipbo
 $ErrorActionPreference = 'Continue'
 
 cd ([Environment]::GetFolderPath("MyDocuments"))
-
