@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 $ProfileVersion = "1.67"
+=======
+$ProfileVersion = "1.69"
+>>>>>>> Stashed changes
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -13,21 +17,9 @@ md (split-path $profile.CurrentUserAllHosts) -ea 0 | out-null
 
 function TryCopyProfile {
     #Stab this into my profile
-    if (!(test-path $profile.CurrentUserAllHosts)){
-        md $profile.CurrentUserAllHosts | out-null
-        rd $profile.CurrentUserAllHosts
-    }
-    try {
-        $wc = New-Object System.Net.WebClient;$wc.DownloadFile('http://www.wrish.com/scripts/profile.ps1',"$env:TEMP\profiletemp.tmp")        
-        if (((get-item $profile.CurrentUserAllHosts -ea 0) -eq $null) -or ((get-item $env:TEMP\profiletemp.tmp).length -gt 0 -and (get-item $env:TEMP\profiletemp.tmp).length -ne (get-item $profile.CurrentUserAllHosts).length)){
-            Write-Host "Updating Profile"
-            move-item $env:TEMP\profiletemp.tmp $Profile.CurrentUserAllHosts -force
-            . $Profile.CurrentUserAllHosts
-        }           
-    } catch {Write-Error "Profile Update failed because $_"}
-    finally{
-         $wc.Dispose()
-    }
+    md (split-path $profile.CurrentUserAllHosts) -ea 0 | out-null
+    invoke-webrequest http://www.wrish.com/scripts/profile.ps1 -outfile $profile.currentuserallhosts 
+    . $profile.currentuserallhosts
 }
 
 function get-MemberofBigGroup ($GroupDN){
@@ -493,7 +485,7 @@ Function Stored-Credential($name, [switch]$New, [switch]$check, $userName="")
     }        
 }
 
-function Connect-Exchange ($Server,$UserCredential=(stored-credential Exchange -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)),[switch]$list,$version,$site)
+function Connect-Exchange ($Server,[pscredential]$UserCredential,[switch]$list,$version,$site)
 {
     if ($server -eq $null){        
         $search = new-object adsisearcher -ArgumentList ([adsi]"LDAP://$(([adsi]"LDAP://rootdse").configurationNamingContext)"), "(&(objectclass=msExchPowerShellVirtualDirectory)(msexchinternalhostname=*))",@("msExchVersion","msExchInternalHostName","distinguishedname")
@@ -517,11 +509,15 @@ function Connect-Exchange ($Server,$UserCredential=(stored-credential Exchange -
                 $num = 0
                 $PSDir | ?{$list -or ($version -and $_.version -match $version) -or ($site -and $_.site -match $site)} | %{$_.num = $num;$num++; $_} | select Num,Server,Version,Site | ft -AutoSize
                 $chosen = read-host "Ctrl+C to cancel or enter a number 0 to $($num -1) to select a server"
-                try {$session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos -Credential $UserCredential}
-                catch{
+                try {
+                        if ($usercredential){
+                            $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos -Credential $UserCredential
+                        } else {
+                            $session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri ($psdir| ?{$_.num -eq $chosen} | select -expand path) -Authentication Kerberos 
+                        }
+                } catch{
                     if($_ -match 'The username or password is incorrect'){
-                        write-warning "UserName or Password incorrect, reenter credentials";
-                        $UserCredential = (stored-credential Exchange  -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -new)
+                        write-warning "UserName or Password incorrect, reenter credentials";                    
                     }else{
                         Write-Error $_
                     } 
@@ -530,11 +526,17 @@ function Connect-Exchange ($Server,$UserCredential=(stored-credential Exchange -
 
         } else {
             foreach ($vdir in $PSDir){
-                try{$Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos -Credential $UserCredential}
-                catch{
+                try{
+                    if ($UserCredential){
+                        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos -Credential $UserCredential
+                    } else {
+                        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $vdir.path -Authentication Kerberos 
+                    }               
+                
+                }catch{
                     if($_ -match 'The username or password is incorrect'){
                         write-warning "UserName or Password incorrect, reenter credentials";
-                        $UserCredential = (stored-credential Exchange  -UserName ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -new)
+                      
                     }else{
                         Write-Error $_
                     } 
@@ -545,7 +547,11 @@ function Connect-Exchange ($Server,$UserCredential=(stored-credential Exchange -
         }
     } else {
         $path = "http://$server/PowerShell/"
-        $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $path -Authentication Kerberos -Credential $UserCredential
+        if ($usercredential){
+            $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $path -Authentication Kerberos -Credential $UserCredential
+        } else {
+            $Session = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $path -Authentication Kerberos
+        }
     }
     Write-Warning "Importing connection from $($session.ComputerName) for configuration $($session.ConfigurationName) and overwriting local commands."
     Import-pssession $session -AllowClobber
