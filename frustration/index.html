@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frustration Game Tracker</title>
+    <style>
+        :root { --card-bg: #f8f9fa; --border: 1px solid #ddd; }
+        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 10px; }
+        .player-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 10px; align-items: center; padding: 10px 0; border-bottom: var(--border); }
+        .grid-header { font-weight: bold; background: #f0f0f0; }
+        button { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; }
+        input[type="number"] { width: 60px; padding: 4px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 95%; }
+        @media (max-width: 600px) { .player-row { grid-template-columns: repeat(5, minmax(100px, 1fr)); overflow-x: auto; } }
+    </style>
+</head>
+<body>
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button onclick="showPlayerModal()">Manage Players</button>
+        <button onclick="newGame()">New Game</button>
+    </div>
+
+    <h2>Current Round</h2>
+    <div id="currentRound">
+        <div class="grid-header player-row">
+            <div>Player</div>
+            <div>Melded</div>
+            <div>Points</div>
+            <div>Total Score</div>
+            <div>Current Trick</div>
+        </div>
+        <div id="playerInputs"></div>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <button onclick="saveRound()">Save Round</button>
+        <button onclick="cancelEdit()" style="display: none;" id="cancelBtn">Cancel Edit</button>
+    </div>
+
+    <div class="history-table">
+        <h3>Round History</h3>
+        <div class="grid-header player-row">
+            <div>Round</div>
+            <div>Players</div>
+            <div>Actions</div>
+        </div>
+        <div id="roundHistory"></div>
+    </div>
+
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <h3>Players</h3>
+            <div id="playerFields"></div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="addPlayerField()">Add Player</button>
+                <button onclick="savePlayers()">Save Players</button>
+                <button onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ROUNDS = [
+            'R4', '(3)(3)', 'R4(4)', 'R9', '(4)(3)', 
+            'R7(3)', '(5)(2)', 'R10', 'F9', '(5)(4)'
+        ];
+
+        let gameState = {
+            players: [],
+            rounds: [],
+            currentRound: 0,
+            editingRound: null
+        };
+
+        function loadGame() {
+            const saved = localStorage.getItem('frustrationGame');
+            if (saved) gameState = JSON.parse(saved);
+            renderUI();
+        }
+
+        function saveGame() {
+            localStorage.setItem('frustrationGame', JSON.stringify(gameState));
+            renderUI();
+        }
+
+        function renderUI() {
+            const playerInputs = document.getElementById('playerInputs');
+            playerInputs.innerHTML = gameState.players.map((player, index) => `
+                <div class="player-row">
+                    <div>${player.name}</div>
+                    <div><input type="checkbox" id="melded-${index}" 
+                         ${gameState.editingRound !== null ? gameState.rounds[gameState.editingRound].players[index]?.melded : ''}></div>
+                    <div><input type="number" id="points-${index}" 
+                         value="${gameState.editingRound !== null ? gameState.rounds[gameState.editingRound].players[index]?.points : ''}"></div>
+                    <div>${player.score}</div>
+                    <div>${ROUNDS[player.currentHand] || 'Complete'}</div>
+                </div>
+            `).join('');
+
+            const roundHistory = document.getElementById('roundHistory');
+            roundHistory.innerHTML = gameState.rounds.map((round, index) => `
+                <div class="player-row">
+                    <div>${ROUNDS[round.roundNumber]} (${index + 1})</div>
+                    <div>${round.players.map(p => 
+                        `${p.name}: ${p.points}${p.melded ? '✓' : ''}`).join(', ')}</div>
+                    <div>
+                        <button onclick="editRound(${index})">Edit</button>
+                        <button onclick="deleteRound(${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('cancelBtn').style.display = 
+                gameState.editingRound !== null ? 'inline-block' : 'none';
+        }
+
+        function saveRound() {
+            const roundData = {
+                players: gameState.players.map((player, index) => ({
+                    name: player.name,
+                    melded: document.getElementById(`melded-${index}`).checked,
+                    points: parseInt(document.getElementById(`points-${index}`).value) || 0
+                })),
+                roundNumber: gameState.currentRound
+            };
+
+            // Reset player states when editing
+            if (gameState.editingRound !== null) {
+                gameState.players.forEach((player, index) => {
+                    player.score -= gameState.rounds[gameState.editingRound].players[index].points;
+                    if (gameState.rounds[gameState.editingRound].players[index].melded) {
+                        player.currentHand = Math.max(0, player.currentHand - 1);
+                    }
+                });
+            }
+
+            // Update player states
+            roundData.players.forEach((result, index) => {
+                const player = gameState.players[index];
+                player.score += result.points;
+                if (result.melded && player.currentHand < ROUNDS.length - 1) {
+                    player.currentHand++;
+                }
+            });
+
+            if (gameState.editingRound !== null) {
+                gameState.rounds[gameState.editingRound] = roundData;
+                gameState.editingRound = null;
+            } else {
+                gameState.rounds.push(roundData);
+                gameState.currentRound++;
+            }
+
+            saveGame();
+        }
+
+        function showPlayerModal() {
+            document.getElementById('playerFields').innerHTML = gameState.players
+                .map(p => `<input value="${p.name}" style="margin: 5px 0; padding: 8px; width: 100%;">`)
+                .join('');
+            document.getElementById('playerModal').style.display = 'flex';
+        }
+
+        function addPlayerField() {
+            if (document.querySelectorAll('#playerFields input').length < 10) {
+                const input = document.createElement('input');
+                input.placeholder = 'Player name';
+                input.style = "margin: 5px 0; padding: 8px; width: 100%;";
+                document.getElementById('playerFields').appendChild(input);
+            }
+        }
+
+        function savePlayers() {
+            const inputs = Array.from(document.querySelectorAll('#playerFields input'));
+            const newPlayers = inputs.filter(input => input.value.trim()).map(input => input.value.trim());
+            
+            gameState.players = newPlayers.map(name => {
+                const existing = gameState.players.find(p => p.name === name);
+                return existing || {
+                    name,
+                    score: 0,
+                    currentHand: 0
+                };
+            });
+            
+            closeModal();
+            saveGame();
+        }
+
+        function newGame() {
+            if (confirm('Start new game? This will reset all scores!')) {
+                localStorage.removeItem('frustrationGame');
+                gameState = { players: [], rounds: [], currentRound: 0, editingRound: null };
+                showPlayerModal();
+            }
+        }
+
+        function editRound(index) {
+            gameState.editingRound = index;
+            gameState.currentRound = gameState.rounds[index].roundNumber;
+            renderUI();
+        }
+
+        function deleteRound(index) {
+            // Restore player states
+            gameState.rounds[index].players.forEach((playerResult, playerIndex) => {
+                const player = gameState.players[playerIndex];
+                player.score -= playerResult.points;
+                if (playerResult.melded && player.currentHand > 0) {
+                    player.currentHand--;
+                }
+            });
+            
+            gameState.rounds.splice(index, 1);
+            saveGame();
+        }
+
+        function cancelEdit() {
+            gameState.editingRound = null;
+            renderUI();
+        }
+
+        function closeModal() {
+            document.getElementById('playerModal').style.display = 'none';
+        }
+
+        // Initialize
+        if (!localStorage.getItem('frustrationGame')) {
+            newGame();
+        } else {
+            loadGame();
+        }
+    </script>
+</body>
+</html>
