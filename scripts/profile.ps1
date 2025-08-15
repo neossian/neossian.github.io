@@ -1,8 +1,5 @@
-<<<<<<< Updated upstream
-$ProfileVersion = "1.67"
-=======
-$ProfileVersion = "1.69"
->>>>>>> Stashed changes
+
+$ProfileVersion = "1.70"
 $ErrorActionPreference = 'SilentlyContinue'
 Write-output "Loading version $ProfileVersion"
 <#
@@ -2789,6 +2786,36 @@ function AutoType ($Type, $SecondsDelay=1,[switch]$DontGoLastApp,[switch]$clipbo
 
     }
 
+}
+
+function Convert-CanonicalToDN {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string]$CanonicalName
+    )
+
+    process {
+        # Split the canonical name into its components
+        $components = $CanonicalName -split "/"
+        $domainComponents = $components[0] -split "\."
+
+        # Build the distinguished name
+        $dn = @()
+        foreach ($dc in $domainComponents) {
+            $dn += "DC=$dc"
+        }
+        for ($i = 1; $i -lt $components.Length - 1; $i++) {
+            $dn += "OU=$($components[$i])"
+        }
+
+        # Add the last component as CN
+        $dn += "CN=$($components[-1])"
+
+        # Join the components to form the distinguished name
+        $distinguishedName = $dn -join ","
+        Write-Output $distinguishedName
+    }
 }
 
 #get-command -CommandType Function |?{$_.Module -eq $null -and $_.name -notmatch ':|importsystemmodules|cd\.\.|cd\\|get-verb|mkdir|more|pause|tabexpansion'} | %{$command = $_;new-object psobject -property @{Name=$command.name;Alias=(get-alias | ?{$_.name -match $command} | select -expand Name)}}
