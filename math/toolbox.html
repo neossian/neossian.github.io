@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Helper — Prime, Addition & Multiplication</title>
+  <!-- Dyslexia-friendly, readable typefaces. Safe fallbacks included -->
+  https://fonts.googleapis.com
+  https://fonts.gstatic.com
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700p
+  <style>
+    :root {
+      --base-bg: #f7f7fb;           /* soft off-white to reduce glare */
+      --base-fg: #1a1a1a;           /* high contrast text */
+      --accent: #2155CD;            /* accessible blue for focus */
+      --muted: #6b7280;             /* muted text */
+      --prime-bg: #C7F9CC;          /* green for primes */
+      --prime-border: #2D6A4F;      /* deep green border */
+      --card-bg: #ffffff;
+      --grid-gap: 4px;
+      --grid-cell-size: 2.75rem;    /* default cell size; grid-scale adjusts this */
+      --grid-font: 1.05rem;         /* default grid font */
+      --scale: 1;                   /* zoom scale for grids */
+      --radius: 10px;
+      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+      --focus-ring: 0 0 0 3px rgba(33,85,205,.35);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --base-bg: #0f1115;
+        --card-bg: #12151c;
+        --base-fg: #f2f5f7;
+        --muted: #9aa4b2;
+      }
+    }
+    html { font-size: clamp(18px, 1.1vw + 16px, 26px); }
+    body {
+      margin: 0;
+      background: var(--base-bg);
+      color: var(--base-fg);
+      font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      letter-spacing: 0.02em; /* gentle tracking for readability */
+    }
+    .app { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .5rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .title { font-weight: 800; font-size: 1.25rem; letter-spacing: 0.01em; }
+
+    /* Top navigation (tablist) */
+    .tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
+    .tab-btn {
+      appearance: none;
+      background: var(--card-bg);
+      color: var(--base-fg);
+      border: 2px solid transparent;
+      border-radius: 999px;
+      padding: .5rem .9rem;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+    .tab-btn[aria-selected="true"] { border-color: var(--accent); }
+    .tab-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+    /* Controls */
+    .controls {
+      display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center;
+      margin: .25rem 0 1rem 0;
+    }
+    .control {
+      background: var(--card-bg); border-radius: var(--radius); padding: .5rem .75rem;
+      box-shadow: var(--shadow); display: inline-flex; align-items: center; gap: .5rem;
+    }
+    .control label { font-weight: 700; }
+    .control input[type="range"] { width: 180px; }
+
+    /* Panels */
+    .panel { display: none; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1rem; }
+    .panel.active { display: block; }
+
+    .helper-text { color: var(--muted); margin-bottom: .75rem; }
+
+    /* Grid styles */
+    .grid-wrap {
+      overflow: auto; border-radius: var(--radius);
+      border: 1px solid rgba(0,0,0,.05); padding: .5rem;
+      background: linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0));
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), minmax(calc(var(--grid-cell-size) * var(--scale)), 1fr));
+      gap: var(--grid-gap);
+      align-items: stretch;
+      justify-items: stretch;
+      font-size: calc(var(--grid-font) * var(--scale));
+    }
+    .cell, .hdr {
+      border-radius: 8px;
+      display: grid; place-items: center;
+      min-width: calc(var(--grid-cell-size) * var(--scale));
+      min-height: calc(var(--grid-cell-size) * var(--scale));
+      padding: .35rem;
+      user-select: none;
+      font-weight: 700;
+      background: #fff; color: #111827;
+    }
+    .hdr { background: #eef2ff; color: #1e293b; position: sticky; }
+
+    /* Prime cell visual cue */
+    .prime {
+      background: var(--prime-bg);
+      border: 3px solid var(--prime-border);
+      box-shadow: 0 0 0 3px rgba(45,106,79,.15) inset;
+    }
+
+    /* Legends */
+    .legend { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin: .5rem 0 0; }
+    .swatch { width: 1.5rem; height: 1rem; border-radius: 4px; border: 1px solid rgba(0,0,0,.1); }
+
+    /* Focus state for all clickable elements */
+    button, input, a { outline-offset: 2px; }
+
+    /* Utility */
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="title" aria-label="App title">Math Helper</div>
+      <nav class="tabs" role="tablist" aria-label="Choose a page">
+        <button class="tab-btn" role="tab" id="tab-primes" aria-controls="panel-primes" aria-selected="true">Prime Numbers</button>
+        <button class="tab-btn" role="tab" id="tab-add" aria-controls="panel-add" aria-selected="false">Addition Grid</button>
+        <button class="tab-btn" role="tab" id="tab-mul" aria-controls="panel-mul" aria-selected="false">Multiplication Grid</button>
+      </nav>
+    </header>
+
+    <div class="controls" aria-label="Display controls">
+      <div class="control" title="Adjust grid zoom">
+        <label for="zoom">Zoom</label>
+        <input type="range" id="zoom" min="0.8" max="1.6" step="0.05" value="1" />
+        <span id="zoomVal" aria-live="polite">100%</span>
+      </div>
+      <div class="control" title="Toggle high-contrast borders for easier tracking">
+        <label for="borders">Bold borders</label>
+        <input type="checkbox" id="borders">
+      </div>
+    </div>
+
+    <!-- Panel: Primes 1-100 -->
+    <section id="panel-primes" class="panel active" role="tabpanel" aria-labelledby="tab-primes">
+      <p class="helper-text"><strong>Prime Numbers</strong> are whole numbers with only 2 factors. <span class="sr-only">Definition: divisible only by 1 and itself.</span></p>
+      <div class="grid-wrap">
+        <div id="primeGrid" class="grid" style="--cols: 10;"></div>
+      </div>
+    </section>
+
+    <!-- Panel: Addition 1..20 -->
+    <section id="panel-add" class="panel" role="tabpanel" aria-labelledby="tab-add">
+      <p class="helper-text">Addition table from 1 to 20. Header row and column show the addends. Cells show the sum. Color shading helps group similar values.</p>
+      <div class="grid-wrap">
+        <div id="addGrid" class="grid" style="--cols: 21;"></div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span>Low</span>
+        <span class="swatch" style="background:hsl(210,70%,92%)"></span>
+        <span class="swatch" style="background:hsl(180,70%,80%)"></span>
+        <span class="swatch" style="background:hsl(120,70%,70%)"></span>
+        <span class="swatch" style="background:hsl(60,70%,60%)"></span>
+        <span class="swatch" style="background:hsl(30,70%,50%)"></span>
+        <span>High</span>
+      </div>
+    </section>
+
+    <!-- Panel: Multiplication 1..20 -->
+    <section id="panel-mul" class="panel" role="tabpanel" aria-labelledby="tab-mul">
+      <p class="helper-text">Multiplication table from 1 to 20. Header row and column show the factors. Cells show the product. Color shading helps group similar values.</p>
+      <div class="grid-wrap">
+        <div id="mulGrid" class="grid" style="--cols: 21;"></div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span>Low</span>
+        <span class="swatch" style="background:hsl(210,70%,92%)"></span>
+        <span class="swatch" style="background:hsl(180,70%,80%)"></span>
+        <span class="swatch" style="background:hsl(120,70%,70%)"></span>
+        <span class="swatch" style="background:hsl(60,70%,60%)"></span>
+        <span class="swatch" style="background:hsl(30,70%,50%)"></span>
+        <span>High</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Utilities
+    const $ = (sel) => document.querySelector(sel);
+
+    function isPrime(n){
+      if(n < 2) return false;
+      if(n % 2 === 0) return n === 2;
+      const r = Math.floor(Math.sqrt(n));
+      for(let i=3;i<=r;i+=2){ if(n % i === 0) return false; }
+      return true;
+    }
+
+    function colorScale(value, min, max){
+      // Blue (low) → Green → Yellow → Orange (high) — colorblind-friendly-ish gradient
+      const t = (value - min) / (max - min);
+      const hue = 210 - t * 180;      // 210 (blue) → 30 (orange)
+      const light = 92 - t * 42;      // 92% → 50%
+      return `hsl(${hue}, 70%, ${light}%)`;
+    }
+
+    function buildPrimeGrid(){
+      const grid = $('#primeGrid');
+      grid.innerHTML = '';
+      grid.style.setProperty('--cols', 10);
+      for(let n=1;n<=100;n++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = n;
+        cell.setAttribute('aria-label', `${n}${isPrime(n) ? ' is prime' : ''}`);
+        if(isPrime(n)) cell.classList.add('prime');
+        grid.appendChild(cell);
+      }
+    }
+
+    function buildHeaderRow(gridEl, size, operator){
+      // top-left corner
+      const corner = document.createElement('div');
+      corner.className = 'hdr';
+      corner.textContent = operator;
+      gridEl.appendChild(corner);
+      for(let j=1;j<=size;j++){
+        const h = document.createElement('div');
+        h.className = 'hdr';
+        h.textContent = j;
+        h.setAttribute('aria-label', `${operator} header ${j}`);
+        gridEl.appendChild(h);
+      }
+    }
+
+    function buildMathGrid(gridId, size, op){
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = '';
+      grid.style.setProperty('--cols', size + 1);
+      const minVal = op === '+' ? 2 : 1;
+      const maxVal = op === '+' ? size*2 : size*size;
+
+      buildHeaderRow(grid, size, op);
+
+      for(let i=1;i<=size;i++){
+        // left header
+        const h = document.createElement('div');
+        h.className = 'hdr';
+        h.textContent = i;
+        h.setAttribute('aria-label', `row header ${i}`);
+        grid.appendChild(h);
+        for(let j=1;j<=size;j++){
+          const v = op === '+' ? i + j : i * j;
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.style.background = colorScale(v, minVal, maxVal);
+          cell.textContent = v;
+          const opWord = op === '+' ? 'plus' : 'times';
+          const equals = op === '+' ? 'equals' : 'is';
+          cell.setAttribute('aria-label', `${i} ${opWord} ${j} ${equals} ${v}`);
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function setScale(val){
+      document.documentElement.style.setProperty('--scale', val);
+      $('#zoomVal').textContent = Math.round(val*100) + '%';
+    }
+
+    function toggleBorders(on){
+      const rule = on ? '1.5px solid rgba(17,24,39,.6)' : '1px solid rgba(0,0,0,.05)';
+      document.querySelectorAll('.cell, .hdr').forEach(el => {
+        el.style.border = rule;
+      });
+    }
+
+    function setupTabs(){
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+          document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+          tab.setAttribute('aria-selected', 'true');
+          const panel = document.getElementById(tab.getAttribute('aria-controls'));
+          panel.classList.add('active');
+          panel.querySelector('.grid-wrap').scrollTop = 0; // reset scroll
+        });
+      });
+    }
+
+    // Initialize
+    buildPrimeGrid();
+    buildMathGrid('addGrid', 20, '+');
+    buildMathGrid('mulGrid', 20, '*');
+    setupTabs();
+
+    // Controls
+    const zoom = $('#zoom');
+    zoom.addEventListener('input', () => setScale(zoom.value));
+    setScale(zoom.value);
+    $('#borders').addEventListener('change', (e) => toggleBorders(e.target.checked));
+  </script>
+</body>
+</html>
