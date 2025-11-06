@@ -16,7 +16,11 @@
       --card: #f8fafc; /* slate-50 */
       --focus: #f59e0b; /* amber-500 */
       --radius: 12px;
-      --font-size-base: 20px; /* Large default size */
+
+      /* Base size (kept large) and responsive scaling for smaller screens */
+      --font-size-base: clamp(18px, 2.2vw + 8px, 22px);
+      --cell-min-height: 54px;
+      --cell-gap: 6px;
     }
 
     html, body {
@@ -105,7 +109,7 @@
     /* ===== Grids ===== */
     .grid {
       display: grid;
-      gap: 6px;
+      gap: var(--cell-gap);
     }
 
     /* Prime grid: 10 columns (1–100) */
@@ -117,7 +121,7 @@
     .cell {
       border: 2px solid var(--border);
       border-radius: 10px;
-      min-height: 54px;
+      min-height: var(--cell-min-height);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -150,17 +154,28 @@
       color: #064e3b; /* green-900 */
     }
 
-    /* Helper for small captions */
     .note {
       font-size: 0.95rem;
       color: var(--muted);
       margin-top: 0.25rem;
     }
 
+    /* ===== Fit-to-width wrappers ===== */
+    .fit-wrap {
+      width: 100%;
+      overflow: hidden;           /* hide scaled overflow horizontally */
+      position: relative;
+    }
+    .fit-target {
+      transform-origin: top left; /* scale anchors to top-left */
+      /* Prevent layout jitter from font metrics changing while scaling */
+      will-change: transform;
+      display: inline-block;      /* natural width for measuring */
+    }
+
     /* Responsive tweaks */
     @media (max-width: 640px) {
-      :root { --font-size-base: 18px; }
-      .cell { min-height: 48px; }
+      :root { --cell-min-height: 48px; }
     }
   </style>
 </head>
@@ -186,7 +201,14 @@
       <div class="card">
         <h1>Prime Number Table (1–100)</h1>
         <p><strong>Prime Numbers are whole numbers with only 2 factors</strong>.</p>
-        <div id="prime-grid" class="grid grid-10" aria-label="Grid of numbers 1 to 100 where prime numbers are in green boxes"></div>
+
+        <!-- Fit wrapper around the grid -->
+        <div class="fit-wrap" data-fit>
+          <div class="fit-target">
+            <div id="prime-grid" class="grid grid-10" aria-label="Grid of numbers 1 to 100 where prime numbers are in green boxes"></div>
+          </div>
+        </div>
+
         <p class="note">Tip: Look for the <span style="background:#c9f7d5;border:2px solid #22c55e;border-radius:6px;padding:2px 6px;">green boxes</span>—those are primes.</p>
       </div>
     </section>
@@ -196,7 +218,12 @@
       <div class="card">
         <h2>Addition Grid (1–20)</h2>
         <p>The value in each cell is the sum of the row and column numbers. Colors deepen as the sums get larger.</p>
-        <div id="add-grid" class="grid grid-21" aria-label="Addition grid from 1 to 20 with colorized background per sum"></div>
+
+        <div class="fit-wrap" data-fit>
+          <div class="fit-target">
+            <div id="add-grid" class="grid grid-21" aria-label="Addition grid from 1 to 20 with colorized background per sum"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -205,16 +232,17 @@
       <div class="card">
         <h2>Multiplication Grid (1–20)</h2>
         <p>The value in each cell is the product of the row and column numbers. Colors deepen as the products get larger.</p>
-        <div id="mul-grid" class="grid grid-21" aria-label="Multiplication grid from 1 to 20 with colorized background per product"></div>
+
+        <div class="fit-wrap" data-fit>
+          <div class="fit-target">
+            <div id="mul-grid" class="grid grid-21" aria-label="Multiplication grid from 1 to 20 with colorized background per product"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
   <script>
-    let wakeLock = null;
-
-
-
     /* ===== Helpers ===== */
     function isPrime(n) {
       if (n < 2) return false;
@@ -235,7 +263,6 @@
 
     // Get readable text color based on HSL lightness
     function textColorForLightness(L) {
-      // Threshold tuned for good contrast with our palettes
       return L < 55 ? '#ffffff' : '#0f172a';
     }
 
@@ -277,23 +304,15 @@
 
       const N = 20;
       const minSum = 2, maxSum = 40;
-      // Palette: Blue (Hue ~ 210)
-      const H = 210, S = 80; // Saturation
-      const Lmin = 32, Lmax = 90; // Lightness bounds
+      const H = 210, S = 80; // Blue
+      const Lmin = 32, Lmax = 90;
 
-      // Top-left empty corner
       grid.appendChild(makeCell('', 'cell cell-muted', { ariaLabel: 'Empty corner' }));
-
-      // Top header 1..20
       for (let x = 1; x <= N; x++) {
         grid.appendChild(makeCell(x.toString(), 'cell cell-header', { ariaLabel: `Column ${x}` }));
       }
-
-      // Rows
       for (let y = 1; y <= N; y++) {
-        // Row header
         grid.appendChild(makeCell(y.toString(), 'cell cell-header', { ariaLabel: `Row ${y}` }));
-
         for (let x = 1; x <= N; x++) {
           const sum = x + y;
           const L = lightnessFor(sum, minSum, maxSum, Lmin, Lmax);
@@ -323,23 +342,15 @@
 
       const N = 20;
       const minProd = 1, maxProd = 400;
-      // Palette: Orange (Hue ~ 28)
-      const H = 28, S = 85;
+      const H = 28, S = 85; // Orange
       const Lmin = 28, Lmax = 92;
 
-      // Top-left empty corner
       grid.appendChild(makeCell('', 'cell cell-muted', { ariaLabel: 'Empty corner' }));
-
-      // Top header 1..20
       for (let x = 1; x <= N; x++) {
         grid.appendChild(makeCell(x.toString(), 'cell cell-header', { ariaLabel: `Column ${x}` }));
       }
-
-      // Rows
       for (let y = 1; y <= N; y++) {
-        // Row header
         grid.appendChild(makeCell(y.toString(), 'cell cell-header', { ariaLabel: `Row ${y}` }));
-
         for (let x = 1; x <= N; x++) {
           const prod = x * y;
           const L = lightnessFor(prod, minProd, maxProd, Lmin, Lmax);
@@ -362,25 +373,81 @@
       }
     }
 
+    /* ===== Fit-to-width logic ===== */
+    function fitTargetToWidth(wrapper, target, { maxScale = 1 } = {}) {
+      // Measure available width and natural (unscaled) target width
+      const avail = wrapper.clientWidth;
+      // Reset scale to 1 to measure natural size without compounding
+      target.style.transform = 'scale(1)';
+      const naturalWidth = target.scrollWidth;
+      const naturalHeight = target.scrollHeight;
+
+      // Compute scale (never upscale beyond maxScale)
+      let scale = 1;
+      if (naturalWidth > 0 && avail > 0) {
+        scale = Math.min(maxScale, avail / naturalWidth);
+      }
+
+      target.style.transform = `scale(${scale})`;
+
+      // Reserve proper vertical space so layout below doesn't overlap
+      const scaledHeight = Math.ceil(naturalHeight * scale);
+      wrapper.style.height = scaledHeight + 'px';
+      wrapper.style.minHeight = scaledHeight + 'px';
+    }
+
+    function installFitObservers() {
+      const wrappers = Array.from(document.querySelectorAll('[data-fit]'));
+      const entries = wrappers.map(wrapper => {
+        const target = wrapper.querySelector('.fit-target');
+        return { wrapper, target };
+      });
+
+      const ro = new ResizeObserver(() => {
+        entries.forEach(({ wrapper, target }) => fitTargetToWidth(wrapper, target, { maxScale: 1 }));
+      });
+
+      // Observe wrappers and targets (wrapper width or target content may change)
+      entries.forEach(({ wrapper, target }) => {
+        ro.observe(wrapper);
+        ro.observe(target);
+      });
+
+      // Also refit on window events
+      ['load', 'resize', 'orientationchange', 'visibilitychange'].forEach(evt => {
+        window.addEventListener(evt, () => {
+          entries.forEach(({ wrapper, target }) => fitTargetToWidth(wrapper, target, { maxScale: 1 }));
+        });
+      });
+
+      // Initial fit
+      entries.forEach(({ wrapper, target }) => fitTargetToWidth(wrapper, target, { maxScale: 1 }));
+    }
+
     /* ===== Navigation (Tabs) ===== */
     function setupNavigation() {
       const buttons = Array.from(document.querySelectorAll('.nav button'));
       const pages = Array.from(document.querySelectorAll('.page'));
 
       function show(targetId) {
-        // Toggle active button
         buttons.forEach(btn => {
           const active = btn.dataset.target === targetId;
           btn.classList.toggle('active', active);
           btn.setAttribute('aria-selected', active ? 'true' : 'false');
         });
-        // Toggle active page
         pages.forEach(sec => sec.classList.toggle('active', sec.id === targetId));
+        // After switching pages, refit visible grids
+        // Defer a tick to ensure layout is updated
+        setTimeout(() => {
+          document.querySelectorAll('.page.active [data-fit]').forEach(wrapper => {
+            const target = wrapper.querySelector('.fit-target');
+            fitTargetToWidth(wrapper, target, { maxScale: 1 });
+          });
+        }, 0);
       }
 
       buttons.forEach(btn => {
         btn.addEventListener('click', () => show(btn.dataset.target));
-        // Enable Enter/Space keyboard activation by default (button does this)
       });
     }
 
@@ -390,36 +457,10 @@
       renderPrimeGrid();
       renderAdditionGrid();
       renderMultiplicationGrid();
-          if ('wakeLock' in navigator) {
-        requestWakeLock();
-    } else {
-        console.warn('Wake Lock API not supported on this device/browser');
-    }
+
+      // Wait a frame for content to render, then install observers
+      requestAnimationFrame(installFitObservers);
     });
-
-    async function requestWakeLock() {
-    try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log('Wake Lock is active');
-
-        // Re-acquire if it gets released (e.g., tab loses focus)
-        wakeLock.addEventListener('release', () => {
-        console.log('Wake Lock was released');
-        });
-    } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
-    }
-    }
-
-
-    
-    document.addEventListener('visibilitychange', () => {
-    if (wakeLock !== null && document.visibilityState === 'visible') {
-        requestWakeLock();
-    }
-    });
-
-
   </script>
 </body>
 </html>
