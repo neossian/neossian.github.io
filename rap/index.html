@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Rhyme Beat Trainer</title>
+<style>
+  :root {
+    --bg: #0f1220;
+    --panel: #161a2e;
+    --muted: #8b93b7;
+    --text: #e9edff;
+    --accent: #7c9cff;
+    --accent2: #31d0aa;
+    --danger: #ff7a7a;
+    --beat: #2a315a;
+    --beat-active: #7c9cff;
+    --beat-end: #31d0aa;
+    --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.35;
+  }
+  header { padding: 16px 16px 0; }
+  h1 { font-size: clamp(20px, 4vw, 28px); margin: 0 0 6px; }
+  .subtitle { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .container { padding: 12px 16px 24px; display: grid; gap: 12px; }
+  .card {
+    background: var(--panel); border-radius: 14px; box-shadow: 0 6px 18px var(--shadow); padding: 12px;
+  }
+  .controls { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  @media (min-width: 760px) { .controls { grid-template-columns: repeat(4, 1fr); } }
+  .control { display: grid; gap: 6px; }
+  label { font-size: 12px; color: var(--muted); }
+  input[type="range"] { width: 100%; }
+  select, input[type="number"] {
+    width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #2b3152;
+    background: #101532; color: var(--text); font-size: 14px;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 12px 14px; border-radius: 10px; border: 0;
+    background: var(--accent); color: #0c1022; font-weight: 700;
+    box-shadow: 0 8px 18px rgba(124,156,255,0.3);
+    cursor: pointer; user-select: none; touch-action: manipulation;
+  }
+  .btn.secondary { background: #243160; color: var(--text); box-shadow: none; }
+  .btn.danger { background: var(--danger); color: #1a0e0e; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--accent2); }
+  .dot.warn { background: var(--danger); }
+  .beat-strip { display: grid; grid-auto-flow: column; gap: 10px; justify-content: center; }
+  .beat {
+    width: clamp(18px, 8vw, 28px); height: clamp(18px, 8vw, 28px);
+    border-radius: 50%; background: var(--beat);
+    border: 2px solid transparent; transform: translateZ(0);
+    transition: background .12s ease, transform .06s ease, border-color .12s ease;
+  }
+  .beat.active { background: var(--beat-active); transform: scale(1.08); }
+  .beat.end { border-color: var(--beat-end); }
+  .beat.pulse { animation: pulse .2s ease; }
+  @keyframes pulse { 0%{transform:scale(1);}50%{transform:scale(1.2);}100%{transform:scale(1);} }
+  .words { display: grid; gap: 8px; grid-template-columns: 1fr; }
+  .word-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+    background: #0f1434; border: 1px solid #263061; border-radius: 12px; padding: 10px 12px;
+  }
+  .tag { font-size: 11px; color: var(--muted); background: #0d1230; border: 1px solid #2a3568; padding: 4px 8px; border-radius: 999px; }
+  .word { font-weight: 800; font-size: clamp(20px, 6vw, 34px); letter-spacing: .5px; }
+  .word.current { color: var(--accent2); }
+  .word.flash { animation: flash .25s ease-in-out; }
+  @keyframes flash {
+    0% { color:#fff; text-shadow:0 0 0 rgba(49,208,170,0); }
+    50% { color:var(--accent2); text-shadow:0 0 14px rgba(49,208,170,.7); }
+    100% { color:var(--accent2); text-shadow:0 0 0 rgba(49,208,170,0); }
+  }
+  .grid-two { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+  .muted { color: var(--muted); }
+  .meter { height: 8px; background: #0c1130; border-radius: 999px; overflow: hidden; border: 1px solid #2a3568; }
+  .meter>span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .08s linear; }
+  .small { font-size: 12px; color: var(--muted); }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rhyme Beat Trainer</h1>
+  <p class="subtitle">Land your rhyme on the end beat. Rotate rhyme families by stanza, and filter to common words.</p>
+</header>
+
+<div class="container">
+  <section class="card">
+    <div class="controls">
+      <div class="control">
+        <label for="tempo">Tempo <span id="tempoVal" class="muted">(90 BPM)</span></label>
+        <input id="tempo" type="range" min="50" max="160" step="1" value="90" />
+      </div>
+      <div class="control">
+        <label for="timeSig">Time Signature</label>
+        <select id="timeSig">
+          <option value="4">4 / 4 (end beat = 4)</option>
+          <option value="3">3 / 4 (end beat = 3)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="beatStyle">Beat Style</label>
+        <select id="beatStyle">
+          <option value="metronome">Metronome</option>
+          <option value="boombap">Boom‑bap (kick/snare)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="scheme">Rhyme Scheme (per stanza)</label>
+        <select id="scheme">
+          <option value="AAAA">AAAA (monorhyme)</option>
+          <option value="AABB">AABB</option>
+          <option value="ABAB">ABAB</option>
+          <option value="ABBA">ABBA</option>
+          <option value="AABA">AABA</option>
+          <option value="ABCB">ABCB</option>
+          <option value="FREESTYLE">Freestyle (random letters)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="rhymeSpan">Rhyme Change Every</label>
+        <select id="rhymeSpan">
+          <option value="2">2 bars</option>
+          <option value="4" selected>4 bars</option>
+          <option value="8">8 bars</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="vocab">Vocabulary</label>
+        <select id="vocab">
+          <option value="ALL" selected>All words</option>
+          <option value="TOP10K">Top 10k common</option>
+          <option value="TOP5K">Top 5k common</option>
+          <option value="TOP3K">Top 3k common</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="lines">Bars to Practice</label>
+        <input id="lines" type="number" min="4" max="64" value="16" />
+      </div>
+      <div class="control">
+        <label for="volume">Volume</label>
+        <input id="volume" type="range" min="0" max="100" step="1" value="75" />
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button id="startBtn" class="btn" disabled>Start</button>
+      <button id="pauseBtn" class="btn secondary" disabled>Pause</button>
+      <button id="resetBtn" class="btn danger" disabled>Reset</button>
+      <div class="status">
+        <span class="dot" id="dictDot"></span>
+        <span id="dictStatus">Dictionary: loading…</span>
+      </div>
+      <div class="status">
+        <span class="dot" id="freqDot"></span>
+        <span id="freqStatus">Vocabulary list: loading…</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div id="beats" class="beat-strip" aria-label="Beat indicator"></div>
+    <div class="small" style="text-align:center;margin-top:6px;">
+      Beats until next rhyme: <b><span id="beatsLeft">-</span></b>
+    </div>
+    <div class="meter" style="margin-top:10px;">
+      <span id="progressBar"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="words">
+      <div class="word-row">
+        <div>
+          <div class="tag">Current (hit on end beat)</div>
+          <div id="currentWord" class="word current">—</div>
+        </div>
+        <div class="tag" id="currentRhymeTag">Rhyme: —</div>
+      </div>
+      <div class="grid-two">
+        <div class="word-row">
+          <div>
+            <div class="tag">Next</div>
+            <div id="nextWord" class="word">—</div>
+          </div>
+          <div class="tag">in <span id="beatsToNext">—</span> beats</div>
+        </div>
+        <div class="word-row">
+          <div>
+            <div class="tag">After Next</div>
+            <div id="afterNextWord" class="word">—</div>
+          </div>
+          <div class="tag" id="afterNextTag">—</div>
+        </div>
+      </div>
+      <div class="grid-two">
+        <div class="word-row">
+          <div>
+            <div class="tag">Previous</div>
+            <div id="prevWord" class="word">—</div>
+          </div>
+        </div>
+        <div class="word-row">
+          <div>
+            <div class="tag">Before Previous</div>
+            <div id="prevPrevWord" class="word">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="small">Only the <b>end beat</b> of each bar shows a word. Fill the bar and land the target on the last beat.</div>
+    </div>
+  </section>
+
+  <section class="footer small">
+    Built for mobile. Tap <b>Start</b> to unlock audio. If audio/vocab fail to load, the app falls back gracefully.
+  </section>
+</div>
+
+<script>
+(function(){
+  // ----- Audio / Metronome Engine -----
+  let audioCtx = null;
+  let masterGain = null;
+  const state = {
+    bpm: 90,
+    beatsPerBar: 4,
+    beatStyle: 'metronome',
+    isRunning: false,
+    currentBeat: 0,
+    nextNoteTime: 0,
+    scheduleAheadTime: 0.15, // seconds
+    lookahead: 25, // ms
+    barCount: 0,
+    volume: 0.75,
+  };
+
+  const el = {
+    tempo: document.getElementById('tempo'),
+    tempoVal: document.getElementById('tempoVal'),
+    timeSig: document.getElementById('timeSig'),
+    beatStyle: document.getElementById('beatStyle'),
+    scheme: document.getElementById('scheme'),
+    rhymeSpan: document.getElementById('rhymeSpan'),
+    vocab: document.getElementById('vocab'),
+    lines: document.getElementById('lines'),
+    volume: document.getElementById('volume'),
+    startBtn: document.getElementById('startBtn'),
+    pauseBtn: document.getElementById('pauseBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    beats: document.getElementById('beats'),
+    beatsLeft: document.getElementById('beatsLeft'),
+    beatsToNext: document.getElementById('beatsToNext'),
+    progressBar: document.getElementById('progressBar'),
+    dictDot: document.getElementById('dictDot'),
+    dictStatus: document.getElementById('dictStatus'),
+    freqDot: document.getElementById('freqDot'),
+    freqStatus: document.getElementById('freqStatus'),
+    currentWord: document.getElementById('currentWord'),
+    nextWord: document.getElementById('nextWord'),
+    afterNextWord: document.getElementById('afterNextWord'),
+    prevWord: document.getElementById('prevWord'),
+    prevPrevWord: document.getElementById('prevPrevWord'),
+    currentRhymeTag: document.getElementById('currentRhymeTag'),
+    afterNextTag: document.getElementById('afterNextTag'),
+  };
+
+  function initBeatsUI() {
+    el.beats.innerHTML = '';
+    for (let i = 0; i < state.beatsPerBar; i++) {
+      const d = document.createElement('div');
+      d.className = 'beat' + (i === state.beatsPerBar - 1 ? ' end' : '');
+      el.beats.appendChild(d);
+    }
+  }
+  initBeatsUI();
+
+  function setActiveBeatUI(idx, pulse=false) {
+    const nodes = el.beats.querySelectorAll('.beat');
+    nodes.forEach((n,i) => {
+      n.classList.toggle('active', i === idx);
+      if (pulse && i === idx) {
+        n.classList.remove('pulse'); void n.offsetWidth; n.classList.add('pulse');
+      }
+    });
+  }
+
+  function updateBeatsLeftUI() {
+    const beatsLeft = (state.beatsPerBar - state.currentBeat - 1 + state.beatsPerBar) % state.beatsPerBar;
+    el.beatsLeft.textContent = beatsLeft === 0 ? '0 (hit!)' : String(beatsLeft);
+    el.beatsToNext.textContent = String(beatsLeft || state.beatsPerBar);
+    const progress = (state.currentBeat + 1) / state.beatsPerBar * 100;
+    el.progressBar.style.width = progress + '%';
+  }
+
+  // Sound helpers
+  function createClick(time, accent=false) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const freq = accent ? 1500 : 1000;
+    const dur = 0.035;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(0.4, time + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+    osc.connect(gain).connect(masterGain);
+    osc.start(time); osc.stop(time + dur);
+  }
+  function noiseBurst(time, type='snare') {
+    const dur = 0.06;
+    const bufferSize = audioCtx.sampleRate * dur;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+    const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = (type==='snare'?1200:800);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(type==='snare'?0.5:0.4, time+0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time+dur);
+    noise.connect(filter).connect(gain).connect(masterGain);
+    noise.start(time); noise.stop(time+dur);
+  }
+  function kick(time) {
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(140, time);
+    osc.frequency.exponentialRampToValueAtTime(45, time+0.08);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(0.9, time+0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time+0.12);
+    osc.connect(gain).connect(masterGain); osc.start(time); osc.stop(time+0.13);
+  }
+  function playBeatSound(time, beatIndex) {
+    const endBeat = (beatIndex === state.beatsPerBar - 1);
+    if (state.beatStyle === 'metronome') {
+      createClick(time, beatIndex === 0);
+    } else {
+      const b = beatIndex;
+      const kBeats = state.beatsPerBar === 4 ? [0,2] : [0,1];
+      const sBeats = state.beatsPerBar === 4 ? [1,3] : [2];
+      if (kBeats.includes(b)) kick(time);
+      if (sBeats.includes(b)) noiseBurst(time, 'snare');
+      createClick(time, false);
+    }
+    if (endBeat) createClick(time, true);
+  }
+
+  // ----- Data Sources -----
+  const CMU_URL = 'https://raw.githubusercontent.com/Kaedenn/rhyme/refs/heads/master/data/cmudict-0.7b.utf8';
+  const FREQ_URL = 'https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english.txt';
+
+  const rhyme = {
+    loaded: false,
+    groups: new Map(), // key (tail phones) -> Set(words)
+    vowels: /^(AA|AE|AH|AO|AW|AY|EH|ER|EY|IH|IY|OW|OY|UH|UW)[0-2]$/,
+    // planning
+    targets: [],
+    seenWords: new Set(),
+    recentGroupKeys: [],
+    recentGroupWindow: 6, // avoid reusing same family across recent stanzas
+  };
+
+  const freq = {
+    loaded: false,
+    rank: new Map(), // word -> 1..10000
+    cutoff: 'ALL', // ALL | TOP10K | TOP5K | TOP3K
+  };
+
+  // ----- Helpers -----
+  function normalizeWord(raw) {
+    let w = raw.replace(/\(\d+\)$/,'').toLowerCase();
+    if (!/^[a-z]+$/.test(w)) return null;
+    if (w.length < 3 || w.length > 12) return null;
+    return w;
+  }
+  function makeRhymeKey(phones) {
+    let idx = -1;
+    for (let i = phones.length - 1; i >= 0; i--) {
+      if (rhyme.vowels.test(phones[i]) && /[12]/.test(phones[i])) { idx = i; break; }
+    }
+    if (idx === -1) {
+      for (let i = phones.length - 1; i >= 0; i--) {
+        if (rhyme.vowels.test(phones[i])) { idx = i; break; }
+      }
+    }
+    if (idx === -1) return null;
+    const tail = phones.slice(idx).map(p => p.replace(/[0-2]$/,'')).join(' ');
+    return tail;
+  }
+  function pickRandom(array) {
+    return array[Math.floor(Math.random()*array.length)];
+  }
+
+  // Vocabulary filter
+  function rankCutoffFromUI() {
+    switch (freq.cutoff) {
+      case 'TOP3K': return 3000;
+      case 'TOP5K': return 5000;
+      case 'TOP10K': return 10000;
+      default: return Infinity; // ALL
+    }
+  }
+  function wordIsCommon(w, cutoff = rankCutoffFromUI()) {
+    if (cutoff === Infinity) return true;
+    const r = freq.rank.get(w);
+    return (r && r <= cutoff) || false;
+  }
+
+  // Choose a rhyme group key, avoiding recent groups
+  function chooseFreshGroupKey(preferLarge=true) {
+    const keys = Array.from(rhyme.groups.keys());
+    const recent = new Set(rhyme.recentGroupKeys);
+    // Try a few times to get a key not in recent
+    for (let pass=0; pass<2; pass++) {
+      for (let attempts=0; attempts<60; attempts++) {
+        const k = pickRandom(keys);
+        if (recent.has(k)) continue;
+        if (preferLarge && rhyme.groups.get(k).size < 12) continue;
+        return k;
+      }
+      // relax constraints
+      preferLarge = false;
+    }
+    // fallback
+    return pickRandom(keys);
+  }
+
+  function pushRecentGroupKey(k) {
+    rhyme.recentGroupKeys.push(k);
+    if (rhyme.recentGroupKeys.length > rhyme.recentGroupWindow) rhyme.recentGroupKeys.shift();
+  }
+
+  // Build a word from a group respecting filters and no-repeat
+  function pickWordFromGroup(key) {
+    const all = Array.from(rhyme.groups.get(key) || []);
+    // 1) apply desired cutoff
+    let cutoff = rankCutoffFromUI();
+    let pool = all.filter(w => wordIsCommon(w, cutoff) && !rhyme.seenWords.has(w));
+    // 2) if too small, relax progressively
+    if (pool.length < 2 && cutoff >= 3000) {
+      for (const c of [5000, 10000, Infinity]) {
+        if (cutoff < c) continue;
+        pool = all.filter(w => wordIsCommon(w, c) && !rhyme.seenWords.has(w));
+        if (pool.length >= 2) break;
+      }
+    }
+    // 3) if still small, allow unseen even if uncommon
+    if (pool.length === 0) pool = all.filter(w => !rhyme.seenWords.has(w));
+    // 4) if still empty, allow any (last resort)
+    if (pool.length === 0) pool = all.slice(0);
+    if (pool.length === 0) return null;
+    return pickRandom(pool);
+  }
+
+  // ----- Loading -----
+  async function loadCMU() {
+    try {
+      el.dictStatus.textContent = 'Dictionary: fetching…';
+      const res = await fetch(CMU_URL, {cache:'force-cache'});
+      if (!res.ok) throw new Error('Fetch error: ' + res.status);
+      const text = await res.text();
+      el.dictStatus.textContent = 'Dictionary: parsing…';
+      const lines = text.split('\n');
+      let count = 0;
+      for (const line of lines) {
+        if (!line || line.startsWith(';')) continue;
+        const sp = line.trim().split(/\s+/);
+        const rawWord = sp[0];
+        const word = normalizeWord(rawWord);
+        if (!word) continue;
+        const phones = sp.slice(1);
+        const key = makeRhymeKey(phones);
+        if (!key) continue;
+        if (!rhyme.groups.has(key)) rhyme.groups.set(key, new Set());
+        rhyme.groups.get(key).add(word);
+        if ((++count % 6000) === 0) el.dictStatus.textContent = `Dictionary: parsing… (${count.toLocaleString()})`;
+      }
+      // Prune tiny families for quality
+      for (const [k, set] of Array.from(rhyme.groups.entries())) {
+        if (set.size < 8) rhyme.groups.delete(k);
+      }
+      rhyme.loaded = true;
+      el.dictDot.classList.add('ok');
+      el.dictStatus.textContent = `Dictionary: ready (${rhyme.groups.size} rhyme families)`;
+      maybeEnableStart();
+    } catch (e) {
+      console.error(e);
+      seedFallbackRhyme();
+      el.dictDot.classList.add('warn');
+      el.dictStatus.textContent = `Fallback dictionary ready (${rhyme.groups.size} families)`;
+      maybeEnableStart();
+    }
+  }
+
+  function seedFallbackRhyme() {
+    rhyme.groups.clear();
+    const fallbacks = {
+      'AE N D': ['bend','send','lend','tend','blend','friend','end','spend','trend','intend','defend','amend'],
+      'AY M': ['time','rhyme','climb','prime','slime','chime','crime','sublime','overtime','airtime'],
+      'IY T': ['beat','seat','street','meet','heat','elite','repeat','complete','concrete','retreat']
+    };
+    for (const [k, arr] of Object.entries(fallbacks)) rhyme.groups.set(k, new Set(arr));
+    rhyme.loaded = true;
+  }
+
+  async function loadFreq() {
+    try {
+      el.freqStatus.textContent = 'Vocabulary list: fetching…';
+      const res = await fetch(FREQ_URL, {cache:'force-cache'});
+      if (!res.ok) throw new Error('Fetch error: ' + res.status);
+      const text = await res.text();
+      const words = text.split(/\r?\n/).map(w => w.trim().toLowerCase()).filter(Boolean);
+      let rank = 1;
+      for (const w of words) freq.rank.set(w, rank++);
+      freq.loaded = true;
+      el.freqDot.classList.add('ok');
+      el.freqStatus.textContent = `Vocabulary list: ready (10k common words)`;
+      maybeEnableStart();
+    } catch (e) {
+      console.error(e);
+      freq.loaded = false;
+      el.freqDot.classList.add('warn');
+      el.freqStatus.textContent = 'Vocabulary list: failed — filtering will be limited.';
+      maybeEnableStart();
+    }
+  }
+
+  function maybeEnableStart() {
+    // You can start as soon as the dictionary is ready; vocab list is optional
+    if (rhyme.loaded) el.startBtn.disabled = false;
+  }
+
+  // ----- Rhyme Planning (with stanza rotation & no repeats) -----
+  function expandSchemeStr(s, len) {
+    if (s === 'FREESTYLE') {
+      const letters = ['A','B','C','D','E','F'];
+      const out = [];
+      for (let i=0;i<len;i++) out.push(letters[Math.floor(Math.random()*letters.length)]);
+      return out;
+    }
+    const pattern = s.trim().split('');
+    const out = [];
+    for (let i=0;i<len;i++) out.push(pattern[i % pattern.length]);
+    return out;
+  }
+
+  function planTargets() {
+    const bars = Math.max(4, Math.min(64, Number(el.lines.value) || 16));
+    const stanza = Math.max(1, Number(el.rhymeSpan.value) || 4); // bars per rhyme-change
+    const scheme = el.scheme.value;
+
+    const blocks = Math.ceil(bars / stanza);
+    const result = [];
+    const seen = rhyme.seenWords; // persistent across sessions until reset
+    const lettersPerBlockCache = new Map(); // key by stanza+scheme length to avoid recomputation
+
+    for (let b=0; b<blocks; b++) {
+      const barsInThisBlock = Math.min(stanza, bars - b*stanza);
+      // Determine letters for this block from scheme
+      const schemeLetters = lettersPerBlockCache.get(barsInThisBlock) ||
+        expandSchemeStr(scheme, barsInThisBlock);
+      lettersPerBlockCache.set(barsInThisBlock, schemeLetters);
+
+      // Map block letters to fresh group keys (rotate rhymes each block)
+      const letterToGroup = new Map();
+      for (const letter of new Set(schemeLetters)) {
+        let key = chooseFreshGroupKey(true);
+        // ensure uniqueness within block and not recently used
+        let guard = 0;
+        while ((Array.from(letterToGroup.values()).includes(key)) && guard++ < 50) {
+          key = chooseFreshGroupKey(true);
+        }
+        letterToGroup.set(letter, key);
+      }
+
+      // Remember we used these groups this stanza
+      for (const k of letterToGroup.values()) pushRecentGroupKey(k);
+
+      // Build bar targets for this block
+      for (let i=0; i<barsInThisBlock; i++) {
+        const letter = schemeLetters[i];
+        let key = letterToGroup.get(letter);
+        let word = pickWordFromGroup(key);
+
+        // If we failed to get a word (e.g., all seen), pick a different group
+        if (!word) {
+          let swapGuard = 0;
+          while (!word && swapGuard++ < 40) {
+            key = chooseFreshGroupKey(false);
+            word = pickWordFromGroup(key);
+          }
+          // Update mapping so future bars with this letter use the new key
+          letterToGroup.set(letter, key);
+        }
+
+        result.push({ word: word || '—', letter, key });
+        if (word) seen.add(word);
+      }
+    }
+
+    rhyme.targets = result;
+
+    // Initialize UI preview
+    const [cur, next, next2] = [result[0], result[1], result[2]];
+    setWordUI({
+      current: cur?.word ?? '—',
+      next: next?.word ?? '—',
+      next2: next2?.word ?? '—',
+      prev: '—',
+      prev2: '—',
+      currentTag: cur ? `${cur.letter}` : '—',
+      next2Tag: next2 ? `${next2.letter}` : '—',
+    });
+  }
+
+  function setWordUI({current, next, next2, prev, prev2, currentTag, next2Tag}) {
+    el.currentWord.textContent = current ?? '—';
+    el.nextWord.textContent = next ?? '—';
+    el.afterNextWord.textContent = next2 ?? '—';
+    el.prevWord.textContent = prev ?? '—';
+    el.prevPrevWord.textContent = prev2 ?? '—';
+    el.currentRhymeTag.textContent = currentTag ? `Rhyme: ${currentTag}` : 'Rhyme: —';
+    el.afterNextTag.textContent = next2Tag ?? '—';
+  }
+
+  // ----- Transport -----
+  let timerID = null;
+  let targetIndex = 0;
+
+  function nextNote() {
+    const secondsPerBeat = 60.0 / state.bpm;
+    state.nextNoteTime += secondsPerBeat;
+    state.currentBeat = (state.currentBeat + 1) % state.beatsPerBar;
+    if (state.currentBeat === 0) state.barCount++;
+  }
+
+  function scheduler() {
+    while (state.nextNoteTime < audioCtx.currentTime + state.scheduleAheadTime) {
+      const beatIdx = state.currentBeat;
+      playBeatSound(state.nextNoteTime, beatIdx);
+      const when = (state.nextNoteTime - audioCtx.currentTime) * 1000;
+
+      setTimeout(((beatAtSchedule) => () => {
+        setActiveBeatUI(beatAtSchedule, true);
+        updateBeatsLeftUI();
+
+        if (beatAtSchedule === state.beatsPerBar - 1) {
+          // Flash current
+          el.currentWord.classList.remove('flash'); void el.currentWord.offsetWidth; el.currentWord.classList.add('flash');
+
+          // shift visible words
+          const prev2 = el.prevWord.textContent;
+          const prev = el.currentWord.textContent;
+
+          const current = rhyme.targets[targetIndex]?.word ?? '—';
+          const next = rhyme.targets[targetIndex+1]?.word ?? '—';
+          const next2 = rhyme.targets[targetIndex+2]?.word ?? '—';
+          const currentLetter = rhyme.targets[targetIndex]?.letter ?? '—';
+          const next2Letter = rhyme.targets[targetIndex+2]?.letter ?? '—';
+
+          setWordUI({
+            current, next, next2, prev, prev2,
+            currentTag: currentLetter, next2Tag: next2Letter
+          });
+
+          targetIndex++;
+          if (targetIndex >= rhyme.targets.length) {
+            // regenerate plan for continuous practice
+            planTargets();
+            targetIndex = 0;
+          }
+        }
+      })(beatIdx), Math.max(0, when - 2));
+
+      nextNote();
+    }
+    timerID = setTimeout(scheduler, state.lookahead);
+  }
+
+  function start() {
+    if (!rhyme.loaded) return;
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = state.volume;
+      masterGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    planTargets();
+    state.isRunning = true;
+    state.currentBeat = 0;
+    state.nextNoteTime = audioCtx.currentTime + 0.08;
+    state.barCount = 0;
+    targetIndex = 0;
+    initBeatsUI();
+    setActiveBeatUI(0, false);
+    updateBeatsLeftUI();
+
+    scheduler();
+    el.startBtn.disabled = true;
+    el.pauseBtn.disabled = false;
+    el.resetBtn.disabled = false;
+  }
+
+  function pause() {
+    if (!state.isRunning) return;
+    state.isRunning = false;
+    if (timerID) clearTimeout(timerID);
+    timerID = null;
+    if (audioCtx) audioCtx.suspend();
+    el.startBtn.disabled = false;
+    el.pauseBtn.disabled = true;
+  }
+
+  function reset() {
+    pause();
+    state.currentBeat = 0;
+    state.barCount = 0;
+    targetIndex = 0;
+    rhyme.targets = [];
+    rhyme.seenWords.clear();
+    initBeatsUI();
+    setActiveBeatUI(0, false);
+    setWordUI({current:'—', next:'—', next2:'—', prev:'—', prev2:'—', currentTag:'—', next2Tag:'—'});
+    el.beatsLeft.textContent = '-';
+    el.beatsToNext.textContent = '—';
+    el.progressBar.style.width = '0%';
+  }
+
+  // ----- UI wiring -----
+  el.tempo.addEventListener('input', (e) => {
+    state.bpm = Number(e.target.value);
+    el.tempoVal.textContent = `(${state.bpm} BPM)`;
+  });
+  el.timeSig.addEventListener('change', (e) => {
+    state.beatsPerBar = Number(e.target.value);
+    initBeatsUI();
+  });
+  el.beatStyle.addEventListener('change', (e) => {
+    state.beatStyle = e.target.value;
+  });
+  el.lines.addEventListener('change', () => { /* used in planTargets on start/loop */});
+  el.rhymeSpan.addEventListener('change', () => { /* used in planTargets on start/loop */});
+  el.scheme.addEventListener('change', () => { /* used in planTargets on start/loop */});
+  el.vocab.addEventListener('change', (e) => {
+    freq.cutoff = e.target.value;
+    // Replan mid-session for immediate effect
+    if (state.isRunning) {
+      planTargets();
+      // keep current index aligned to avoid jarring jump
+      targetIndex = Math.min(targetIndex, rhyme.targets.length - 1);
+    }
+  });
+  el.volume.addEventListener('input', (e) => {
+    state.volume = Number(e.target.value) / 100;
+    if (masterGain) masterGain.gain.value = state.volume;
+  });
+  el.startBtn.addEventListener('click', start);
+  el.pauseBtn.addEventListener('click', pause);
+  el.resetBtn.addEventListener('click', reset);
+
+  // Load data
+  loadCMU();
+  loadFreq();
+})();
+</script>
+</body>
+</html>
