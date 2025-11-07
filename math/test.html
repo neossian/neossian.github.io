@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mental Math Trainer (0–20)</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --fg:#0f172a;          /* slate-900 */
+    --muted:#475569;       /* slate-600 */
+    --accent:#06b6d4;      /* cyan-500 */
+    --accent-2:#0891b2;    /* cyan-600 */
+    --good:#22c55e;        /* green-500 */
+    --bad:#ef4444;         /* red-500 */
+    --card:#f8fafc;        /* slate-50 */
+    --border:#cbd5e1;      /* slate-300 */
+    --focus:#f59e0b;       /* amber-500 */
+    --radius:14px;
+
+    --base: clamp(18px, 2.2vw + 6px, 22px);
+  }
+
+  html,body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", sans-serif;
+    font-size:var(--base);
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wrap{
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  header{
+    position: sticky; top: 0; z-index: 10;
+    background: var(--card);
+    border-bottom: 3px solid var(--border);
+  }
+  .brand{
+    display:flex; align-items:center; gap:.6rem;
+    max-width: 1000px; margin:0 auto; padding:.75rem 1rem;
+  }
+  .logo{
+    width: 36px; height:36px; border-radius:10px;
+    background: #e0fbff; border:3px solid var(--accent-2);
+    display:grid; place-items:center; color:#0c4a6e; font-weight:900;
+  }
+  h1{ margin:.2rem 0 .6rem 0; font-size:1.35rem; letter-spacing:.2px; }
+  p.small{ color:var(--muted); font-size:.95rem; margin:.25rem 0 .75rem 0;}
+
+  /* Card */
+  .card{
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+
+  /* Controls */
+  .controls{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap:.75rem;
+  }
+  .row{
+    display:flex; flex-wrap:wrap; align-items:center; gap:.75rem;
+  }
+  .group{
+    display:flex; flex-wrap:wrap; gap:.5rem;
+    padding:.5rem; border:2px dashed var(--border); border-radius:10px;
+    background:#fff;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.35rem .6rem; border-radius:999px;
+    border:2px solid var(--border); background:#fff; font-weight:800;
+    cursor:pointer; user-select:none;
+  }
+  .chip input{ accent-color: var(--accent-2); transform:scale(1.1); }
+  .btn{
+    appearance:none; border:3px solid var(--accent-2); border-radius:var(--radius);
+    background:#e0fbff; color:#0c4a6e; font-weight:900;
+    padding:.6rem 1rem; cursor:pointer; font-size:1.05rem;
+  }
+  .btn:hover{ background:#c7f6ff; }
+  .btn:focus{ outline:4px solid var(--focus); outline-offset:2px; }
+  .btn.secondary{ background:#fff; border-color:var(--border); color:var(--fg); }
+
+  /* Game layout */
+  .game{
+    display:grid; gap:1rem;
+    grid-template-columns: 1fr;
+  }
+  .grid2{
+    display:grid; gap:.75rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px){
+    .grid2{ grid-template-columns: 1fr 1fr; }
+  }
+
+  .qcard{
+    background:#fff; border:2px solid var(--border); border-radius:14px; padding:1rem;
+    display:flex; flex-direction:column; gap:.6rem; min-height:140px;
+  }
+  .qtitle{ color:var(--muted); font-weight:800; font-size:.95rem; }
+  .qprompt{
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight:900; letter-spacing:.5px; text-align:center;
+  }
+  .answer-wrap{
+    display:flex; gap:.5rem; align-items:center; justify-content:center;
+  }
+  .answer{
+    width: 8ch; max-width: 40vw;
+    padding:.55rem .7rem; border-radius:10px; border: 3px solid var(--border);
+    font-weight:900; text-align:center; font-size: clamp(22px, 5vw, 28px);
+    background:#ffffff;
+  }
+  .answer:focus{ outline:4px solid var(--focus); outline-offset:2px; }
+  .result{
+    font-weight:900; padding:.25rem .6rem; border-radius:999px;
+    border:2px solid var(--border); background:#fff; color:var(--muted);
+    min-width: 6ch; text-align:center;
+  }
+  .result.good{ background:#dcfce7; border-color:#86efac; color:#065f46; }
+  .result.bad{ background:#fee2e2; border-color:#fecaca; color:#7f1d1d; }
+
+  .qcard.good{ border-color: var(--good); box-shadow: 0 0 0 4px #22c55e22 inset; }
+  .qcard.bad{ border-color: var(--bad); box-shadow: 0 0 0 4px #ef444422 inset; }
+
+  .stats{
+    display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; justify-content:space-between;
+    background:#fff; border:2px solid var(--border); border-radius:12px; padding:.6rem .8rem;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.3rem .6rem; border-radius:999px; font-weight:900;
+    border:2px solid var(--border); background:#fff;
+  }
+  .pill.accent{ background:#e0fbff; border-color:var(--accent-2); color:#0c4a6e; }
+  .bar{
+    height: 10px; background:#e2e8f0; border-radius:999px; overflow:hidden; width:100%;
+  }
+  .bar > span{
+    display:block; height:100%; width:0%; background:linear-gradient(90deg,#06b6d4,#0891b2);
+    transition: width .2s ease;
+  }
+
+  .end{
+    display:none; gap:.6rem; align-items:center; justify-content:center; flex-wrap:wrap;
+  }
+  .end.show{ display:flex; }
+  .end h3{ margin:.3rem 0; }
+
+  footer{ text-align:center; color:var(--muted); font-size:.9rem; margin:1rem 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true">✚</div>
+    <div>
+      <h1>Mental Math Trainer (0–20)</h1>
+      <p class="small">Pick operations and question count. Press <strong>Enter</strong> to submit and auto‑advance. Current & next question shown.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Setup Panel -->
+  <section id="setup" class="card" role="region" aria-label="Game setup">
+    <div class="controls">
+      <div class="row">
+        <strong>Choose operations:</strong>
+        <div class="group" role="group" aria-label="Operations">
+          <label class="chip"><input type="checkbox" value="+" checked> + Add</label>
+          <label class="chip"><input type="checkbox" value="−" checked> − Subtract</label>
+          <label class="chip"><input type="checkbox" value="×" checked> × Multiply</label>
+          <label class="chip"><input type="checkbox" value="÷" checked> ÷ Divide</label>
+        </div>
+      </div>
+
+      <div class="row">
+        <strong>Number of questions:</strong>
+        <div class="group" role="group" aria-label="Question count">
+          <label class="chip"><input type="radio" name="count" value="20" checked> 20</label>
+          <label class="chip"><input type="radio" name="count" value="40"> 40</label>
+          <label class="chip"><input type="radio" name="count" value="100"> 100</label>
+        </div>
+      </div>
+
+      <div class="row" id="best-info" aria-live="polite">
+        <span class="pill">Best for this combo: <span id="best-time">—</span></span>
+      </div>
+
+      <div class="row">
+        <button id="start" class="btn">Start</button>
+        <button id="resetStorage" class="btn secondary" title="Clear saved best times">Reset Best Times</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game Panel -->
+  <section id="game" class="game" hidden>
+    <div class="stats" aria-live="polite">
+      <span class="pill accent">Time: <span id="time">00:00.0</span></span>
+      <span class="pill">Q: <span id="qidx">1</span>/<span id="qtotal">20</span></span>
+      <span class="pill">Correct: <span id="correct">0</span></span>
+      <span class="pill">Accuracy: <span id="acc">100%</span></span>
+      <div class="bar" style="flex:1 1 100%;"><span id="bar"></span></div>
+    </div>
+
+    <div class="grid2">
+      <!-- Current Question -->
+      <div class="qcard" id="current-card">
+        <div class="qtitle">Current</div>
+        <div id="current-prompt" class="qprompt" aria-live="polite" aria-atomic="true">—</div>
+        <div class="answer-wrap">
+          <label for="answer" class="visually-hidden">Your answer</label>
+          <input id="answer" class="answer" type="number" inputmode="numeric" step="1" placeholder="Answer" />
+          <div id="current-result" class="result"> </div>
+        </div>
+      </div>
+
+      <!-- Next Question -->
+      <div class="qcard" id="next-card">
+        <div class="qtitle">Next</div>
+        <div id="next-prompt" class="qprompt" aria-live="polite" aria-atomic="true">—</div>
+        <div class="answer-wrap">
+          <div class="result" style="opacity:.7;">Get ready…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="end" id="end-panel" role="status" aria-live="polite">
+      <h3 id="end-title">Great job!</h3>
+      <span class="pill">Time: <span id="final-time">—</span></span>
+      <span class="pill">Correct: <span id="final-correct">—</span></span>
+      <span class="pill">Accuracy: <span id="final-acc">—</span></span>
+      <span class="pill" id="best-note"> </span>
+      <div class="row" style="width:100%; justify-content:center; margin-top:.25rem;">
+        <button id="playAgain" class="btn">Play again</button>
+        <button id="changeSettings" class="btn secondary">Change settings</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>Made for quick mental math drills. Works offline in any modern browser.</footer>
+
+<!-- Accessibility helper -->
+<style>.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;}</style>
+
+<script>
+(function(){
+  // --------- Utilities ----------
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const clamp = (x,lo,hi)=>Math.max(lo,Math.min(hi,x));
+
+  function fmtTime(ms){
+    const s = Math.floor(ms/1000);
+    const m = Math.floor(s/60);
+    const remS = s%60;
+    const tenth = Math.floor((ms%1000)/100);
+    return `${String(m).padStart(2,'0')}:${String(remS).padStart(2,'0')}.${tenth}`;
+  }
+
+  function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randInt(lo,hi){ return Math.floor(Math.random()*(hi-lo+1))+lo; }
+
+  // Canonical op set for storage keys
+  const OP_CANON = { '+':'+', '−':'-', '×':'*', '÷':'/' };
+
+  function makeKey(ops, count){
+    const canonOps = ops.map(o=>OP_CANON[o]).sort().join('');
+    return `mm-best:${canonOps}:${count}`;
+  }
+
+  function getBest(key){
+    try{
+      const raw = localStorage.getItem(key);
+      return raw? parseInt(raw,10): null;
+    }catch{ return null; }
+  }
+  function setBest(key, ms){
+    try{ localStorage.setItem(key, String(ms)); }catch{}
+  }
+
+  function updateBestDisplay(){
+    const ops = getSelectedOps();
+    const count = getSelectedCount();
+    const key = makeKey(ops, count);
+    const best = getBest(key);
+    $('#best-time').textContent = best? fmtTime(best) : '—';
+  }
+
+  // ---------- Question generation ----------
+  function generateQuestions(total, ops){
+    const qs = [];
+    while(qs.length < total){
+      const op = sample(ops);
+      let a,b,answer,prompt;
+
+      if(op === '+'){
+        a = randInt(0,20); b = randInt(0,20);
+        answer = a + b; prompt = `${a} + ${b}`;
+      } else if(op === '−'){
+        // ensure non-negative result within 0..20
+        a = randInt(0,20); b = randInt(0,a);
+        answer = a - b; prompt = `${a} − ${b}`;
+      } else if(op === '×'){
+        a = randInt(0,20); b = randInt(0,20);
+        answer = a * b; prompt = `${a} × ${b}`;
+      } else if(op === '÷'){
+        // integer division, avoid /0, result 0..20
+        const divisor = randInt(1,20);
+        const quotient = randInt(0,20);
+        a = divisor * quotient; b = divisor; // a ÷ b = quotient
+        answer = quotient; prompt = `${a} ÷ ${b}`;
+      } else {
+        continue;
+      }
+
+      qs.push({op, a, b, prompt, answer});
+    }
+    return qs;
+  }
+
+  // ---------- State ----------
+  const state = {
+    ops: ['+','−','×','÷'],
+    total: 20,
+    questions: [],
+    idx: 0,
+    correct: 0,
+    startAt: 0,
+    timerId: null,
+    finished: false
+  };
+
+  // ---------- Setup UI ----------
+  function getSelectedOps(){
+    const ops = $$('#setup .group [type="checkbox"]:checked').map(i=>i.value);
+    return ops.length? ops : ['+']; // fallback
+  }
+  function getSelectedCount(){
+    const r = $('#setup [name="count"]:checked');
+    return r ? parseInt(r.value,10) : 20;
+  }
+
+  $('#setup').addEventListener('change', (e)=>{
+    if(e.target.matches('[type="checkbox"],[name="count"]')) updateBestDisplay();
+  });
+
+  $('#resetStorage').addEventListener('click', ()=>{
+    if(confirm('Clear all saved best times?')){
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith('mm-best:')) localStorage.removeItem(k);
+      });
+      updateBestDisplay();
+      alert('Best times cleared.');
+    }
+  });
+
+  // ---------- Game Flow ----------
+  function startGame(){
+    const ops = getSelectedOps();
+    const total = getSelectedCount();
+
+    // Ensure at least one op
+    if(ops.length===0){
+      alert('Please select at least one operation.');
+      return;
+    }
+
+    // Build questions
+    state.ops = ops;
+    state.total = total;
+    state.questions = generateQuestions(total, ops);
+    state.idx = 0;
+    state.correct = 0;
+    state.finished = false;
+    state.startAt = performance.now();
+
+    // UI init
+    $('#qtotal').textContent = total;
+    $('#qidx').textContent = '1';
+    $('#correct').textContent = '0';
+    $('#acc').textContent = '100%';
+    $('#bar').style.width = '0%';
+    $('#current-result').className = 'result';
+    $('#current-result').textContent = ' ';
+    $('#end-panel').classList.remove('show');
+
+    // Show first + next
+    renderCurrentNext();
+
+    // Toggle views
+    $('#setup').hidden = true;
+    $('#game').hidden = false;
+
+    // Timer
+    $('#time').textContent = '00:00.0';
+    if(state.timerId) cancelAnimationFrame(state.timerId);
+    const tick = ()=>{
+      if(state.finished) return;
+      const ms = performance.now() - state.startAt;
+      $('#time').textContent = fmtTime(ms);
+      state.timerId = requestAnimationFrame(tick);
+    };
+    state.timerId = requestAnimationFrame(tick);
+
+    // Focus input
+    const ans = $('#answer');
+    ans.value = '';
+    setTimeout(()=>ans.focus(), 0);
+  }
+
+  function renderCurrentNext(){
+    const cur = state.questions[state.idx];
+    const nxt = state.questions[state.idx+1];
+
+    $('#current-prompt').textContent = cur? cur.prompt : '—';
+    $('#next-prompt').textContent = nxt? nxt.prompt : '—';
+
+    // Reset styles
+    $('#current-card').classList.remove('good','bad');
+    $('#current-result').className='result';
+  }
+
+  function submitAnswer(){
+    if(state.finished) return;
+
+    const cur = state.questions[state.idx];
+    if(!cur) return;
+
+    const input = $('#answer');
+    const val = input.value.trim();
+    if(val===''){
+      // Treat empty as wrong; you can change if you want to require input
+    }
+
+    const user = Number(val);
+    const isCorrect = (user === cur.answer);
+
+    // Visual feedback
+    const card = $('#current-card');
+    const badge = $('#current-result');
+    if(isCorrect){
+      card.classList.remove('bad'); card.classList.add('good');
+      badge.className='result good';
+      badge.textContent='✓';
+      state.correct++;
+      $('#correct').textContent = String(state.correct);
+    } else {
+      card.classList.remove('good'); card.classList.add('bad');
+      badge.className='result bad';
+      badge.textContent= String(cur.answer);
+    }
+
+    // Stats/progress
+    const newIdx = state.idx + 1;
+    const acc = state.correct / (newIdx) * 100;
+    $('#acc').textContent = `${Math.round(acc)}%`;
+    $('#qidx').textContent = String(Math.min(newIdx+1, state.total));
+    $('#bar').style.width = `${(newIdx/state.total)*100}%`;
+
+    // Move on after a tiny delay to let color show
+    setTimeout(()=>{
+      state.idx = newIdx;
+      if(state.idx >= state.total){
+        finishGame();
+      } else {
+        renderCurrentNext();
+        input.value = '';
+        input.focus();
+      }
+    }, isCorrect ? 120 : 200);
+  }
+
+  function finishGame(){
+    state.finished = true;
+    const totalMs = performance.now() - state.startAt;
+    const final = {
+      ms: Math.round(totalMs),
+      correct: state.correct,
+      acc: Math.round((state.correct/state.total)*100)
+    };
+
+    // Stop timer display on the next frame
+    setTimeout(()=>$('#time').textContent = fmtTime(final.ms),0);
+
+    // Best-time logic per (ops,count)
+    const key = makeKey(state.ops, state.total);
+    const prevBest = getBest(key);
+    let note = '';
+    if(prevBest == null || final.ms < prevBest){
+      setBest(key, final.ms);
+      note = prevBest == null
+        ? 'First record for this combo!'
+        : `New best! Improved by ${fmtTime(prevBest - final.ms)}.`;
+    } else {
+      note = `Best remains ${fmtTime(prevBest)}.`;
+    }
+
+    // Show end panel
+    $('#final-time').textContent = fmtTime(final.ms);
+    $('#final-correct').textContent = `${final.correct}/${state.total}`;
+    $('#final-acc').textContent = `${final.acc}%`;
+    $('#best-note').textContent = note;
+    $('#end-title').textContent = final.acc === 100 ? 'Perfect!' : 'Great job!';
+    $('#end-panel').classList.add('show');
+
+    // Also reflect in setup panel if user goes back
+    updateBestDisplay();
+  }
+
+  // ---------- Events ----------
+  $('#start').addEventListener('click', startGame);
+
+  $('#answer').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){
+      submitAnswer();
+    }
+  });
+
+  $('#playAgain').addEventListener('click', ()=>{
+    // Restart with same settings
+    startGame();
+  });
+
+  $('#changeSettings').addEventListener('click', ()=>{
+    $('#game').hidden = true;
+    $('#setup').hidden = false;
+  });
+
+  // Initialize best-time display
+  updateBestDisplay();
+
+})();
+</script>
+</body>
+</html>
