@@ -354,31 +354,45 @@
   </style>
 </head>
 <body>
-  <header class="nav" role="navigation" aria-label="Math pages navigation">
-    <div class="nav-inner">
-      <strong aria-hidden="true">Pages:</strong>
-      <button id="tab-prime" class="active" data-target="page-prime" aria-controls="page-prime" aria-selected="true">
-        Page 1 · Prime Number Table
-      </button>
-      <button id="tab-add" data-target="page-add" aria-controls="page-add" aria-selected="false">
-        Page 2 · Addition Grid (1–20)
-      </button>
-      <button id="tab-mul" data-target="page-mul" aria-controls="page-mul" aria-selected="false">
-        Page 3 · Multiplication Grid (1–20)
-      </button>
+ <header class="nav" role="navigation" aria-label="Math pages navigation">
+  <div class="nav-bar">
+    <button id="hamburger"
+            class="hamburger"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="menu-panel">
+      <!-- three bars -->
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+    <strong class="site-title">Pages</strong>
+  </div>
 
-      <!-- NEW TABS -->
-      <button id="tab-div" data-target="page-div" aria-controls="page-div" aria-selected="false">
-        Page 4 · Divisibility Rules
-      </button>
-      <button id="tab-make10" data-target="page-make10" aria-controls="page-make10" aria-selected="false">
-        Page 5 · Make 10 (Pairs)
-      </button>
-      <button id="tab-angles" data-target="page-angles" aria-controls="page-angles" aria-selected="false">
-        Page 6 · Angles
-      </button>
-    </div>
-  </header>
+  <div id="menu-panel" class="nav-inner" hidden>
+    <strong aria-hidden="true">Pages:</strong>
+    <button id="tab-prime" class="active" data-target="page-prime" aria-controls="page-prime" aria-selected="true">
+      Page 1 · Prime Number Table
+    </button>
+    <button id="tab-add" data-target="page-add" aria-controls="page-add" aria-selected="false">
+      Page 2 · Addition Grid (1–20)
+    </button>
+    <button id="tab-mul" data-target="page-mul" aria-controls="page-mul" aria-selected="false">
+      Page 3 · Multiplication Grid (1–20)
+    </button>
+
+    <!-- Keep all your existing new buttons here -->
+    <button id="tab-div" data-target="page-div" aria-controls="page-div" aria-selected="false">
+      Page 4 · Divisibility Rules
+    </button>
+    <button id="tab-make10" data-target="page-make10" aria-controls="page-make10" aria-selected="false">
+      Page 5 · Make 10 (Pairs)
+    </button>
+    <button id="tab-angles" data-target="page-angles" aria-controls="page-angles" aria-selected="false">
+      Page 6 · Angles
+    </button>
+  </div>
+</header>
 
   <main class="container" role="main">
     <!-- ===== Page 1: Prime Numbers 1–100 ===== -->
@@ -976,7 +990,7 @@
 
       // Wait a frame for content to render, then install observers
       requestAnimationFrame(installFitObservers);
-          setupHamburgerMenu();
+      setupHamburgerMenu();
     });
 
 
