@@ -265,6 +265,92 @@
     @media (max-width: 640px) {
       :root { --cell-min-height: 48px; }
     }
+
+    /* ===== Hamburger / Nav bar ===== */
+.nav-bar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+.site-title {
+  font-weight: 800;
+  color: #0c4a6e;
+}
+
+/* Hamburger button (three bars) */
+.hamburger {
+  --bar-w: 26px;
+  --bar-h: 3px;
+  --bar-gap: 5px;
+
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--bar-gap);
+  width: calc(var(--bar-w) + 12px);
+  height: 40px;
+  background: #e0fbff;
+  border: 3px solid var(--accent-2);
+  color: #0c4a6e;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.hamburger:hover { background: #c7f6ff; }
+.hamburger:focus { outline: 4px solid var(--focus); outline-offset: 2px; }
+.hamburger span {
+  display: block;
+  width: var(--bar-w);
+  height: var(--bar-h);
+  background: #0c4a6e;
+  border-radius: 2px;
+  transition: transform 160ms ease, opacity 160ms ease, width 160ms ease;
+}
+
+/* Animate to an "X" when expanded */
+.hamburger[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(calc(var(--bar-h) + var(--bar-gap))) rotate(45deg);
+}
+.hamburger[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(calc(-1 * (var(--bar-h) + var(--bar-gap)))) rotate(-45deg);
+}
+
+/* ===== Collapsible menu panel ===== */
+#menu-panel {
+  /* From your .nav-inner: keep its layout, but make it collapsible */
+  transition: max-height 200ms ease, opacity 150ms ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0; /* collapsed state has no extra top padding */
+}
+
+/* "Open" state (we'll toggle [data-open]) */
+#menu-panel[data-open="true"] {
+  max-height: 60vh;  /* enough to show all buttons on mobile */
+  opacity: 1;
+  padding-top: 0.25rem;
+}
+
+/* Desktop: show menu inline and hide hamburger */
+@media (min-width: 900px) {
+  .hamburger { display: none; }
+  #menu-panel {
+    display: block !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+  #menu-panel[hidden] { display: block; } /* override hidden on desktop */
+}
+
   </style>
 </head>
 <body>
@@ -890,7 +976,80 @@
 
       // Wait a frame for content to render, then install observers
       requestAnimationFrame(installFitObservers);
+          setupHamburgerMenu();
     });
+
+
+  function setupHamburgerMenu() {
+    const btn = document.getElementById('hamburger');
+    const panel = document.getElementById('menu-panel');
+
+    if (!btn || !panel) return;
+
+    const openMenu = () => {
+      btn.setAttribute('aria-expanded', 'true');
+      panel.hidden = false;
+      panel.setAttribute('data-open', 'true');
+      // Focus the first tab button for keyboard users
+      const firstBtn = panel.querySelector('button');
+      if (firstBtn) firstBtn.focus({ preventScroll: true });
+      document.addEventListener('keydown', onKeydown);
+      document.addEventListener('click', onDocClick);
+    };
+
+    const closeMenu = () => {
+      btn.setAttribute('aria-expanded', 'false');
+      panel.removeAttribute('data-open');
+      // Delay hiding until transition ends, so it can animate
+      const onEnd = () => {
+        panel.hidden = true;
+        panel.removeEventListener('transitionend', onEnd);
+      };
+      panel.addEventListener('transitionend', onEnd);
+      document.removeEventListener('keydown', onKeydown);
+      document.removeEventListener('click', onDocClick);
+    };
+
+    const toggleMenu = () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      expanded ? closeMenu() : openMenu();
+    };
+
+    const onKeydown = (e) => {
+      if (e.key === 'Escape') {
+        closeMenu();
+        btn.focus({ preventScroll: true });
+      }
+    };
+
+    const onDocClick = (e) => {
+      // Close if clicking outside the nav area when open (mobile only)
+      const nav = document.querySelector('.nav');
+      if (!nav.contains(e.target) && btn.getAttribute('aria-expanded') === 'true') {
+        closeMenu();
+      }
+    };
+
+    btn.addEventListener('click', toggleMenu);
+
+    // Close after choosing a tab (mobile)
+    panel.addEventListener('click', (e) => {
+      const isTab = e.target instanceof HTMLElement && e.target.matches('button[data-target]');
+      if (isTab && window.matchMedia('(max-width: 899px)').matches) {
+        closeMenu();
+      }
+    });
+
+    // Respect prefers-reduced-motion (optional but nice)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      panel.style.transition = 'none';
+    }
+  }
+
+  // Call this in your DOMContentLoaded init, after setupNavigation()
+
+
+    
   </script>
 </body>
 </html>
