@@ -168,9 +168,97 @@
     }
     .fit-target {
       transform-origin: top left; /* scale anchors to top-left */
-      /* Prevent layout jitter from font metrics changing while scaling */
-      will-change: transform;
+      will-change: transform;     /* prevent layout jitter */
       display: inline-block;      /* natural width for measuring */
+    }
+
+    /* ===== New: Utility chips / badges ===== */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 2px solid var(--border);
+      background: #ffffff;
+      color: var(--fg);
+      font-weight: 700;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    .pill.good {
+      background: #c9f7d5;
+      border-color: #22c55e;
+      color: #064e3b;
+    }
+    .pill.bad {
+      background: #fee2e2;
+      border-color: #fecaca;
+      color: #7f1d1d;
+    }
+
+    /* ===== New: Simple form controls ===== */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 0.5rem 0 1rem 0;
+    }
+    .controls label { font-weight: 700; color: var(--fg); }
+    .controls input[type="number"] {
+      padding: 0.35rem 0.55rem;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: #fff;
+      min-width: 4ch;
+      font-weight: 700;
+    }
+    .controls input[type="checkbox"] { transform: scale(1.1); }
+    .small {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    /* ===== New: Rule cards ===== */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    .rule-card {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 0.75rem;
+    }
+    .rule-card h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.05rem;
+    }
+    .rule-card.hit {
+      background: #ecfdf5; /* emerald-50 */
+      border-color: #10b981; /* emerald-500 */
+    }
+
+    /* ===== New: Pair tiles ===== */
+    .pair-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    .pair-tile {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 0.75rem;
+      text-align: center;
+      font-weight: 800;
+    }
+    .pair-tile.equal {
+      background: #fff7ed; /* orange-50 */
+      border-color: #fdba74; /* orange-300 */
+      color: #7c2d12; /* orange-900 */
     }
 
     /* Responsive tweaks */
@@ -191,6 +279,17 @@
       </button>
       <button id="tab-mul" data-target="page-mul" aria-controls="page-mul" aria-selected="false">
         Page 3 · Multiplication Grid (1–20)
+      </button>
+
+      <!-- NEW TABS -->
+      <button id="tab-div" data-target="page-div" aria-controls="page-div" aria-selected="false">
+        Page 4 · Divisibility Rules
+      </button>
+      <button id="tab-make10" data-target="page-make10" aria-controls="page-make10" aria-selected="false">
+        Page 5 · Make 10 (Pairs)
+      </button>
+      <button id="tab-angles" data-target="page-angles" aria-controls="page-angles" aria-selected="false">
+        Page 6 · Angles
       </button>
     </div>
   </header>
@@ -238,6 +337,73 @@
             <div id="mul-grid" class="grid grid-21" aria-label="Multiplication grid from 1 to 20 with colorized background per product"></div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== NEW Page 4: Divisibility Rules ===== -->
+    <section id="page-div" class="page" role="region" aria-labelledby="tab-div">
+      <div class="card">
+        <h2>Divisibility Rules</h2>
+        <p>Quick ways to check if a number is divisible without doing long division.</p>
+
+        <div class="controls" role="group" aria-label="Divisibility checker controls">
+          <label for="div-num">Try a number:</label>
+          <input id="div-num" type="number" inputmode="numeric" value="150" min="-999999999" aria-describedby="div-hint" />
+          <span id="div-hint" class="small">We’ll highlight the rules that apply.</span>
+        </div>
+
+        <div id="div-summary" class="small" aria-live="polite"></div>
+
+        <div id="rules-container" class="rules-grid" aria-label="List of divisibility rules"></div>
+
+        <p class="note">Examples: <span class="pill">Ends with 0,2,4,6,8 → divisible by 2</span> · <span class="pill">Ends with 5 or 0 → divisible by 5</span> · <span class="pill">Digit sum divisible by 3 → divisible by 3</span></p>
+      </div>
+    </section>
+
+    <!-- ===== NEW Page 5: Make 10 (Pairs) ===== -->
+    <section id="page-make10" class="page" role="region" aria-labelledby="tab-make10">
+      <div class="card">
+        <h2>Make 10 (Pairs that add up to a target)</h2>
+        <p>These pairs help with mental math: for 10 → <strong>1&nbsp;+&nbsp;9</strong>, <strong>2&nbsp;+&nbsp;8</strong>, <strong>5&nbsp;+&nbsp;5</strong>, etc.</p>
+
+        <div class="controls" role="group" aria-label="Make 10 controls">
+          <label for="target-sum">Target sum:</label>
+          <input id="target-sum" type="number" inputmode="numeric" value="10" min="2" max="20" aria-describedby="pair-hint" />
+          <label><input id="unique-pairs" type="checkbox" checked /> Unique pairs only</label>
+          <span id="pair-hint" class="small">We use numbers from 0 to the target.</span>
+        </div>
+
+        <div class="fit-wrap" data-fit>
+          <div class="fit-target">
+            <div id="pairs-grid" class="pair-grid" aria-live="polite" aria-label="Pairs that add to the target sum"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== NEW Page 6: Angles ===== -->
+    <section id="page-angles" class="page" role="region" aria-labelledby="tab-angles">
+      <div class="card">
+        <h2>Angles: 45°, 90°, 180°</h2>
+        <p>Each diagram shows an angle measured from the horizontal ray (to the right) going counterclockwise.</p>
+
+        <div class="fit-wrap" data-fit>
+          <div class="fit-target">
+            <div id="angles-grid" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+              <div class="cell-muted" style="display:block;padding:0;">
+                <div class="angle-wrap" data-angle="45" aria-label="45 degrees angle diagram"></div>
+              </div>
+              <div class="cell-muted" style="display:block;padding:0;">
+                <div class="angle-wrap" data-angle="90" aria-label="90 degrees angle diagram"></div>
+              </div>
+              <div class="cell-muted" style="display:block;padding:0;">
+                <div class="angle-wrap" data-angle="180" aria-label="180 degrees angle diagram"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="note">Try spotting right angles (90°), straight angles (180°), and acute angles like 45°.</p>
       </div>
     </section>
   </main>
@@ -375,22 +541,17 @@
 
     /* ===== Fit-to-width logic ===== */
     function fitTargetToWidth(wrapper, target, { maxScale = 1 } = {}) {
-      // Measure available width and natural (unscaled) target width
       const avail = wrapper.clientWidth;
-      // Reset scale to 1 to measure natural size without compounding
       target.style.transform = 'scale(1)';
       const naturalWidth = target.scrollWidth;
       const naturalHeight = target.scrollHeight;
 
-      // Compute scale (never upscale beyond maxScale)
       let scale = 1;
       if (naturalWidth > 0 && avail > 0) {
         scale = Math.min(maxScale, avail / naturalWidth);
       }
 
       target.style.transform = `scale(${scale})`;
-
-      // Reserve proper vertical space so layout below doesn't overlap
       const scaledHeight = Math.ceil(naturalHeight * scale);
       wrapper.style.height = scaledHeight + 'px';
       wrapper.style.minHeight = scaledHeight + 'px';
@@ -407,20 +568,17 @@
         entries.forEach(({ wrapper, target }) => fitTargetToWidth(wrapper, target, { maxScale: 1 }));
       });
 
-      // Observe wrappers and targets (wrapper width or target content may change)
       entries.forEach(({ wrapper, target }) => {
         ro.observe(wrapper);
         ro.observe(target);
       });
 
-      // Also refit on window events
       ['load', 'resize', 'orientationchange', 'visibilitychange'].forEach(evt => {
         window.addEventListener(evt, () => {
           entries.forEach(({ wrapper, target }) => fitTargetToWidth(wrapper, target, { maxScale: 1 }));
         });
       });
 
-      // Initial fit
       entries.forEach(({ wrapper, target }) => fitTargetToWidth(wrapper, target, { maxScale: 1 }));
     }
 
@@ -436,8 +594,6 @@
           btn.setAttribute('aria-selected', active ? 'true' : 'false');
         });
         pages.forEach(sec => sec.classList.toggle('active', sec.id === targetId));
-        // After switching pages, refit visible grids
-        // Defer a tick to ensure layout is updated
         setTimeout(() => {
           document.querySelectorAll('.page.active [data-fit]').forEach(wrapper => {
             const target = wrapper.querySelector('.fit-target');
@@ -451,12 +607,286 @@
       });
     }
 
+    /* ===== NEW: Page 4 - Divisibility Rules ===== */
+    function renderDivisibilityRules() {
+      const rules = [
+        {
+          name: 'Divisible by 2',
+          key: '2',
+          test: n => n % 2 === 0,
+          explain: 'If it ends in 0, 2, 4, 6, or 8.'
+        },
+        {
+          name: 'Divisible by 3',
+          key: '3',
+          test: n => digitSum(Math.abs(n)) % 3 === 0,
+          explain: 'If the sum of its digits is divisible by 3.'
+        },
+        {
+          name: 'Divisible by 4',
+          key: '4',
+          test: n => n % 4 === 0,
+          explain: 'If the last two digits form a number divisible by 4.'
+        },
+        {
+          name: 'Divisible by 5',
+          key: '5',
+          test: n => Math.abs(n) % 10 === 0 || Math.abs(n) % 10 === 5,
+          explain: 'If it ends in 0 or 5.'
+        },
+        {
+          name: 'Divisible by 6',
+          key: '6',
+          test: n => n % 2 === 0 && digitSum(Math.abs(n)) % 3 === 0,
+          explain: 'If it is divisible by 2 and by 3.'
+        },
+        {
+          name: 'Divisible by 8',
+          key: '8',
+          test: n => n % 8 === 0,
+          explain: 'If the last three digits form a number divisible by 8.'
+        },
+        {
+          name: 'Divisible by 9',
+          key: '9',
+          test: n => digitSum(Math.abs(n)) % 9 === 0,
+          explain: 'If the sum of its digits is divisible by 9.'
+        },
+        {
+          name: 'Divisible by 10',
+          key: '10',
+          test: n => Math.abs(n) % 10 === 0,
+          explain: 'If it ends in 0.'
+        },
+        {
+          name: 'Divisible by 11',
+          key: '11',
+          test: n => Math.abs(alternatingDigitSum(Math.abs(n))) % 11 === 0,
+          explain: 'If the alternating sum of digits is divisible by 11.'
+        }
+      ];
+
+      const wrap = document.getElementById('rules-container');
+      wrap.innerHTML = '';
+
+      for (const r of rules) {
+        const card = document.createElement('div');
+        card.className = 'rule-card';
+        card.setAttribute('role', 'article');
+        card.setAttribute('aria-label', r.name);
+
+        const h3 = document.createElement('h3');
+        h3.textContent = r.name;
+        const p = document.createElement('p');
+        p.textContent = r.explain;
+
+        const chip = document.createElement('span');
+        chip.className = 'pill';
+        chip.textContent = 'Not checked yet';
+        chip.dataset.ruleKey = r.key;
+
+        card.append(h3, p, chip);
+        wrap.appendChild(card);
+      }
+
+      const input = document.getElementById('div-num');
+      const summary = document.getElementById('div-summary');
+
+      function update() {
+        const raw = input.value.trim();
+        const n = Number(raw);
+        const valid = Number.isFinite(n);
+        let hits = [];
+
+        document.querySelectorAll('.rule-card').forEach(c => c.classList.remove('hit'));
+
+        if (!valid) {
+          summary.textContent = 'Enter a valid number.';
+          document.querySelectorAll('.pill').forEach(p => {
+            p.textContent = '—';
+            p.className = 'pill';
+          });
+          return;
+        }
+
+        for (const r of rules) {
+          const ok = r.test(n);
+          const pill = wrap.querySelector(`.pill[data-rule-key="${r.key}"]`);
+          if (ok) {
+            hits.push(r.key);
+            pill.textContent = 'Yes';
+            pill.className = 'pill good';
+            pill.parentElement.classList.add('hit');
+          } else {
+            pill.textContent = 'No';
+            pill.className = 'pill bad';
+          }
+        }
+
+        if (hits.length) {
+          summary.innerHTML = `<strong>${n}</strong> is divisible by: ${hits.map(h => `<span class="pill good">${h}</span>`).join(' ')}`;
+        } else {
+          summary.innerHTML = `<strong>${n}</strong> is not divisible by these listed values.`;
+        }
+      }
+
+      input.addEventListener('input', update);
+      update();
+    }
+
+    function digitSum(n) {
+      let s = 0;
+      while (n > 0) { s += n % 10; n = Math.floor(n / 10); }
+      return s;
+    }
+    function alternatingDigitSum(n) {
+      // Example: 121 → (1 - 2 + 1) = 0 → divisible by 11
+      const digits = String(n).split('').map(Number).reverse();
+      return digits.reduce((acc, d, i) => acc + (i % 2 === 0 ? d : -d), 0);
+    }
+
+    /* ===== NEW: Page 5 - Make 10 (Pairs) ===== */
+    function renderMake10Pairs() {
+      const inputTarget = document.getElementById('target-sum');
+      const uniqueOnly = document.getElementById('unique-pairs');
+      const grid = document.getElementById('pairs-grid');
+
+      function computePairs(target, unique) {
+        const pairs = [];
+        if (unique) {
+          for (let a = 0; a <= Math.floor(target / 2); a++) {
+            const b = target - a;
+            if (b >= 0 && b <= target) pairs.push([a, b]);
+          }
+        } else {
+          for (let a = 0; a <= target; a++) {
+            const b = target - a;
+            if (b >= 0 && b <= target) pairs.push([a, b]);
+          }
+        }
+        return pairs;
+      }
+
+      function render() {
+        const target = clamp(parseInt(inputTarget.value || '10', 10), 2, 20);
+        inputTarget.value = String(target);
+        const pairs = computePairs(target, uniqueOnly.checked);
+
+        grid.innerHTML = '';
+        for (const [a, b] of pairs) {
+          const tile = document.createElement('div');
+          tile.className = 'pair-tile' + (a === b ? ' equal' : '');
+          tile.setAttribute('role', 'group');
+          tile.setAttribute('aria-label', `${a} plus ${b} equals ${target}`);
+          tile.innerHTML = `<div style="font-size:1.2rem">${a} + ${b}</div><div class="small">= ${target}</div>`;
+          grid.appendChild(tile);
+        }
+      }
+
+      inputTarget.addEventListener('input', render);
+      uniqueOnly.addEventListener('change', render);
+      render();
+    }
+
+    function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+    /* ===== NEW: Page 6 - Angles (SVG) ===== */
+    function renderAngles() {
+      const wraps = document.querySelectorAll('.angle-wrap');
+      wraps.forEach(w => {
+        const deg = parseFloat(w.dataset.angle);
+        w.innerHTML = '';
+        w.appendChild(buildAngleSVG(deg));
+      });
+    }
+
+    function buildAngleSVG(deg) {
+      const size = 260;
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = 92;         // ray length
+      const arcR = 44;      // arc radius for the angle marker
+      const strokeRay = '#0f172a';
+      const strokeGrid = '#e2e8f0';
+      const accent = '#06b6d4';
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+      svg.setAttribute('width', size);
+      svg.setAttribute('height', size);
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', `${deg} degrees angle diagram`);
+
+      // Light guide circle
+      const circle = document.createElementNS(svg.namespaceURI, 'circle');
+      circle.setAttribute('cx', cx);
+      circle.setAttribute('cy', cy);
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke', strokeGrid);
+      circle.setAttribute('stroke-width', '2');
+
+      // Base horizontal ray (0°)
+      const base = document.createElementNS(svg.namespaceURI, 'line');
+      base.setAttribute('x1', cx);
+      base.setAttribute('y1', cy);
+      base.setAttribute('x2', cx + r);
+      base.setAttribute('y2', cy);
+      base.setAttribute('stroke', strokeRay);
+      base.setAttribute('stroke-width', '4');
+      base.setAttribute('stroke-linecap', 'round');
+
+      // Second ray at deg
+      const rad = (deg * Math.PI) / 180;
+      const x2 = cx + r * Math.cos(rad);
+      const y2 = cy - r * Math.sin(rad); // minus because SVG y grows downward
+      const ray = document.createElementNS(svg.namespaceURI, 'line');
+      ray.setAttribute('x1', cx);
+      ray.setAttribute('y1', cy);
+      ray.setAttribute('x2', x2);
+      ray.setAttribute('y2', y2);
+      ray.setAttribute('stroke', strokeRay);
+      ray.setAttribute('stroke-width', '4');
+      ray.setAttribute('stroke-linecap', 'round');
+
+      // Angle arc from 0 to deg
+      const xArcStart = cx + arcR; // at 0°
+      const yArcStart = cy;
+      const xArcEnd = cx + arcR * Math.cos(rad);
+      const yArcEnd = cy - arcR * Math.sin(rad);
+      const largeArc = deg > 180 ? 1 : 0;
+      const sweep = 1;
+
+      const path = document.createElementNS(svg.namespaceURI, 'path');
+      path.setAttribute('d', `M ${xArcStart} ${yArcStart} A ${arcR} ${arcR} 0 ${largeArc} ${sweep} ${xArcEnd} ${yArcEnd}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', accent);
+      path.setAttribute('stroke-width', '6');
+
+      // Degree label
+      const label = document.createElementNS(svg.namespaceURI, 'text');
+      label.setAttribute('x', cx);
+      label.setAttribute('y', size - 16);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-weight', '800');
+      label.setAttribute('fill', '#0c4a6e');
+      label.textContent = `${deg}°`;
+
+      svg.append(circle, base, ray, path, label);
+      return svg;
+    }
+
     /* ===== Init ===== */
     document.addEventListener('DOMContentLoaded', () => {
       setupNavigation();
       renderPrimeGrid();
       renderAdditionGrid();
       renderMultiplicationGrid();
+
+      // NEW pages
+      renderDivisibilityRules();
+      renderMake10Pairs();
+      renderAngles();
 
       // Wait a frame for content to render, then install observers
       requestAnimationFrame(installFitObservers);
