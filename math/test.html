@@ -197,6 +197,15 @@
         </div>
       </div>
 
+        <div class="row">
+        <strong>Number Range:</strong>
+        <div class="group" role="group" aria-label="Number range">
+          <label class="chip"><input type="radio" name="range" value="10" checked> 1–10</label>
+          <label class="chip"><input type="radio" name="range" value="12"> 1–12</label>
+          <label class="chip"><input type="radio" name="range" value="20"> 1–20</label>
+        </div>
+      </div>
+
       <div class="row" id="best-info" aria-live="polite">
         <span class="pill">Best for this combo: <span id="best-time">—</span></span>
       </div>
@@ -304,26 +313,26 @@
   }
 
   // ---------- Question generation ----------
-  function generateQuestions(total, ops){
+  function generateQuestions(total, ops, range){
     const qs = [];
     while(qs.length < total){
       const op = sample(ops);
       let a,b,answer,prompt;
 
       if(op === '+'){
-        a = randInt(0,20); b = randInt(0,20);
+        a = randInt(0,range); b = randInt(0,range);
         answer = a + b; prompt = `${a} + ${b}`;
       } else if(op === '−'){
         // ensure non-negative result within 0..20
-        a = randInt(0,20); b = randInt(0,a);
+        a = randInt(0,range); b = randInt(0,a);
         answer = a - b; prompt = `${a} − ${b}`;
       } else if(op === '×'){
-        a = randInt(0,20); b = randInt(0,20);
+        a = randInt(0,range); b = randInt(0,range);
         answer = a * b; prompt = `${a} × ${b}`;
       } else if(op === '÷'){
         // integer division, avoid /0, result 0..20
-        const divisor = randInt(1,20);
-        const quotient = randInt(0,20);
+        const divisor = randInt(1,range);
+        const quotient = randInt(0,range);
         a = divisor * quotient; b = divisor; // a ÷ b = quotient
         answer = quotient; prompt = `${a} ÷ ${b}`;
       } else {
@@ -340,6 +349,7 @@
     ops: ['+','−','×','÷'],
     total: 20,
     questions: [],
+    range: 10,
     idx: 0,
     correct: 0,
     startAt: 0,
@@ -355,6 +365,10 @@
   function getSelectedCount(){
     const r = $('#setup [name="count"]:checked');
     return r ? parseInt(r.value,10) : 20;
+  }
+  function getSelectedRange(){
+    const r = $('#setup [name="range"]:checked');
+    return r ? parseInt(r.value,10) : 10;
   }
 
   $('#setup').addEventListener('change', (e)=>{
@@ -375,6 +389,7 @@
   function startGame(){
     const ops = getSelectedOps();
     const total = getSelectedCount();
+    const range = getSelectedRange();
 
     // Ensure at least one op
     if(ops.length===0){
@@ -385,7 +400,8 @@
     // Build questions
     state.ops = ops;
     state.total = total;
-    state.questions = generateQuestions(total, ops);
+    state.questions = generateQuestions(total, ops, range);
+    state.range = range;
     state.idx = 0;
     state.correct = 0;
     state.finished = false;
