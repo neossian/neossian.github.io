@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Block Sum Trainer – Tetris-like Complements</title>
+<style>
+  :root{
+    --bg:#0b1324;
+    --fg:#e6f2ff;
+    --muted:#93a4bd;
+    --card:#0f1b33;
+    --border:#1f2b45;
+    --accent:#06b6d4;
+    --good:#22c55e;
+    --bad:#ef4444;
+    --radius:16px;
+    --baseFont: clamp(17px, 2.2vw + 6px, 20px);
+  }
+  html,body{
+    margin:0;background:var(--bg);color:var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    font-size:var(--baseFont); line-height:1.45;
+    -webkit-font-smoothing:antialiased; font-variant-numeric: tabular-nums;
+  }
+  header{
+    position:sticky; top:0; z-index:10;
+    background:linear-gradient(180deg, #0e1830, #0c162c);
+    border-bottom: 2px solid var(--border);
+  }
+  .bar{
+    max-width:1100px; margin:0 auto; padding:.65rem 1rem;
+    display:flex; gap:.6rem; align-items:center; justify-content:space-between;
+  }
+  .brand{display:flex; align-items:center; gap:.6rem;}
+  .logo{
+    width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+    color:#0c4a6e; font-weight:900; background:#e0fbff; border:3px solid #0891b2;
+    box-shadow: 0 4px 14px #0891b236 inset;
+  }
+  h1{font-size:1.1rem; margin:0;}
+  .controls{
+    display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;
+  }
+  .btn{
+    appearance:none; cursor:pointer; border-radius:999px;
+    padding:.5rem .9rem; font-weight:800; border:2px solid #1e3a5f; background:#122447; color:#cfe6ff;
+  }
+  .btn:hover{ background:#16305e; }
+  .btn.accent{ border-color:#0aa7c7; background:#083a49; color:#abf0ff; }
+  .btn.good{ border-color:#22c55e; background:#0d2d1a; color:#c9f7d5;}
+  .btn.bad{ border-color:#ef4444; background:#3b0d12; color:#ffe3e3;}
+
+  main{ max-width:1100px; margin:0 auto; padding:1rem; }
+  .card{
+    background:linear-gradient(180deg, #0c172d, #0a1426); border:2px solid var(--border);
+    border-radius: var(--radius); padding:1rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,.25);
+  }
+  .grid{
+    display:grid; gap:1rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 820px){
+    .grid{ grid-template-columns: 1.1fr 1fr; }
+  }
+
+  .panel{
+    background:#0b1833; border:2px solid var(--border);
+    border-radius:14px; padding:1rem;
+  }
+  .panel h2{ margin:.2rem 0 .6rem 0; font-size:1.05rem; color:#cfe6ff; }
+  .muted{ color:var(--muted); }
+
+  .big{
+    font-weight:900; letter-spacing:.5px;
+    font-size: clamp(26px, 6.5vw, 46px);
+  }
+
+  .kv{
+    display:flex; flex-wrap:wrap; gap:.75rem; align-items:center;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.3rem .7rem; border-radius:999px; border:2px solid var(--border);
+    background:#0b1a33; color:#d1e7ff; font-weight:800;
+  }
+  .pill.acc{ background:#072a35; border-color:#0aa7c7; color:#bff4ff; }
+
+  .stage{
+    display:grid; gap:.75rem;
+    grid-template-columns: 1fr;
+  }
+  .block-wrap{
+    display:grid; place-items:center; background:#0a1a2f; border:2px dashed #1e335a;
+    border-radius:12px; padding:.75rem; min-height:180px;
+  }
+
+  .options{
+    display:grid; gap:.75rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 620px){
+    .options{ grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 980px){
+    .options{ grid-template-columns: repeat(5, 1fr); }
+  }
+
+  .opt{
+    background: #0c1c35; border:2px solid #163059; border-radius:12px; padding:.5rem;
+    display:flex; flex-direction:column; gap:.4rem; align-items:center; cursor:pointer;
+    transition: transform .06s ease, border-color .15s ease, box-shadow .15s ease;
+    min-height: 140px;
+  }
+  .opt:hover{ transform: translateY(-2px); }
+  .opt .label{ color:#b6c9e3; font-weight:800; }
+  .opt.correct{ border-color: var(--good); box-shadow: 0 0 0 4px #22c55e22 inset; }
+  .opt.wrong{ border-color: var(--bad); box-shadow: 0 0 0 4px #ef444422 inset; }
+
+  canvas{ width:100%; height:auto; display:block; }
+
+  .footer-note{
+    text-align:center; color:#88a2c4; margin-top:.9rem; font-size:.95rem;
+  }
+  .sr-only{ position:absolute!important; width:1px; height:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">◼︎</div>
+      <div>
+        <h1>Block Sum Trainer</h1>
+        <div class="muted" style="font-size:.95rem;">Pick the block that complements the base to make the target.</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="btnMusic" class="btn accent" aria-pressed="false">🎵 Music: Off</button>
+      <button id="btnSfx" class="btn accent" aria-pressed="false">🔊 SFX: Off</button>
+      <button id="btnNew" class="btn">New Prompt</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card grid" role="region" aria-label="Game area">
+    <div class="panel">
+      <h2>Target & Base</h2>
+      <div class="kv">
+        <span class="pill acc">Target: <span id="targetNum" class="big">—</span></span>
+        <span class="pill">Base size: <span id="baseSize" class="big">—</span></span>
+      </div>
+
+      <div class="stage" style="margin-top:.75rem;">
+        <div class="block-wrap" aria-label="Base block">
+          <canvas id="baseCanvas" width="320" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Pick the Complement</h2>
+      <div class="muted" style="margin-bottom:.4rem;">Choose the block whose <strong>number of squares</strong> completes the sum to the target.</div>
+      <div id="opts" class="options" aria-live="polite" aria-label="Block options"></div>
+    </div>
+  </section>
+
+  <p class="footer-note">Tip: Music/SFX require a tap to start on mobile. You can toggle them anytime.</p>
+</main>
+
+<!-- Game Logic & Audio -->
+<script>
+(()=> {
+  // ---------- Polyomino definitions (one canonical shape per size 1..10) ----------
+  // Each shape is a list of [x,y] cell coordinates. We'll normalize to start at (0,0).
+  const SHAPES = {
+    1: [[0,0]],
+    2: [[0,0],[1,0]],                                   // domino
+    3: [[0,0],[0,1],[1,0]],                             // L-triomino
+    4: [[0,1],[1,1],[2,1],[1,0]],                       // T-tetromino
+    5: [[1,0],[0,1],[1,1],[2,1],[1,2]],                 // X-pentomino (plus)
+    6: [[0,0],[1,0],[2,0],[2,1],[2,2],[1,2]],           // zig 6
+    7: [[0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3]],     // big L (4+3)
+    8: [[0,0],[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1]], // 2x4 rectangle
+    9: [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1],[0,2],[1,2],[2,2]], // 3x3 square
+    10:[[0,0],[1,0],[2,0],[3,0],[4,0],[0,1],[1,1],[2,1],[3,1],[4,1]] // 2x5 rectangle
+  };
+
+  function norm(shape){
+    const minx = Math.min(...shape.map(p=>p[0]));
+    const miny = Math.min(...shape.map(p=>p[1]));
+    return shape.map(([x,y])=>[x-minx, y-miny]);
+  }
+  Object.keys(SHAPES).forEach(k => SHAPES[k] = norm(SHAPES[k]));
+
+  // ---------- Rendering ----------
+  function drawShapeOnCanvas(canvas, shape, color='#06b6d4'){
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+
+    const cells = norm(shape);
+    const xs = cells.map(c=>c[0]);
+    const ys = cells.map(c=>c[1]);
+    const w = Math.max(...xs)+1;
+    const h = Math.max(...ys)+1;
+
+    // Compute cell size to fit nicely
+    const pad = 16;
+    const availW = canvas.width - pad*2;
+    const availH = canvas.height - pad*2;
+    const cell = Math.floor(Math.min(availW / w, availH / h));
+    const offX = Math.floor((canvas.width - (w*cell))/2);
+    const offY = Math.floor((canvas.height - (h*cell))/2);
+
+    // Shadow/backplate
+    ctx.fillStyle = '#061325';
+    ctx.strokeStyle = '#0b2a4d';
+    ctx.lineWidth = 4;
+    ctx.roundRect(offX-8, offY-8, w*cell+16, h*cell+16, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    for(const [x,y] of cells){
+      const px = offX + x*cell;
+      const py = offY + y*cell;
+
+      // Tile
+      const grd = ctx.createLinearGradient(px, py, px, py+cell);
+      grd.addColorStop(0, lighten(color, 0.15));
+      grd.addColorStop(1, color);
+      ctx.fillStyle = grd;
+      ctx.strokeStyle = darken(color, 0.35);
+      ctx.lineWidth = 3;
+      roundRect(ctx, px+2, py+2, cell-4, cell-4, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner highlight
+      ctx.strokeStyle = 'rgba(255,255,255,.15)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(px+6, py+6);
+      ctx.lineTo(px+cell-6, py+6);
+      ctx.lineTo(px+cell-6, py+cell-6);
+      ctx.stroke();
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function lighten(hex, amt){
+    const {r,g,b}=hexToRgb(hex);
+    return rgbToHex(
+      Math.min(255, Math.round(r*(1+amt))),
+      Math.min(255, Math.round(g*(1+amt))),
+      Math.min(255, Math.round(b*(1+amt)))
+    );
+  }
+  function darken(hex, amt){
+    const {r,g,b}=hexToRgb(hex);
+    return rgbToHex(
+      Math.max(0, Math.round(r*(1-amt))),
+      Math.max(0, Math.round(g*(1-amt))),
+      Math.max(0, Math.round(b*(1-amt)))
+    );
+  }
+  function hexToRgb(hex){
+    if(hex.startsWith('#')) hex = hex.slice(1);
+    if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+    const num = parseInt(hex,16);
+    return { r:(num>>16)&255, g:(num>>8)&255, b:num&255 };
+  }
+  function rgbToHex(r,g,b){
+    const h = (n)=>n.toString(16).padStart(2,'0');
+    return `#${h(r)}${h(g)}${h(b)}`;
+  }
+
+  // ---------- Game State ----------
+  const state = {
+    base: 0, complement: 0, target: 0,
+    options: [], // sizes
+    lock: false
+  };
+
+  const baseCanvas = document.getElementById('baseCanvas');
+  const targetNum = document.getElementById('targetNum');
+  const baseSizeEl = document.getElementById('baseSize');
+  const optsEl = document.getElementById('opts');
+
+  function randInt(lo, hi){ return Math.floor(Math.random()*(hi-lo+1))+lo; }
+  function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+
+  function newPrompt() {
+    if(state.lock) return;
+    // Choose base (1..10) and complement (1..10), derive target
+    const base = randInt(1,10);
+    const complement = randInt(1,10);
+    const target = base + complement;
+
+    state.base = base;
+    state.complement = complement;
+    state.target = target;
+
+    // Render base
+    targetNum.textContent = String(target);
+    baseSizeEl.textContent = String(base);
+    drawShapeOnCanvas(baseCanvas, SHAPES[base], '#06b6d4');
+
+    // Build options: include correct complement plus 4 distractors
+    const sizes = new Set([complement]);
+    while(sizes.size < 5){
+      const s = randInt(1,10);
+      if(s !== complement) sizes.add(s);
+    }
+    state.options = shuffle([...sizes]);
+
+    renderOptions();
+  }
+
+  function renderOptions(){
+    optsEl.innerHTML = '';
+    for(const size of state.options){
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', `Block with ${size} squares`);
+      btn.innerHTML = `
+        <div class="label">${size} squares</div>
+        <canvas width="240" height="140"></canvas>
+      `;
+      const canvas = btn.querySelector('canvas');
+      const color = size === state.complement ? '#22c55e' : '#8ab4ff';
+      drawShapeOnCanvas(canvas, SHAPES[size], color);
+
+      btn.addEventListener('click', ()=> onPick(btn, size));
+      optsEl.appendChild(btn);
+    }
+  }
+
+  function onPick(el, size){
+    if(state.lock) return;
+    state.lock = true;
+
+    const correct = (size === state.complement);
+    if(correct){
+      el.classList.add('correct');
+      playHappy();
+      setTimeout(()=> {
+        clearMarks();
+        state.lock = false;
+        newPrompt();
+      }, 550);
+    } else {
+      el.classList.add('wrong');
+      playSad();
+      setTimeout(()=> {
+        clearMarks();
+        state.lock = false;
+        newPrompt(); // new prompt on incorrect per spec
+      }, 650);
+    }
+  }
+
+  function clearMarks(){
+    document.querySelectorAll('.opt.correct,.opt.wrong').forEach(e=>{
+      e.classList.remove('correct','wrong');
+    });
+  }
+
+  // ---------- Audio (WebAudio: chiptune loop + sfx) ----------
+  let audio = null;
+  let musicGain, sfxGain, masterGain;
+  let musicTimer = null;
+  let isMusicOn = false, isSfxOn = false;
+
+  function ensureAudio(){
+    if(audio) return;
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audio.createGain();
+    masterGain.gain.value = 0.9;
+    masterGain.connect(audio.destination);
+
+    musicGain = audio.createGain();
+    musicGain.gain.value = 0.0; // start muted
+    musicGain.connect(masterGain);
+
+    sfxGain = audio.createGain();
+    sfxGain.gain.value = 0.0; // start muted
+    sfxGain.connect(masterGain);
+  }
+
+  // Simple sequencer: 120 BPM, 8th notes, square wave riff
+  function startMusic(){
+    ensureAudio();
+    if(isMusicOn) return;
+    isMusicOn = true;
+    document.getElementById('btnMusic').textContent = '🎵 Music: On';
+    document.getElementById('btnMusic').setAttribute('aria-pressed','true');
+    musicGain.gain.cancelScheduledValues(0);
+    musicGain.gain.linearRampToValueAtTime(0.18, audio.currentTime + 0.05);
+
+    const bpm = 120;
+    const intervalMs = (60 / bpm) * 1000 / 2; // 8th notes
+    const scale = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 349.23]; // C riff
+
+    let step = 0;
+    function tick(){
+      if(!isMusicOn) return;
+      const t = audio.currentTime + 0.01;
+      const freq = scale[step % scale.length];
+
+      // bass blip every 4 steps
+      if(step % 4 === 0){
+        blip(t, freq / 2, 0.22, 0.08, 'square', musicGain);
+      }
+      // lead note each step
+      blip(t, freq, 0.16, 0.06, 'square', musicGain);
+
+      step++;
+      musicTimer = setTimeout(tick, intervalMs);
+    }
+    tick();
+  }
+
+  function stopMusic(){
+    if(!audio) return;
+    isMusicOn = false;
+    document.getElementById('btnMusic').textContent = '🎵 Music: Off';
+    document.getElementById('btnMusic').setAttribute('aria-pressed','false');
+    musicGain.gain.cancelScheduledValues(0);
+    musicGain.gain.linearRampToValueAtTime(0.0, audio.currentTime + 0.12);
+    if(musicTimer){ clearTimeout(musicTimer); musicTimer=null; }
+  }
+
+  function blip(when, freq, amp=0.2, dur=0.1, type='square', dest=musicGain){
+    const osc = audio.createOscillator();
+    const g = audio.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, when);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(amp, when + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(g).connect(dest);
+    osc.start(when);
+    osc.stop(when + dur + 0.02);
+  }
+
+  function playHappy(){
+    ensureAudio();
+    if(!isSfxOn) return;
+    const t = audio.currentTime + 0.01;
+    // Major arpeggio (C-E-G-C)
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f,i)=> blip(t + i*0.05, f, 0.35, 0.09, 'triangle', sfxGain));
+  }
+  function playSad(){
+    ensureAudio();
+    if(!isSfxOn) return;
+    const t = audio.currentTime + 0.01;
+    // Down minor 3rd + 2nd (A -> F# -> E)
+    const notes = [440.00, 369.99, 329.63];
+    notes.forEach((f,i)=> blip(t + i*0.08, f, 0.32, 0.1, 'sawtooth', sfxGain));
+  }
+
+  // ---------- UI wiring ----------
+  const btnMusic = document.getElementById('btnMusic');
+  const btnSfx = document.getElementById('btnSfx');
+  const btnNew = document.getElementById('btnNew');
+
+  btnMusic.addEventListener('click', async ()=>{
+    ensureAudio();
+    try { await audio.resume(); } catch {}
+    if(isMusicOn) stopMusic(); else startMusic();
+  });
+
+  btnSfx.addEventListener('click', async ()=>{
+    ensureAudio();
+    try { await audio.resume(); } catch {}
+    isSfxOn = !isSfxOn;
+    btnSfx.textContent = isSfxOn ? '🔊 SFX: On' : '🔊 SFX: Off';
+    btnSfx.setAttribute('aria-pressed', String(isSfxOn));
+    // Fade sfx gain
+    sfxGain.gain.cancelScheduledValues(0);
+    const target = isSfxOn ? 0.35 : 0.0;
+    sfxGain.gain.linearRampToValueAtTime(target, audio.currentTime + 0.05);
+    // Friendly ping on enabling
+    if(isSfxOn){ playHappy(); }
+  });
+
+  btnNew.addEventListener('click', newPrompt);
+
+  // First prompt
+  newPrompt();
+
+  // Resize handling (high-DPI crispness)
+  function resizeCanvas(c){
+    const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+    const rect = c.getBoundingClientRect();
+    c.width = Math.round(rect.width * dpr);
+    c.height = Math.round(rect.height * dpr);
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0); // scale for crisp draw using CSS pixels
+  }
+  function refreshAllCanvas(){
+    // Base canvas
+    resizeCanvas(baseCanvas);
+    drawShapeOnCanvas(baseCanvas, SHAPES[state.base], '#06b6d4');
+    // Option canvases
+    document.querySelectorAll('.opt canvas').forEach((cnv, idx)=>{
+      resizeCanvas(cnv);
+      const size = state.options[idx];
+      const color = size === state.complement ? '#22c55e' : '#8ab4ff';
+      drawShapeOnCanvas(cnv, SHAPES[size], color);
+    });
+  }
+  const ro = new ResizeObserver(()=> refreshAllCanvas());
+  ro.observe(document.body);
+
+  // Initial DPI adjust after layout
+  setTimeout(refreshAllCanvas, 0);
+})();
+</script>
+</body>
+</html>
